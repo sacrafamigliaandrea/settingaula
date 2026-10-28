@@ -6308,9 +6308,10 @@ function boardPos(i) { const d = defOf(i); if (d.place !== 'wall') return { x: i
    Interfaccia: magazzino, ispettore, modali, consegna e raccolta dati
    ===================================================================== */
 // Endpoint Google Apps Script (vedi apps-script/Code.gs). Si puo' impostare anche dall'Area docente.
-const DEFAULT_ENDPOINT = '';
+const DEFAULT_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxNWY50TdNAc-ULDfxfTjG6v6TBRmKosjvv_vrf4ViqjWWWGXZwk3ePhV0mFywIgPLdWA/exec';
 const CFG = { endpoint: DEFAULT_ENDPOINT, classCode: '3A' };
 try { Object.assign(CFG, JSON.parse(localStorage.getItem('aulalab.cfg') || '{}')); } catch (e) {}
+if (!CFG.endpoint) CFG.endpoint = DEFAULT_ENDPOINT; // un URL vuoto salvato nel browser non deve disattivare quello predefinito
 const saveCfg = () => { try { localStorage.setItem('aulalab.cfg', JSON.stringify(CFG)); } catch (e) {} };
 const USERIMG = {}; try { Object.assign(USERIMG, JSON.parse(localStorage.getItem('aulalab.img') || '{}')); } catch (e) {}
 const ACTIVITIES = ['Lezione frontale', 'Lezione dialogata', 'Lavoro di gruppo', 'Laboratorio', 'Discussione / debate', 'Presentazione / mostra', 'Verifica', 'Attivita\' motoria o espressiva', 'Circle time'];
