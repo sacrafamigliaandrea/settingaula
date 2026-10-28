@@ -225,6 +225,30 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
 .credits{font-size:10.5px;color:var(--ink-3);line-height:1.5;font-family:var(--mono)}
 .dropzone{border:2px dashed var(--ink-3);border-radius:12px;padding:14px;text-align:center;color:var(--ink-2);font-size:12px;cursor:pointer;background:var(--card)}
 .dropzone:hover{border-color:var(--acc);color:var(--ink);background:var(--acc-soft)}
+/* ---------- guida a impalcatura ---------- */
+#guideCard{position:fixed;left:374px;top:76px;width:340px;background:var(--card);border:2px solid var(--ink);border-radius:14px;box-shadow:6px 6px 0 var(--acc);padding:12px 14px;z-index:140;display:none}
+#guideCard.show{display:block;animation:tin .25s ease}
+#guideCard .gstep{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--acc);font-weight:700}
+#guideCard b{display:block;font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:-.4px;margin:2px 0 4px}
+#guideCard p{margin:0 0 10px;font-size:13px;line-height:1.45;color:var(--ink-2)}
+#guideCard .gbtns{display:flex;gap:6px;flex-wrap:wrap}
+#guideCard.show.nudge{animation:gnudge .5s ease}
+@keyframes gnudge{0%,100%{transform:none}20%{transform:translateX(-6px) rotate(-.6deg)}45%{transform:translateX(5px) rotate(.4deg)}70%{transform:translateX(-3px)}}
+#guideCard .gsnd{margin-left:auto}
+#guideCard .gdone{font-size:12px;font-weight:600;color:var(--ok);margin-top:6px;min-height:14px}
+#guideRing{position:fixed;pointer-events:none;z-index:139;border:3px solid var(--acc);display:none;animation:gpulse 1.1s ease-in-out infinite}
+#guideRing.show{display:block}
+@keyframes gpulse{0%{box-shadow:0 0 0 0 rgba(255,90,31,.55);opacity:1}70%{box-shadow:0 0 0 14px rgba(255,90,31,0);opacity:.85}100%{box-shadow:0 0 0 0 rgba(255,90,31,0);opacity:1}}
+#guideArrow{position:fixed;pointer-events:none;z-index:141;display:none;filter:drop-shadow(2px 2px 0 #1A1712)}
+#guideArrow.show{display:block}
+#guideArrow.right svg{animation:gr .8s ease-in-out infinite}
+#guideArrow.left svg{transform:rotate(180deg);animation:gl .8s ease-in-out infinite}
+#guideArrow.up svg{transform:rotate(-90deg);animation:gu .8s ease-in-out infinite}
+#guideArrow.down svg{transform:rotate(90deg);animation:gd .8s ease-in-out infinite}
+@keyframes gr{50%{transform:translateX(8px)}}
+@keyframes gl{0%,100%{transform:rotate(180deg) translateX(0)}50%{transform:rotate(180deg) translateX(8px)}}
+@keyframes gu{0%,100%{transform:rotate(-90deg) translateX(0)}50%{transform:rotate(-90deg) translateX(8px)}}
+@keyframes gd{0%,100%{transform:rotate(90deg) translateX(0)}50%{transform:rotate(90deg) translateX(8px)}}
 /* ---------- editor dello studente tipo ---------- */
 .avwrap{border:1.5px solid var(--ink);border-radius:12px;background:radial-gradient(circle at 50% 35%,#FFF7E6,#EDE4D3);overflow:hidden;position:relative;margin-bottom:10px}
 .avwrap canvas{display:block;width:100%;height:280px;cursor:grab}
@@ -265,6 +289,7 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
     <button class="btn" id="btnPerc" title="Le aule di tutte le discipline"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="m14.5 17.5 2 2 4-4"/></svg>Le mie aule <b style="font-family:var(--mono)">0/14</b></button>
     <button class="btn primary" id="btnFly" title="Esplora l'aula con un volo 3D"><svg class="i" viewBox="0 0 24 24"><path d="M2 12h4l3-8 4 16 3-8h6"/></svg>Ho finito: volo 3D</button>
     <button class="btn" id="btnArch" title="Sottoponi l'aula alla verifica dell'architetto"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v4M12 7 6 21M12 7l6 14M8.5 15h7"/><circle cx="12" cy="6" r="1.5"/></svg>Architetto</button>
+    <button class="iconbtn" id="btnGuide" title="Guida: come si allestisce un'aula"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
     <button class="iconbtn" id="btnTeacher" title="Area docente"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
   </header>
 
@@ -9714,14 +9739,15 @@ ACERIO_ITEMS.forEach(d => { CAT[d.id] = d; CATALOG.push(d); });
 CAT['pouf-acerio'].stars = [4, 4, 3, 4, 3]; SEAT_STARS['pouf-acerio'] = [4, 4, 3, 4, 3]; SEAT_TYPES.push('pouf-acerio');
 
 LAYOUTS.acerio = { name: 'Setting Acerio', desc: 'Mega schermo su tutta la parete, pouf vicini, niente banchi: chi presenta si muove davanti allo schermo. Lo stile del prof. Cerioli.', icon: 'acerio',
-  gen(n) { const o = [{ type: 'tavolino-alto', x: -3.25, z: -1.75, ry: 0 }, { type: 'albero', x: -3.05, z: 2.3, ry: 0 }, { type: 'albero', x: 2.05, z: 2.3, ry: .6 }]; let k = 0, row = 0;
-    while (k < n && row < 6) { const R = 2.05 + row * 1.1, cnt = Math.floor(Math.PI * .66 * R / .62); for (let i = 0; i < cnt && k < n; i++) { const a = (i - (cnt - 1) / 2) / Math.max(1, cnt - 1) * Math.PI * .62; const x = Math.sin(a) * R, z = -3.2 + Math.cos(a) * R; if (Math.abs(x) > 3.35 || z > 2.35 || (Math.abs(x) > 2.6 && z > 1.7) || !okDoor(x, z)) continue; const ry = face(x, z, 0, -3.2); o.push({ type: 'pouf-acerio', x, z, ry, v: (i + row) % 2 ? 3 : 1 }, { type: 'ipad', x, z, ry, onDesk: true }); k++; } row++; }
+  gen(n) { const o = [{ type: 'tavolino-alto', x: 3.15, z: -2.25, ry: 0 }, { type: 'albero', x: -3.05, z: 2.3, ry: 0 }, { type: 'albero', x: 2.05, z: 2.3, ry: .6 }]; let k = 0, row = 0;
+    while (k < n && row < 6) { const R = 2.05 + row * 1.18, cnt = Math.floor(Math.PI * .66 * R / .62); /* archi a 1,18 m: tra un arco e l'altro restano 64 cm */ for (let i = 0; i < cnt && k < n; i++) { const a = (i - (cnt - 1) / 2) / Math.max(1, cnt - 1) * Math.PI * .62; const x = Math.sin(a) * R, z = -3.2 + Math.cos(a) * R; if (Math.abs(x) > 3.35 || z > 2.35 || (Math.abs(x) > 2.6 && z > 1.7) || !okDoor(x, z)) continue; const ry = face(x, z, 0, -3.2); o.push({ type: 'pouf-acerio', x, z, ry, v: (i + row) % 2 ? 3 : 1 }, { type: 'ipad', x, z, ry, onDesk: true }); k++; } row++; }
     return o; },
   after() { // via TV e lavagne dalla parete frontale; crocifisso sulla parete di fondo; appendiabiti in fondo
     S.items.filter(i => i.wall === 'front' && ['tv', 'lim', 'lavagna-bianca', 'lavagna-ardesia', 'schermo', 'videowall', 'proiezione-immersiva'].includes(i.type)).forEach(i => removeItem(i.uid));
-    S.items.filter(i => i.type === 'crocifisso' && i.wall === 'front').forEach(i => { Object.assign(i, { wall: 'back', u: 0, vv: 2.62 }); applyTransform(OBJ.get(i.uid)); });
-    S.items.filter(i => i.type === 'scaffale' && i.z < -2).forEach(i => { Object.assign(i, { x: 1.2, z: 2.76, ry: Math.PI }); applyTransform(OBJ.get(i.uid)); });
-    S.items.filter(i => i.type === 'isola-ecologica' && i.z < -2).forEach(i => { Object.assign(i, { x: -.4, z: 2.78, ry: Math.PI }); applyTransform(OBJ.get(i.uid)); }); // lo schermo resta libero
+    const keepHome = i => { if (!i.home) i.home = { x: i.x, z: i.z, ry: i.ry, wall: i.wall, u: i.u, vv: i.vv }; };
+    S.items.filter(i => i.type === 'crocifisso' && i.wall === 'front').forEach(i => { keepHome(i); Object.assign(i, { wall: 'back', u: 0, vv: 2.62 }); applyTransform(OBJ.get(i.uid)); });
+    S.items.filter(i => i.type === 'scaffale' && i.z < -2).forEach(i => { keepHome(i); Object.assign(i, { x: 1.2, z: 2.76, ry: Math.PI }); applyTransform(OBJ.get(i.uid)); });
+    S.items.filter(i => i.type === 'isola-ecologica' && i.z < -2).forEach(i => { keepHome(i); Object.assign(i, { x: -.4, z: 2.78, ry: Math.PI }); applyTransform(OBJ.get(i.uid)); }); // lo schermo resta libero
     if (!S.items.some(i => i.type === 'megaschermo')) { const e = addItem({ type: 'megaschermo', wall: 'front', u: 0, vv: 1.65, s: 1, byLayout: true }); clampItem(e.item); applyTransform(e); }
     setWallPaint('front', 'pietra'); S.light = 'giorno'; setLightMode(S.light); }
 };
@@ -9760,6 +9786,9 @@ CAT['docente-acerio'] = { id: 'docente-acerio', name: 'Prof. Andrea Cerioli', ca
   desc: 'Il docente alla spiegazione davanti al mega schermo: si muove, indica, coinvolge. E\' l\'idea del setting Acerio, nata da una lezione tenuta in un Apple Store.' };
 { const g0 = LAYOUTS.acerio.gen; LAYOUTS.acerio.gen = function (n) { return g0.call(this, n).concat([{ type: 'docente-acerio', x: -1.45, z: -2.35, ry: .45 }]); }; }
 Object.assign(PREVIEW_SIZE, { 'docente-acerio': [.5, .4] });
+
+// uscendo dal setting Acerio, crocifisso, appendiabiti e isola ecologica tornano al loro posto
+{ const _al = applyLayout; applyLayout = function (id, ex, opts) { if (id !== 'acerio') S.items.forEach(i => { if (!i.home) return; const h = i.home; delete i.home; Object.keys(h).forEach(k => { if (h[k] !== undefined) i[k] = h[k]; }); const e = OBJ.get(i.uid); if (e) applyTransform(e); }); return _al(id, ex, opts); }; }
 
 /* =====================================================================
    Verifica di sicurezza dell'allestimento: "Setting approvato" o
@@ -10464,6 +10493,78 @@ function schedaHTML(type) { const s = SCHEDE[type]; if (!s) return '';
   return `<div class="field"><label>Scheda</label><div class="note" style="font-size:11.5px"><b>Materiale.</b> ${esc(s.materiale)}<br><b>Tecnologia.</b> ${esc(s.tecnologia)}${s.cura ? `<br><b>Attenzione.</b> ${esc(s.cura)}` : ''}</div></div>`; }
 
 /* =====================================================================
+   Guida a impalcatura per il primo allestimento: una scheda con il passo
+   da fare, una freccia e un anello che pulsano sul pulsante giusto.
+   Ogni passo si completa da solo quando lo studente compie l'azione;
+   se l'elemento non e' visibile, la freccia indica prima dove aprirlo.
+   Si riapre dal pulsante "?" nella barra in alto.
+   ===================================================================== */
+const GUIDA = { on: false, i: 0, base: {}, timer: null, flags: {} };
+const guideKey = () => 'settingaula.guida.' + (S.lesson.studentCode || 'anonimo');
+const guideDone = () => { try { return localStorage.getItem(guideKey()) === '1'; } catch (e) { return false; } };
+const vis = sel => { const el = typeof sel === 'string' ? $(sel) : sel; if (!el) return null; const r = el.getBoundingClientRect(); return r.width > 2 && r.height > 2 ? el : null; };
+const firstVis = sels => { for (const s of sels) { const el = $$(s).find(e => vis(e)); if (el) return el; } return null; };
+const act = () => S.meta.actions;
+// ogni passo: titolo, testo, dove puntare (puo' cambiare mentre lo studente procede) e quando e' fatto
+const GUIDE_STEPS = [
+  { t: 'Benvenuto in Setting Aula', x: 'Sei il progettista della tua aula. In pochi passi impari a usare l\'app: una freccia ti indica ogni volta dove cliccare.', intro: true },
+  { t: 'Dai un nome all\'aula', x: 'Clicca qui e scrivi il nome dell\'aula e il titolo della lezione.', target: () => ['#lessonChip', '#aulaName'], done: () => !!S.lesson.aula && !/^Aula di /.test(S.lesson.aula) || GUIDA.flags.named },
+  { t: 'Scegli una disposizione', x: 'Apri la scheda Disposizioni e clicca una delle disposizioni consigliate: banchi e sedie si spostano da soli.', target: () => STORE.tab !== 'setting' ? ['#storeTabs [data-tab="setting"]'] : ['#storeBody [data-preset]', '#storeBody [data-layout]'], done: b => act().layout > b.layout },
+  { t: 'Prendi un oggetto dal magazzino', x: 'Apri Arredi o Tecnologia, poi trascina un oggetto nell\'aula (oppure cliccalo e poi clicca nell\'aula).', target: () => !['arredi', 'tecno'].includes(STORE.tab) ? ['#storeTabs [data-tab="arredi"]'] : ['#storeBody .card[data-type]'], done: b => act().add > b.add },
+  { t: 'Sposta o ruota un oggetto', x: 'Trascina un oggetto per spostarlo. Per ruotarlo usa i pulsanti che compaiono sopra di lui, oppure i tasti R ed E.', target: () => vis('#selbar.show') ? ['#selbar.show button[data-a="rotL"]', '#selbar.show'] : ['#stage canvas.gl'], center: true, done: b => act().move + act().rotate > b.move + b.rotate },
+  { t: 'Appendi una gigantografia', x: 'Apri Pareti, poi Gigantografie: trascina un personaggio su una parete e scrivi perche\' l\'hai scelto.', target: () => vis('#wWhy') ? ['#wWhy'] : STORE.tab !== 'pareti' ? ['#storeTabs [data-tab="pareti"]'] : STORE.wallSub !== 'giganti' ? ['[data-ws="giganti"]'] : ['#storeBody [data-giant]'], done: () => S.items.some(i => i.type === 'giant' && (i.why || '').trim().length >= 10) },
+  { t: 'Controlla la sicurezza', x: 'Clicca qui: scopri se l\'aula rispetta le norme e, sul pavimento, dove i passaggi sono troppo stretti.', target: () => ['#safetyStat'], done: () => SAFE.panel },
+  { t: 'Guarda l\'aula in volo', x: 'Quando ti sembra pronta, fai il volo 3D: entri dalla porta e attraversi l\'aula.', target: () => ['#btnFly'], done: () => GUIDA.flags.flew },
+  { t: 'Chiama l\'architetto', x: 'L\'architetto verifica norme di sicurezza e brief della disciplina. Se qualcosa non va, ti dice cosa puoi fare.', target: () => vis('#afArch') ? ['#afArch'] : ['#btnArch'], done: () => GUIDA.flags.arch },
+  { t: 'Primo allestimento completato', x: 'Ora sai scegliere la disposizione, prendere oggetti, appendere immagini motivate, controllare la sicurezza e chiedere la verifica. Prossimo obiettivo: tutte le 14 aule approvate in "Le mie aule". La guida si riapre dal pulsante con il punto interrogativo.', outro: true }
+];
+// suono della guida (Web Audio, nessun file): due note quando compare una nuova freccia, ripetute ogni 12 s
+// se lo studente resta fermo; tre note salenti quando il passo e' fatto. Si spegne dal pulsante nella scheda.
+const GSND = { on: (() => { try { return localStorage.getItem('settingaula.guida.suono') !== '0'; } catch (e) { return true; } })(), el: null, last: 0, input: 0 };
+function guideTone(notes, gap = .14, vol = .2) { if (!GSND.on) return; const ac = audio(); if (!ac) return; const t0 = ac.currentTime + .02;
+  notes.forEach((m, i) => { const t = t0 + i * gap, f = 440 * Math.pow(2, (m - 69) / 12);
+    [[f, 'sine', vol], [f * 2, 'triangle', vol * .22]].forEach(([fr, ty, v]) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = ty; o.frequency.value = fr;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .012); g.gain.exponentialRampToValueAtTime(.0005, t + .5); o.connect(g); g.connect(FP.master); o.start(t); o.stop(t + .55); }); }); }
+function guideCue() { GSND.last = Date.now(); guideTone([79, 84]); const c = $('#guideCard'); if (c && c.classList.contains('show')) { c.classList.remove('nudge'); void c.offsetWidth; c.classList.add('nudge'); } }
+const SND_ICON = on => `<svg viewBox="0 0 24 24" width="14" height="14" style="vertical-align:-2px"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/>${on ? '<path d="M16 8.5a5 5 0 0 1 0 7M18.6 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' : '<path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'}</svg>`;
+['pointerdown', 'keydown'].forEach(ev => addEventListener(ev, () => { GSND.input = Date.now(); }, true));
+function guideEls() { if (!$('#guideCard')) { const c = document.createElement('div'); c.id = 'guideCard'; document.body.appendChild(c); const a = document.createElement('div'); a.id = 'guideArrow'; a.innerHTML = '<svg viewBox="0 0 48 48" width="46" height="46"><path d="M6 24h28M24 12l12 12-12 12" fill="none" stroke="#FF5A1F" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>'; document.body.appendChild(a); const r = document.createElement('div'); r.id = 'guideRing'; document.body.appendChild(r); } }
+function startGuide(from = 0) { guideEls(); GUIDA.on = true; GUIDA.flags = {}; goGuide(from); clearInterval(GUIDA.timer); GUIDA.timer = setInterval(tickGuide, 250); }
+function goGuide(i) { GUIDA.i = i; GUIDA.base = Object.assign({}, act()); const st = GUIDE_STEPS[i], n = GUIDE_STEPS.length - 2; const c = $('#guideCard');
+  c.innerHTML = `<span class="gstep">${st.intro || st.outro ? 'GUIDA' : 'PASSO ' + i + ' DI ' + n}</span><b>${esc(st.t)}</b><p>${esc(st.x)}</p><div class="gbtns">${st.intro ? '<button class="btn small primary" id="gGo">Iniziamo</button><button class="btn small ghost" id="gSkip">Salta la guida</button>' : st.outro ? '<button class="btn small primary" id="gEnd">Chiudi la guida</button>' : `<button class="btn small" id="gBack" ${i <= 1 ? 'disabled' : ''}>Indietro</button><button class="btn small ghost" id="gNext">Avanti</button><button class="btn small ghost" id="gSkip">Salta la guida</button>`}</div><button class="btn small ghost gsnd" id="gSnd" title="Accendi o spegni il suono della guida">${SND_ICON(GSND.on)} Suono</button></div><div class="gdone" id="gDone"></div>`;
+  c.className = 'show'; const by = id => $('#' + id); if (by('gGo')) by('gGo').onclick = () => goGuide(1); if (by('gEnd')) by('gEnd').onclick = () => endGuide(true);
+  if (by('gSkip')) by('gSkip').onclick = () => endGuide(true); if (by('gBack')) by('gBack').onclick = () => goGuide(Math.max(1, i - 1)); if (by('gNext')) by('gNext').onclick = () => goGuide(i + 1);
+  by('gSnd').onclick = () => { GSND.on = !GSND.on; try { localStorage.setItem('settingaula.guida.suono', GSND.on ? '1' : '0'); } catch (e) {} by('gSnd').innerHTML = SND_ICON(GSND.on) + ' Suono'; if (GSND.on) guideTone([79, 84]); };
+  GSND.el = null; if (st.outro) { GSND.last = Date.now(); guideTone([72, 76, 79, 84], .12); } else if (st.intro) guideCue();
+  tickGuide(); }
+function endGuide(done) { GUIDA.on = false; clearInterval(GUIDA.timer); ['#guideCard', '#guideArrow', '#guideRing'].forEach(s => { const e = $(s); if (e) e.className = ''; }); if (done) try { localStorage.setItem(guideKey(), '1'); } catch (e) {} }
+function tickGuide() { if (!GUIDA.on) return; const st = GUIDE_STEPS[GUIDA.i];
+  if (st.done && !GUIDA.wait && st.done(GUIDA.base)) { GUIDA.wait = true; const d = $('#gDone'); if (d) d.textContent = 'Fatto: passo completato.'; hideGuideMarks(); guideTone([72, 76, 79], .09, .16); GSND.last = Date.now(); setTimeout(() => { GUIDA.wait = false; if (GUIDA.on) goGuide(GUIDA.i + 1); }, 900); return; }
+  if (GUIDA.wait) return; const el = st.target ? firstVis(st.target()) : null; if (!el) { hideGuideMarks(); GSND.el = null; return; }
+  /* nuova freccia: suona subito (non piu' di una volta ogni 1,5 s); stessa freccia e studente fermo da 12 s: suona di nuovo. Durante il volo tace. */
+  const now = Date.now(); if (!FLY.on) { if (el !== GSND.el) { if (now - GSND.last > 1500) { guideCue(); GSND.el = el; } } else if (now - Math.max(GSND.last, GSND.input) > 12000) guideCue(); }
+  const r = el.getBoundingClientRect(), ring = $('#guideRing'), arr = $('#guideArrow');
+  if (st.center && el.tagName === 'CANVAS') { const cx = r.left + r.width / 2, cy = r.top + r.height / 2; Object.assign(ring.style, { left: cx - 70 + 'px', top: cy - 70 + 'px', width: '140px', height: '140px', borderRadius: '50%' }); placeArrow(arr, { left: cx - 70, top: cy - 70, right: cx + 70, bottom: cy + 70, width: 140, height: 140 }); }
+  else { Object.assign(ring.style, { left: r.left - 5 + 'px', top: r.top - 5 + 'px', width: r.width + 10 + 'px', height: r.height + 10 + 'px', borderRadius: '12px' }); placeArrow(arr, r); }
+  ring.className = 'show'; }
+// la freccia si mette dove c'e' spazio e punta verso il bersaglio; sulle schede piccole del magazzino
+// sta sotto (di lato coprirebbe la scheda vicina), sulla barra in basso sta sopra
+function placeArrow(arr, r) { const W = innerWidth, H = innerHeight; let dir, x, y;
+  if (r.top < 90 || (r.right < 420 && r.height < 64 && H - r.bottom > 80)) { dir = 'up'; x = r.left + r.width / 2 - 23; y = r.bottom + 10; }
+  else if (r.bottom > H - 70) { dir = 'down'; x = r.left + r.width / 2 - 23; y = r.top - 58; }
+  else if (r.left > 420) { dir = 'right'; x = r.left - 58; y = r.top + r.height / 2 - 23; }
+  else if (W - r.right > 80) { dir = 'left'; x = r.right + 12; y = r.top + r.height / 2 - 23; }
+  else { dir = 'down'; x = r.left + r.width / 2 - 23; y = r.top - 58; }
+  arr.className = 'show ' + dir; arr.style.left = clamp(x, 4, W - 50) + 'px'; arr.style.top = clamp(y, 4, H - 50) + 'px'; }
+function hideGuideMarks() { const a = $('#guideArrow'), r = $('#guideRing'); if (a) a.className = ''; if (r) r.className = ''; }
+// segnali per i passi che non hanno un contatore
+{ const _sf = startFly; startFly = function () { GUIDA.flags.flew = true; return _sf.apply(this, arguments); }; }
+{ const _am = architectModal; architectModal = function () { GUIDA.flags.arch = true; return _am.apply(this, arguments); }; }
+{ const _sl = setLesson; setLesson = function (l) { const r = _sl.apply(this, arguments); if (l && l.aula && GUIDA.on) GUIDA.flags.named = true; return r; }; }
+// avvio automatico al primo uso, dopo la scelta della lezione
+setInterval(() => { if (!GUIDA.on && !GUIDA.started && S.lesson.studentCode && !guideDone() && !$('#modalRoot').children.length && !$('#loader')) { GUIDA.started = true; startGuide(0); } }, 1200);
+
+/* =====================================================================
    Avvio, ciclo di rendering, camminata
    ===================================================================== */
 function loadBar(p, t) { $('#loadbar').style.width = Math.round(p * 100) + '%'; if (t) $('#loadtxt').textContent = t; }
@@ -10507,6 +10608,7 @@ async function boot() {
   $$('#storeTabs button').forEach(b => b.onclick = () => { STORE.tab = b.dataset.tab; renderStore(); });
   $$('#viewSeg button').forEach(b => b.onclick = () => setView(b.dataset.view));
   $('#btnTour').onclick = startTour; $('#tNext').onclick = () => goStop(TOUR.i + 1); $('#tPrev').onclick = () => goStop(TOUR.i - 1); $('#tEnd').onclick = endTour;
+  $('#btnGuide').onclick = () => { closeModal(); startGuide(0); };
   $('#btnPerc').onclick = boardModal; $('#btnFly').onclick = startFly; $('#btnArch').onclick = architectModal; $('#flySkip').onclick = () => endFly(true);
   $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo;
   $('#btnLight').onclick = () => { S.light = S.light === 'giorno' ? 'proiezione' : 'giorno'; setLightMode(S.light); commit('luci'); toast(S.light === 'giorno' ? 'Luci accese' : 'Luci soffuse per la proiezione', 'info'); };
