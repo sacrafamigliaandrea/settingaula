@@ -12680,6 +12680,74 @@ function arrediCorridoio() { const C = CORR, o = [];
     r.corridoioOggetti = r.oggetti.filter(o => o.zona === 'corridoio').length; const L = SAFE.last && SAFE.last.corridoio; r.corridoioPassaggio = L ? L.cm : ''; return r; }; }
 
 /* =====================================================================
+   Robotica che si muove da sola. Drone, robot educativo, robot umanoide e
+   braccio robotico non stanno fermi: si anima solo il loro "corpo" dentro il
+   gruppo dell'oggetto, quindi la posizione salvata (dati, disposizioni,
+   verifica di sicurezza, ingombro) non cambia mai.
+   - Drone: a terra, decolla, fa un giro largo fino a 80 cm (senza uscire
+     dall'aula o dal corridoio: zonaLimiti), riatterra. Ciclo di 18 s.
+   - Robot educativo: percorre un quadrato e gira a sinistra a ogni lato,
+     come un robot a blocchi (12 cm sul banco, 45 cm per terra).
+   - Robot umanoide: si guarda intorno, saluta con la mano, cammina in un
+     piccolo giro e torna fermo (14 s). Rifatto a pezzi snodati, stesso aspetto.
+   - Braccio robotico: ruota la base e piega spalla e gomito, come in un
+     prendi-e-posa.
+   Ognuno ha una fase diversa (dall'uid), cosi' non si muovono all'unisono.
+   Si fermano quando li selezioni, li trascini o li stai posando, e durante
+   le animazioni delle disposizioni.
+   ===================================================================== */
+const ROBO = { t0: performance.now() };
+const roboEase = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
+function roboFase(uid) { let h = 7; for (const c of String(uid)) h = (h * 31 + c.charCodeAt(0)) % 9973; return h / 9973 * 30; }
+function roboFermo(e) { const D = PTR.drag; return SEL.has(e.item.uid) || !!e.anim || (D && D.items && D.items.includes(e.item)) || (PTR.placing && PTR.placing.e === e); }
+// il gruppo dell'oggetto contiene il corpo animato; userData.robo = { step(t, e), rest() }
+function roboWrap(type, make) { const def = CAT[type]; if (!def) return; const b0 = def.build;
+  def.build = function (o, item) { const g = new THREE.Group(), r = make(b0, o, item); g.add(r.corpo); g.userData.robo = r; return g; }; }
+// ---- drone
+roboWrap('drone', (b0, o, item) => { const d = b0(o, item);
+  return { corpo: d, rest() { d.position.set(0, 0, 0); d.rotation.set(0, 0, 0); },
+    step(t, e) { const it = e.item, Z = zonaLimiti(it), m = .35, k = t % 18;
+      const R = Math.max(.15, Math.min(.8, it.x - Z.x0 - m, Z.x1 - it.x - m, it.z - Z.z0 - m, Z.z1 - it.z - m)), H = Math.min(1.1, 2.85 - (it.y || 0));
+      let y = 0, r = 0, a = 0;
+      if (k >= 3 && k < 5) y = H * roboEase((k - 3) / 2);
+      else if (k >= 5 && k < 14) { y = H + .05 * Math.sin(k * 2.4); r = R * roboEase((k - 5) / 1.5) * (1 - roboEase((k - 12.5) / 1.5)); a = (k - 5) / 9 * Math.PI * 2; }
+      else if (k >= 14 && k < 16) y = H * (1 - roboEase((k - 14) / 2));
+      d.position.set(Math.sin(a) * r, y + (y > .02 ? .015 * Math.sin(t * 9) : 0), Math.cos(a) * r);
+      d.rotation.set(r > .05 ? -.14 : 0, a + Math.PI / 2, 0); } }; });
+// ---- robot educativo: quadrato, 2 s per lato e 1 s per girare a sinistra
+roboWrap('robot', (b0, o, item) => { const d = b0(o, item);
+  return { corpo: d, rest() { d.position.set(0, 0, 0); d.rotation.set(0, 0, 0); },
+    step(t, e) { const S = (e.item.y || 0) > .3 ? .12 : .45, k = t % 12, lato = Math.floor(k / 3), f = k % 3; let x = 0, z = 0, h = 0;
+      for (let i = 0; i <= lato; i++) { const p = i < lato ? 1 : roboEase(Math.min(1, f / 2)); x += -Math.sin(h) * S * p; z += -Math.cos(h) * S * p; if (i < lato) h += Math.PI / 2; }
+      if (f >= 2) h += Math.PI / 2 * roboEase(f - 2);
+      d.position.set(x, 0, z); d.rotation.set(0, h, 0); } }; });
+// ---- robot umanoide snodato (stesso aspetto di bHumanoid)
+roboWrap('robot-umanoide', () => { const body = new THREE.Group(), w = colorMat('#F2F0EA', .35), a = colorMat(ACC, .4), dk = MAT.darkMetal;
+  const legs = [-1, 1].map(s => { const L = new THREE.Group(); L.position.set(s * .045, .25, 0); body.add(L); rbox(L, .07, .05, .11, .02, w, 0, -.25, .01); cyl(L, .03, .032, .2, w, 0, -.2, 0, 12); return L; });
+  rbox(body, .17, .2, .1, .04, w, 0, .25, 0); rbox(body, .1, .06, .02, .01, a, 0, .33, .05);
+  const arms = [-1, 1].map(s => { const P = new THREE.Group(); P.position.set(s * .11, .43, 0); body.add(P); sph(P, .03, a, 0, 0, 0, 10, 8); cyl(P, .022, .02, .18, w, s * .01, -.18, 0, 10); P.userData.s = s; return P; });
+  const head = new THREE.Group(); head.position.set(0, .55, 0); body.add(head); sph(head, .085, w, 0, 0, 0, 24, 16).scale.set(1.05, .95, 1);
+  [-.03, .03].forEach(x => sph(head, .015, emis('#7FE0FF', 1.4), x, .01, .075, 10, 8)); sph(head, .03, dk, 0, 0, -.06, 10, 8).scale.set(1.6, 1, 1);
+  const rest = () => { body.position.set(0, 0, 0); body.rotation.set(0, 0, 0); head.rotation.set(0, 0, 0); legs.forEach(L => L.rotation.set(0, 0, 0)); arms.forEach(P => P.rotation.set(0, 0, P.userData.s * .12)); };
+  rest();
+  return { corpo: body, rest,
+    step(t) { const k = t % 14; rest();
+      if (k < 3) head.rotation.y = .7 * Math.sin(k / 3 * Math.PI * 2);                                     // si guarda intorno
+      else if (k < 6) { const u = roboEase((k - 3) / .5) * (1 - roboEase((k - 5.5) / .5)); arms[0].rotation.z = -(.12 + 2.5 * u) + .35 * u * Math.sin(k * 9); head.rotation.z = .12 * u; } // saluta
+      else if (k < 11) { const u = roboEase((k - 6) / .5) * (1 - roboEase((k - 10.5) / .5)), ph = (k - 6) * 7, ang = (k - 6) / 5 * Math.PI * 2;  // passeggia in un piccolo giro
+        legs[0].rotation.x = .4 * u * Math.sin(ph); legs[1].rotation.x = -.4 * u * Math.sin(ph); arms[0].rotation.x = -.35 * u * Math.sin(ph); arms[1].rotation.x = .35 * u * Math.sin(ph);
+        body.position.set(Math.sin(ang) * .06 * u, .006 * u * Math.abs(Math.sin(ph)), (Math.cos(ang) - 1) * .06 * u); body.rotation.y = ang * u; }
+      else body.position.y = .003 * Math.sin(k * 3); } }; });                                            // respira
+// ---- braccio robotico: prendi e posa
+roboWrap('braccio-robotico', (b0, o, item) => { const d = b0(o, item), s1 = d.children.find(c => c.isGroup), s2 = s1 && s1.children.find(c => c.isGroup);
+  if (s1) s1.rotation.order = 'YXZ';
+  return { corpo: d, rest() { if (s1) s1.rotation.set(0, 0, .35); if (s2) s2.rotation.set(0, 0, -1.4); },
+    step(t) { if (!s1 || !s2) return; s1.rotation.y = 1.1 * Math.sin(t * .55); s1.rotation.z = .35 + .28 * Math.sin(t * 1.1); s2.rotation.z = -1.4 + .38 * Math.sin(t * 1.1 + 1.2); } }; });
+// ogni fotogramma, dopo le animazioni del motore
+{ const _t = tickAnims; tickAnims = function (dt) { _t.apply(this, arguments); const T = (performance.now() - ROBO.t0) / 1000;
+    OBJ.forEach(e => { const r = e.group.userData.robo; if (!r) return; if (roboFermo(e)) r.rest(); else r.step(T + roboFase(e.item.uid), e); }); }; }
+
+/* =====================================================================
    Avvio, ciclo di rendering, camminata
    ===================================================================== */
 function loadBar(p, t) { $('#loadbar').style.width = Math.round(p * 100) + '%'; if (t) $('#loadtxt').textContent = t; }
