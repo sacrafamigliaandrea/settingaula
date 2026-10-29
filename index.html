@@ -11996,18 +11996,25 @@ function musClose() { if (MUS.panel) MUS.panel.remove(); MUS.panel = null; remov
    quel brano si ferma. Il browser lascia partire l'audio solo dopo un gesto: parte al primo clic o tasto.
    Si silenzia dal pulsante con l'altoparlante nella barra in alto, dal pannello Musica o dalla
    presentazione; scelta e volume restano in questo browser (settingaula.tappeto). */
-const TAP = { a: null, on: true, APP: .16, INTRO: .6, started: false, broken: false, timer: null };
+const TAP = { a: null, on: true, APP: .16, INTRO: .6, started: false, ready: false, broken: false, timer: null };
 try { const t = JSON.parse(localStorage.getItem('settingaula.tappeto') || '{}'); if (t.on === false) TAP.on = false; if (typeof t.vol === 'number') TAP.APP = clamp(t.vol, 0, .5); } catch (e) {}
 const tapSave = () => { try { localStorage.setItem('settingaula.tappeto', JSON.stringify({ on: TAP.on, vol: TAP.APP })); } catch (e) {} };
 const IC_VOL_ON = '<svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
 const IC_VOL_OFF = '<svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="m17 9 5 6M22 9l-5 6"/></svg>';
-function tapAudio() { if (TAP.a) return TAP.a; const a = TAP.a = new Audio('intro.mp3'); a.loop = true; a.preload = 'auto'; a.volume = 0;
-  a.addEventListener('error', () => { TAP.broken = true; tapUI(); }); return a; }
+// Il file si scarica TUTTO con fetch e l'audio suona dalla memoria (blob:). Con src = 'intro.mp3' Safari
+// lo scarica a pezzi (streaming) e la rotellina di caricamento della pagina gira senza fermarsi.
+// Se fetch non e' possibile (pagina aperta da file://) si torna allo streaming.
+function tapAudio() { if (TAP.a) return TAP.a; const a = TAP.a = new Audio(); a.loop = true; a.preload = 'auto'; a.volume = 0;
+  a.addEventListener('error', () => { if (a.getAttribute('src')) { TAP.broken = true; tapUI(); } });
+  const go = src => { a.src = src; TAP.ready = true; tapSync(); };
+  fetch('intro.mp3').then(r => { if (!r.ok) throw new Error(r.status); return r.blob(); }).then(b => go(URL.createObjectURL(b)))
+    .catch(e => { if (location.protocol === 'file:') go('intro.mp3'); else { TAP.broken = true; tapUI(); } });
+  return a; }
 function tapWant() { if (!TAP.on || !TAP.started || TAP.broken || (MUS.audio && !MUS.audio.paused)) return 0;
   return typeof INTRO !== 'undefined' && INTRO.on && INTRO.play ? TAP.INTRO : TAP.APP; }
 // porta il volume a quello voluto in ~1 s (dissolvenza), poi mette in pausa se il volume voluto e' zero
 function tapSync() { const a = tapAudio(), v = tapWant(); clearInterval(TAP.timer);
-  if (v > 0 && a.paused) a.play().catch(() => {});
+  if (v > 0 && a.paused && TAP.ready) a.play().catch(() => {});
   TAP.timer = setInterval(() => { const d = v - a.volume; if (Math.abs(d) <= .025) { a.volume = v; clearInterval(TAP.timer); if (!v) a.pause(); } else a.volume = clamp(a.volume + Math.sign(d) * .025, 0, 1); }, 40);
   tapUI(); }
 function tapToggle() { TAP.on = !TAP.on; TAP.started = true; tapSave(); tapSync(); if (MUS.panel) musUI(); }
@@ -12096,6 +12103,7 @@ function openIntro() {
     <div class="ix-prog"><div class="ix-acts"><span>L'idea</span><span>I setting</span><span>La consegna</span></div><div class="ix-track"><i id="ixBar"></i></div></div>`;
   document.body.appendChild(el); document.body.classList.add('intro'); INTRO.on = true; INTRO.play = false; INTRO.t = 0; INTRO.i = -1;
   $('#ixPlay', el).onclick = ixPlay; $('#ixSkip', el).onclick = closeIntro; $('#ixMute', el).onclick = tapToggle;
+  if (TAP.on) tapAudio(); // comincia a scaricare la musica mentre la copertina aspetta il clic
   addEventListener('keydown', ixKey, true); setTimeout(() => $('#ixPlay', el) && $('#ixPlay', el).focus(), 50);
 }
 function ixPlay() { const el = INTRO.el; el.classList.remove('cover'); el.classList.add('playing');
