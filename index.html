@@ -12411,7 +12411,8 @@ function bellBind(p) { const s = $('#mBell', p); if (!s) return; s.onchange = e 
    controsoffitto a quadrotti con pannelli LED (si vede solo in Visita). Dall'altra
    parte il tratto si chiude con una vetrata: oltre, l'atrio luminoso delle foto.
    Pareti "a casa delle bambole" come nell'aula: si abbassano quelle che danno
-   le spalle a chi guarda. In Visita si esce dalla porta e ci si cammina dentro
+   le spalle a chi guarda; il muro tra corridoio e aula (con nicchia, listelli e
+   disegni) si alza solo in Visita, cosi' nella vista 3D e nell'intro non copre l'aula. In Visita si esce dalla porta e ci si cammina dentro
    (walkOk in walkStep), girando attorno a tavoli e scrivania.
    Armadietti "all'americana": scelta del magazzino (Arredi > Corridoio), uno
    per studente, 13 colonne da due sulla parete dell'aula accanto alla nicchia;
@@ -12554,7 +12555,7 @@ function buildCorridor() { const C = CORR, root = new THREE.Group(); root.name =
 { const _uw = updateWallVisibility; updateWallVisibility = function (forceAll) { const walk = typeof CAM !== 'undefined' && CAM.mode === 'walk' && !CAM.tween;
     _uw.call(this, forceAll || walk); const C = CORR; if (!C.g) return; const p = camera.position, plan = typeof CAM !== 'undefined' && CAM.mode === 'plan' && !CAM.tween, sez = !forceAll && !walk;
     const vis = (g, st, via) => { g.visible = !via; st.visible = via; };
-    vis(C.lato, C.latoStub, sez && (plan || p.x > C.XC + .05)); vis(C.fin, C.finStub, sez && (plan || p.x < C.XW - .05)); vis(C.fondo, C.fondoStub, sez && (plan || p.z > C.ZB + .05)); vis(C.inizio, C.inizioStub, sez && (plan || p.z < C.ZA - .05)); C.atrio.visible = walk;
+    vis(C.lato, C.latoStub, sez); // il muro tra corridoio e aula sta in piedi solo in Visita: nella vista 3D e nella presentazione non copre l'aula vis(C.fin, C.finStub, sez && (plan || p.x < C.XW - .05)); vis(C.fondo, C.fondoStub, sez && (plan || p.z > C.ZB + .05)); vis(C.inizio, C.inizioStub, sez && (plan || p.z < C.ZA - .05)); C.atrio.visible = walk;
     C.ceil.visible = walk && p.x < ROOM.x0; C.fuori.visible = walk; C.lockers.visible = !!S.armadietti; C.tavoliB.position.x = C.G2[0] - (S.armadietti ? .65 : 0); corrTarga(); }; }
 // Visita: aula, varco della porta con la nicchia, corridoio; si gira attorno a tavoli, scrivania e cestini
 function corrOstacoli() { const C = CORR, x2 = C.G2[0] - (S.armadietti ? .65 : 0), t = (x, z) => [x - 1.3, x + 1.3, z - 1.7, z + 1.7];
