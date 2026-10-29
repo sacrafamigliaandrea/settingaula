@@ -268,6 +268,11 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
 @keyframes gd{0%,100%{transform:rotate(90deg) translateX(0)}50%{transform:rotate(90deg) translateX(8px)}}
 /* ---------- musica d'ambiente ---------- */
 #btnMusic.playing{color:var(--hi);border-color:var(--hi)}
+#btnTappeto.off{opacity:.55}
+#musicPanel .mtap{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1.5px solid var(--line);background:var(--hi-soft)}
+#musicPanel .mtap span{flex:1;font-size:12px;color:var(--ink-2);line-height:1.25}
+#musicPanel .mtap span b{display:block;font-size:13px;color:var(--ink)}
+#musicPanel .mtap input{width:90px}
 #btnMusic.playing svg{animation:mbeat 1.2s ease-in-out infinite}
 @keyframes mbeat{50%{transform:scale(1.14)}}
 #musicPanel{position:fixed;z-index:60;width:410px;max-width:calc(100vw - 16px);max-height:calc(100vh - 90px);display:flex;flex-direction:column;background:var(--card);border:1.5px solid var(--ink);border-radius:12px;box-shadow:var(--hard-l);overflow:hidden;animation:tin .2s ease}
@@ -303,6 +308,97 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
 .chip:hover{border-color:var(--ink)}
 .chip.on{background:var(--hi);border-color:var(--ink);color:var(--ink)}
 @media (max-width:1100px){#app{grid-template-columns:310px 1fr}.brand{min-width:280px}.grid{grid-template-columns:repeat(2,1fr)}}
+/* ---------- presentazione (e16_intro.js): aula 3D a tutto schermo, tipografia in movimento ---------- */
+body.intro #app{grid-template-columns:0 1fr;grid-template-rows:0 1fr}
+body.intro #topbar,body.intro #store{visibility:hidden;overflow:hidden}
+body.intro #stage>*:not(canvas),body.intro #toasts,body.intro #guideCard,body.intro #guideRing,body.intro #guideArrow,body.intro #musicPanel{display:none!important}
+#intro{position:fixed;inset:0;z-index:150;color:#fff;font-family:var(--font);overflow:hidden;transition:opacity .45s}
+#intro.out{opacity:0;pointer-events:none}
+.ix-vign{position:absolute;inset:0;background:radial-gradient(ellipse 75% 70% at 50% 46%,rgba(12,10,8,.26) 25%,rgba(12,10,8,.7) 100%),linear-gradient(180deg,rgba(12,10,8,.3),rgba(12,10,8,0) 30%,rgba(12,10,8,0) 55%,rgba(12,10,8,.62));transition:background .8s}
+#intro[data-scene=idea] .ix-vign,#intro[data-scene=verbi] .ix-vign,#intro[data-scene=idea2] .ix-vign,#intro[data-scene=consegna] .ix-vign,#intro[data-scene=fine] .ix-vign{background:radial-gradient(ellipse 80% 75% at 50% 48%,rgba(12,10,8,.42) 20%,rgba(12,10,8,.78) 100%)}
+#intro.cover .ix-vign{background:rgba(16,13,10,.66);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.ix-bar{position:absolute;left:0;right:0;height:0;background:#0C0A08;transition:height 1.1s cubic-bezier(.7,0,.2,1);z-index:2}
+.ix-bar.t{top:0}.ix-bar.b{bottom:0}
+#intro.playing .ix-bar{height:6.5vh}
+.ix-flash{position:absolute;inset:0;background:#FFFDF8;opacity:0;pointer-events:none;z-index:5}
+.ix-flash.go{animation:ixflash .75s ease-out}
+@keyframes ixflash{0%{opacity:0}25%{opacity:.92}100%{opacity:0}}
+.ix-kick{font-family:var(--mono);font-size:clamp(11px,1.05vw,15px);letter-spacing:.22em;text-transform:uppercase;color:var(--hi);margin-bottom:1.1vh;opacity:0;animation:ixfade .7s .05s forwards}
+#intro h1,#intro h2{font-family:var(--display);font-weight:800;letter-spacing:-.025em;margin:0;line-height:1.02;text-shadow:0 4px 30px rgba(0,0,0,.45)}
+#intro h1{font-size:clamp(36px,5.6vw,92px)}
+#intro h2{font-size:clamp(28px,3.9vw,64px)}
+#intro h1.ix-mid{font-size:clamp(30px,4.2vw,70px);max-width:15ch;margin:0 auto}
+.w{display:inline-block;opacity:0;transform:translateY(.45em) rotate(1.5deg);filter:blur(8px);animation:ixw .8s cubic-bezier(.2,.8,.2,1) forwards}
+.w.hi{color:var(--hi)}
+@keyframes ixw{to{opacity:1;transform:none;filter:none}}
+@keyframes ixfade{to{opacity:1}}
+@keyframes ixup{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.ix-card{position:absolute;inset:6.5vh 0;z-index:3;pointer-events:none}
+.ix-card button{pointer-events:auto}
+.ix-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 6vw}
+.ix-low{position:absolute;left:6vw;bottom:9vh;max-width:min(900px,80vw)}
+.ix-sub{font-size:clamp(15px,1.4vw,22px);color:rgba(255,255,255,.86);margin:1.4vh 0 0;opacity:0;animation:ixup .8s forwards}
+.ix-top{position:absolute;left:6vw;top:4vh}
+.ix-verbi{display:flex;flex-direction:column;gap:.4vh;align-items:center}
+.ix-verbi span{font-family:var(--display);font-weight:800;font-size:clamp(30px,4.6vw,76px);letter-spacing:-.025em;line-height:1.05;opacity:0;animation:ixverb 1.1s cubic-bezier(.2,.8,.2,1) forwards;text-shadow:0 4px 30px rgba(0,0,0,.45)}
+.ix-verbi span:nth-child(odd){color:var(--hi)}
+@keyframes ixverb{0%{opacity:0;transform:translateX(-60px) skewX(-8deg);filter:blur(10px)}100%{opacity:1;transform:none;filter:none}}
+.ix-ring{position:absolute;inset:-2vh 0}
+.ix-chip{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%) scale(.2);opacity:0;display:flex;align-items:center;gap:8px;background:rgba(16,13,10,.72);border:1.5px solid var(--c);border-radius:999px;padding:5px 13px 5px 5px;font-weight:600;font-size:clamp(11px,1vw,15px);white-space:nowrap;animation:ixchip .7s cubic-bezier(.3,1.6,.5,1) forwards;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.ix-chip b{background:var(--c);color:#fff;font-family:var(--mono);font-size:.8em;border-radius:999px;padding:4px 7px;letter-spacing:.05em}
+@keyframes ixchip{to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.ix-third{position:absolute;left:5vw;bottom:7vh;max-width:min(760px,82vw);padding:2.2vh 2.4vw 2.4vh;background:rgba(14,12,10,.74);border-left:8px solid var(--c);border-radius:4px 18px 18px 4px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:ixthird .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes ixthird{from{clip-path:inset(0 100% 0 0);transform:translateX(-30px)}to{clip-path:inset(0 0 0 0);transform:none}}
+.ix-disc{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:clamp(12px,1.05vw,16px);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1vh}
+.ix-disc b{background:var(--c);color:#fff;border-radius:6px;padding:3px 8px}
+.ix-disc span{margin-left:auto;color:rgba(255,255,255,.6);padding-left:18px}
+.ix-third h2{font-size:clamp(26px,3.2vw,54px);opacity:0;animation:ixup .6s .25s forwards}
+.ix-third p{font-size:clamp(14px,1.3vw,21px);color:rgba(255,255,255,.88);margin:1vh 0 0;opacity:0;animation:ixup .6s .5s forwards}
+.ix-cons{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 4vw}
+.ix-steps{display:flex;align-items:stretch;gap:1vw;margin-top:4vh;width:min(1180px,92vw)}
+.ix-step{flex:1;background:rgba(255,253,248,.95);color:var(--ink);border:2px solid var(--ink);border-radius:16px;box-shadow:6px 6px 0 rgba(0,0,0,.55);padding:1.8vh 1.2vw;text-align:left;opacity:0;animation:ixstep .7s cubic-bezier(.3,1.4,.5,1) forwards}
+@keyframes ixstep{from{opacity:0;transform:translateY(40px) rotate(-2deg)}to{opacity:1;transform:none}}
+.ix-step i{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:var(--acc);margin-bottom:1vh}
+.ix-step i svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ix-step:last-child i{background:var(--ok)}
+.ix-step b{display:flex;align-items:center;gap:8px;font-family:var(--display);font-size:clamp(17px,1.6vw,26px);font-weight:800}
+.ix-step b em{font-style:normal;font-family:var(--mono);font-size:.62em;background:var(--ink);color:var(--hi);border-radius:6px;padding:2px 6px}
+.ix-step span{display:block;font-size:clamp(12px,1.05vw,16px);color:var(--ink-2);margin-top:.6vh;line-height:1.35}
+.ix-arrow{flex:none;width:1.4vw;align-self:center;height:3px;background:var(--hi);position:relative;opacity:.9}
+.ix-arrow:after{content:'';position:absolute;right:-2px;top:-5px;border:6.5px solid transparent;border-left:9px solid var(--hi);border-right:0}
+.ix-count{display:flex;align-items:center;gap:14px;margin-top:4vh;opacity:0;animation:ixup .6s 3.2s forwards}
+.ix-boxes{display:grid;grid-template-columns:repeat(14,1fr);gap:5px}
+.ix-boxes i{width:clamp(14px,1.5vw,24px);aspect-ratio:1;border-radius:5px;border:2px solid rgba(255,255,255,.5);transition:background .25s,border-color .25s,transform .25s}
+.ix-boxes i.on{background:var(--c);border-color:var(--c);transform:scale(1.12)}
+.ix-count b{font-family:var(--mono);font-size:clamp(22px,2.4vw,40px);color:var(--hi);min-width:4.2ch;text-align:right}
+.ix-count span{font-family:var(--mono);font-size:clamp(11px,1vw,15px);letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+.ix-end{display:flex;gap:12px;justify-content:center;margin-top:5vh;opacity:0;animation:ixup .7s 1.2s forwards}
+.ix-end .btn{font-size:18px;padding:12px 24px}
+.ix-end .btn.ghost{color:#fff;border-color:rgba(255,255,255,.7);background:transparent}
+.ix-cover{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;z-index:4;padding:0 6vw}
+#intro.cover .ix-cover{display:flex}
+#intro.cover .ix-card,#intro.cover .ix-prog{display:none}
+.ix-logo{width:70px;height:70px;border-radius:18px;background:var(--hi);display:grid;place-items:center;box-shadow:5px 5px 0 #0C0A08;margin-bottom:3vh;animation:ixpop .8s cubic-bezier(.3,1.6,.5,1) both}
+.ix-logo svg{width:40px;height:40px;fill:none;stroke:var(--ink);stroke-width:2.2;stroke-linejoin:round}
+@keyframes ixpop{from{transform:scale(.3) rotate(-20deg);opacity:0}}
+h1.ix-title{font-size:clamp(56px,9vw,150px)!important;animation:ixup .9s .15s both}
+h1.ix-title em{font-style:normal;color:var(--hi)}
+.ix-lead{font-size:clamp(17px,1.8vw,28px);line-height:1.35;color:rgba(255,255,255,.92);margin:2.4vh 0 4vh;animation:ixup .9s .35s both}
+.ix-play{font-size:clamp(16px,1.4vw,21px)!important;padding:14px 28px!important;gap:10px;animation:ixup .9s .55s both}
+.ix-play svg{width:20px;height:20px}
+.ix-cover small{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(255,255,255,.62);animation:ixup .9s .7s both}
+.ix-ctl{position:absolute;top:calc(6.5vh + 14px);right:18px;display:flex;gap:8px;z-index:6}
+#intro.cover .ix-ctl{top:18px}
+.ix-ctl .iconbtn{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.35)}
+.ix-ctl .btn{background:rgba(255,255,255,.92)}
+.ix-prog{position:absolute;left:0;right:0;bottom:0;height:6.5vh;display:flex;align-items:center;gap:18px;padding:0 3vw;z-index:6}
+.ix-acts{display:flex;gap:14px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.38);white-space:nowrap}
+.ix-acts span.on{color:var(--hi)}
+.ix-track{flex:1;height:3px;background:rgba(255,255,255,.16);border-radius:3px;overflow:hidden}
+.ix-track i{display:block;height:100%;width:0;background:var(--hi)}
+.ix-cred{font-size:10.5px;color:rgba(255,255,255,.5);max-width:34vw;line-height:1.3;text-align:right}
+@media (max-width:900px){.ix-steps{flex-direction:column}.ix-arrow{display:none}.ix-cred{display:none}}
+@media (prefers-reduced-motion:reduce){#intro *{animation-duration:.01s!important;animation-delay:0s!important}}
 </style>
 </head>
 <body>
@@ -327,6 +423,8 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
     <button class="btn" id="btnPerc" title="Le aule di tutte le discipline"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="m14.5 17.5 2 2 4-4"/></svg><span class="lbl">Le mie aule </span><b style="font-family:var(--mono)">0/14</b></button>
     <button class="btn primary" id="btnFly" title="Esplora l'aula con un volo 3D"><svg class="i" viewBox="0 0 24 24"><path d="M2 12h4l3-8 4 16 3-8h6"/></svg><span class="l-long">Ho finito: volo 3D</span><span class="l-short">Volo 3D</span></button>
     <button class="btn" id="btnArch" title="Sottoponi l'aula alla verifica dell'architetto"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v4M12 7 6 21M12 7l6 14M8.5 15h7"/><circle cx="12" cy="6" r="1.5"/></svg><span class="lbl">Architetto</span></button>
+    <button class="iconbtn" id="btnIntro" title="Presentazione: l'idea, i setting, la consegna"><svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M10 8.2v5.6l4.8-2.8z"/></svg></button>
+    <button class="iconbtn" id="btnTappeto" title="Musica di sottofondo" aria-pressed="true"><svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
     <button class="iconbtn" id="btnMusic" title="Musica d'ambiente"><svg class="i" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></button>
     <button class="iconbtn" id="btnGuide" title="Guida: come si allestisce un'aula"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
   </header>
@@ -6029,7 +6127,7 @@ window.POSTERS_CHARTS = LIST;
  * Settecento, 3a Ottocento-Novecento; Arte: 1a Preistoria-Gotico, 2a Rinascimento-Barocco, 3a Ottocento-Novecento).
  * Nota transizione: con le Nuove Indicazioni regni romano-barbarici, Giustiniano, monachesimo ed espansione
  * islamica passano alla classe 5a primaria; restano qui in 1a per le classi che seguono ancora il curricolo 2012.
- * Immagini: Wikimedia Commons, verificate via API (licenze PD / CC0 / CC BY / CC BY-SA).
+ * Immagini: Wikimedia Commons, verificate via API (licenze PD / CC0 / CC BY / CC BY-SA; per due foto ufficiali Attribution e OGL UK).
  * img.url = thumb a gradino standard 960px (o file originale se piu' stretto); img.mini = thumb 330px per anteprime.
  * img.w/img.h = pixel reali del file servito. CORS "access-control-allow-origin: *".
  * ATTENZIONE: Wikimedia rifiuta (HTTP 400/429) le larghezze non standard come 640px: non costruire URL a mano.
@@ -6048,7 +6146,8 @@ window.CURRICOLO = {
       {"id":"sto1-islam-carolingi","titolo":"L'Islam e l'Impero carolingio","items":["alhambra","carlo-magno"]},
       {"id":"sto1-dopo-mille","titolo":"Dopo il Mille: Comuni, Impero e crociate","items":["buon-governo","crociate","federico-ii"]},
       {"id":"sto1-trecento","titolo":"Il Trecento: viaggi, crisi e peste nera","items":["marco-polo","peste-nera","dante"]},
-      {"id":"sto1-signorie","titolo":"Signorie e Umanesimo","items":["lorenzo-magnifico","nascita-venere","petrarca"]}
+      {"id":"sto1-signorie","titolo":"Signorie e Umanesimo","items":["lorenzo-magnifico","nascita-venere","petrarca"]},
+      {"id":"sto1-oggi","titolo":"Persone di oggi","items":["segre","alberto-angela","mattarella","papa-francesco"]}
     ],
     2: [
       {"id":"sto2-scoperte","titolo":"Le scoperte geografiche e i nuovi mondi","items":["colombo","magellano","machu-picchu"]},
@@ -6056,7 +6155,8 @@ window.CURRICOLO = {
       {"id":"sto2-riforma","titolo":"Riforma protestante e Controriforma","items":["lutero","carlo-v","concilio-trento"]},
       {"id":"sto2-seicento","titolo":"Il Seicento: assolutismo e rivoluzione scientifica","items":["luigi-xiv","versailles","galileo","newton"]},
       {"id":"sto2-rivoluzioni","titolo":"Illuminismo e rivoluzioni: americana e francese","items":["dichiarazione-indipendenza","bastiglia","dichiarazione-diritti"]},
-      {"id":"sto2-napoleone-industria","titolo":"Napoleone e la Rivoluzione industriale","items":["napoleone","goya-3-maggio","watt"]}
+      {"id":"sto2-napoleone-industria","titolo":"Napoleone e la Rivoluzione industriale","items":["napoleone","goya-3-maggio","watt"]},
+      {"id":"sto2-oggi","titolo":"Persone di oggi","items":["segre","alberto-angela","mattarella","papa-francesco"]}
     ],
     3: [
       {"id":"sto3-risorgimento","titolo":"Il Risorgimento e l'Unità d'Italia","items":["mazzini","garibaldi","cavour","verdi"]},
@@ -6064,7 +6164,8 @@ window.CURRICOLO = {
       {"id":"sto3-grande-guerra","titolo":"La Prima guerra mondiale","items":["grande-guerra","ungaretti"]},
       {"id":"sto3-totalitarismi","titolo":"Totalitarismi, Seconda guerra mondiale e Shoah","items":["churchill","anne-frank","auschwitz","primo-levi","kolbe"]},
       {"id":"sto3-repubblica","titolo":"Resistenza e nascita della Repubblica","items":["liberazione","referendum-1946","costituzione"]},
-      {"id":"sto3-mondo-1945","titolo":"Il mondo dopo il 1945: guerra fredda, decolonizzazione, diritti","items":["muro-berlino","apollo-11","gandhi","mlk","mandela"]}
+      {"id":"sto3-mondo-1945","titolo":"Il mondo dopo il 1945: guerra fredda, decolonizzazione, diritti","items":["muro-berlino","apollo-11","gandhi","mlk","mandela"]},
+      {"id":"sto3-oggi","titolo":"Persone di oggi","items":["segre","alberto-angela","mattarella","papa-francesco"]}
     ]
   }},
   ita: { nome:"Italiano", classi: {
@@ -6073,21 +6174,24 @@ window.CURRICOLO = {
       {"id":"ita1-epica-medievale","titolo":"L'epica medievale: Carlo Magno e i paladini","items":["morte-orlando","carlo-magno","ariosto"]},
       {"id":"ita1-fiaba-favola","titolo":"Fiaba e favola","items":["esopo","grimm","pinocchio"]},
       {"id":"ita1-bibbia","titolo":"I grandi racconti della Bibbia","items":["creazione-adamo","sacrificio-isacco","mose"]},
-      {"id":"ita1-avventura","titolo":"Il racconto d'avventura e di viaggio","items":["jules-verne","marco-polo"]}
+      {"id":"ita1-avventura","titolo":"Il racconto d'avventura e di viaggio","items":["jules-verne","marco-polo"]},
+      {"id":"ita1-oggi","titolo":"Persone di oggi","items":["benigni","segre","davenia","dami"]}
     ],
     2: [
       {"id":"ita2-origini","titolo":"Le origini della letteratura italiana","items":["san-francesco","federico-ii"]},
       {"id":"ita2-dante","titolo":"Dante e la Divina Commedia","items":["dante","divina-commedia"]},
       {"id":"ita2-petrarca-boccaccio","titolo":"Petrarca e Boccaccio","items":["petrarca","boccaccio","peste-nera"]},
       {"id":"ita2-rinascimento","titolo":"Umanesimo e Rinascimento: Ariosto e Machiavelli","items":["ariosto","machiavelli","lorenzo-magnifico"]},
-      {"id":"ita2-teatro","titolo":"Il teatro: da Shakespeare a Goldoni","items":["shakespeare","goldoni"]}
+      {"id":"ita2-teatro","titolo":"Il teatro: da Shakespeare a Goldoni","items":["shakespeare","goldoni"]},
+      {"id":"ita2-oggi","titolo":"Persone di oggi","items":["benigni","segre","davenia","dami"]}
     ],
     3: [
       {"id":"ita3-ottocento","titolo":"L'Ottocento: Foscolo, Leopardi e Manzoni","items":["foscolo","leopardi","manzoni"]},
       {"id":"ita3-verismo","titolo":"Il Verismo e la narrativa regionale: Verga e Deledda","items":["verga","deledda"]},
       {"id":"ita3-romanzo-sociale","titolo":"Il romanzo dell'Ottocento europeo: Hugo e Dickens","items":["victor-hugo","dickens"]},
       {"id":"ita3-poesia-novecento","titolo":"La poesia tra Ottocento e Novecento: Pascoli, Ungaretti, Montale","items":["pascoli","ungaretti","montale"]},
-      {"id":"ita3-memoria","titolo":"Testimoni della memoria: Primo Levi e Anna Frank","items":["primo-levi","anne-frank"]}
+      {"id":"ita3-memoria","titolo":"Testimoni della memoria: Primo Levi e Anna Frank","items":["primo-levi","anne-frank"]},
+      {"id":"ita3-oggi","titolo":"Persone di oggi","items":["benigni","segre","davenia","dami"]}
     ]
   }},
   geo: { nome:"Geografia", classi: {
@@ -6095,12 +6199,14 @@ window.CURRICOLO = {
       {"id":"geo1-strumenti","titolo":"Gli strumenti della geografia: carte e orientamento","items":["mercatore","terra"]},
       {"id":"geo1-rilievi","titolo":"Il paesaggio italiano: montagne e vulcani","items":["tre-cime","vesuvio"]},
       {"id":"geo1-acque","titolo":"Pianure, fiumi, laghi e lagune","items":["monte-isola","venezia"]},
-      {"id":"geo1-citta","titolo":"Le città italiane e il patrimonio UNESCO","items":["colosseo","duomo-milano","pisa","venezia"]}
+      {"id":"geo1-citta","titolo":"Le città italiane e il patrimonio UNESCO","items":["colosseo","duomo-milano","pisa","venezia"]},
+      {"id":"geo1-oggi","titolo":"Persone di oggi","items":["messner","cristoforetti","alberto-angela","attenborough"]}
     ],
     2: [
       {"id":"geo2-europa-fisica","titolo":"L'Europa fisica: rilievi, coste e climi","items":["fiordi","tre-cime"]},
       {"id":"geo2-ue","titolo":"L'Unione europea","items":["parlamento-europeo","muro-berlino"]},
-      {"id":"geo2-stati","titolo":"Gli Stati d'Europa e le loro capitali","items":["big-ben","tour-eiffel","sagrada-familia","partenone"]}
+      {"id":"geo2-stati","titolo":"Gli Stati d'Europa e le loro capitali","items":["big-ben","tour-eiffel","sagrada-familia","partenone"]},
+      {"id":"geo2-oggi","titolo":"Persone di oggi","items":["messner","cristoforetti","alberto-angela","attenborough"]}
     ],
     3: [
       {"id":"geo3-esploratori","titolo":"Esplorare il mondo: viaggiatori ed esploratori","items":["marco-polo","colombo","magellano","amundsen"]},
@@ -6108,25 +6214,29 @@ window.CURRICOLO = {
       {"id":"geo3-africa","titolo":"L'Africa","items":["piramidi","sahara"]},
       {"id":"geo3-americhe","titolo":"Le Americhe","items":["statua-liberta","amazzonia","machu-picchu"]},
       {"id":"geo3-oceania-poli","titolo":"L'Oceania e le terre polari","items":["uluru","amundsen"]},
-      {"id":"geo3-sostenibile","titolo":"Sviluppo sostenibile e Agenda 2030","items":["terra","amazzonia","eolico"]}
+      {"id":"geo3-sostenibile","titolo":"Sviluppo sostenibile e Agenda 2030","items":["terra","amazzonia","eolico"]},
+      {"id":"geo3-oggi","titolo":"Persone di oggi","items":["messner","cristoforetti","alberto-angela","attenborough"]}
     ]
   }},
   mat: { nome:"Matematica", classi: {
     1: [
       {"id":"mat1-numerazione","titolo":"I numeri naturali e i sistemi di numerazione","items":["fibonacci","al-khwarizmi"]},
       {"id":"mat1-divisibilita","titolo":"Divisibilità e numeri primi: MCD e mcm","items":["euclide","eratostene"]},
-      {"id":"mat1-geometria","titolo":"Enti geometrici fondamentali, angoli e poligoni","items":["euclide","scuola-atene"]}
+      {"id":"mat1-geometria","titolo":"Enti geometrici fondamentali, angoli e poligoni","items":["euclide","scuola-atene"]},
+      {"id":"mat1-oggi","titolo":"Persone di oggi","items":["rubik","figalli"]}
     ],
     2: [
       {"id":"mat2-frazioni-proporzioni","titolo":"Frazioni, rapporti e proporzioni","items":["fibonacci","pacioli","uomo-vitruviano"]},
       {"id":"mat2-pitagora","titolo":"Il teorema di Pitagora","items":["pitagora","scuola-atene"]},
-      {"id":"mat2-aree","titolo":"Aree dei poligoni ed equivalenza","items":["euclide","archimede"]}
+      {"id":"mat2-aree","titolo":"Aree dei poligoni ed equivalenza","items":["euclide","archimede"]},
+      {"id":"mat2-oggi","titolo":"Persone di oggi","items":["rubik","figalli"]}
     ],
     3: [
       {"id":"mat3-algebra","titolo":"Numeri relativi, calcolo letterale ed equazioni","items":["al-khwarizmi","cartesio"]},
       {"id":"mat3-piano-cartesiano","titolo":"Il piano cartesiano e le funzioni","items":["cartesio","agnesi"]},
       {"id":"mat3-cerchio-solidi","titolo":"Circonferenza, cerchio e solidi","items":["archimede","pacioli","piramidi"]},
-      {"id":"mat3-probabilita","titolo":"Probabilità e statistica","items":["pascal","nightingale"]}
+      {"id":"mat3-probabilita","titolo":"Probabilità e statistica","items":["pascal","nightingale"]},
+      {"id":"mat3-oggi","titolo":"Persone di oggi","items":["rubik","figalli"]}
     ]
   }},
   sci: { nome:"Scienze", classi: {
@@ -6134,91 +6244,106 @@ window.CURRICOLO = {
       {"id":"sci1-metodo","titolo":"Il metodo scientifico sperimentale","items":["galileo","leonardo"]},
       {"id":"sci1-materia","titolo":"La materia: stati di aggregazione, calore e temperatura","items":["lavoisier","archimede"]},
       {"id":"sci1-cellula","titolo":"La cellula e i microrganismi","items":["hooke-cellule","pasteur"]},
-      {"id":"sci1-viventi","titolo":"La classificazione dei viventi: piante e animali","items":["linneo","amazzonia"]}
+      {"id":"sci1-viventi","titolo":"La classificazione dei viventi: piante e animali","items":["linneo","amazzonia"]},
+      {"id":"sci1-oggi","titolo":"Persone di oggi","items":["cristoforetti","gianotti","parisi","piero-angela","attenborough"]}
     ],
     2: [
       {"id":"sci2-chimica","titolo":"Elementi, composti e reazioni chimiche","items":["mendeleev","lavoisier","marie-curie"]},
       {"id":"sci2-corpo","titolo":"Il corpo umano: apparati e sistemi","items":["vesalio","uomo-vitruviano"]},
       {"id":"sci2-salute","titolo":"Salute, alimentazione e prevenzione","items":["pasteur","fleming"]},
-      {"id":"sci2-forze","titolo":"Forze, moto ed equilibrio","items":["newton","galileo","archimede"]}
+      {"id":"sci2-forze","titolo":"Forze, moto ed equilibrio","items":["newton","galileo","archimede"]},
+      {"id":"sci2-oggi","titolo":"Persone di oggi","items":["cristoforetti","gianotti","parisi","piero-angela","attenborough"]}
     ],
     3: [
       {"id":"sci3-sistema-nervoso","titolo":"Il sistema nervoso e gli organi di senso","items":["levi-montalcini","vesalio"]},
       {"id":"sci3-genetica-evoluzione","titolo":"Ereditarietà ed evoluzione dei viventi","items":["mendel","darwin","linneo"]},
       {"id":"sci3-terra","titolo":"La Terra: vulcani, terremoti e tettonica delle placche","items":["wegener","vesuvio"]},
       {"id":"sci3-universo","titolo":"Il Sistema solare e l'universo","items":["copernico","galileo","apollo-11","terra"]},
-      {"id":"sci3-elettricita-energia","titolo":"Elettricità, magnetismo ed energia","items":["volta","einstein","fermi","marie-curie"]}
+      {"id":"sci3-elettricita-energia","titolo":"Elettricità, magnetismo ed energia","items":["volta","einstein","fermi","marie-curie"]},
+      {"id":"sci3-oggi","titolo":"Persone di oggi","items":["cristoforetti","gianotti","parisi","piero-angela","attenborough"]}
     ]
   }},
   ing: { nome:"Inglese", classi: {
     1: [
       {"id":"ing1-uk","titolo":"Il Regno Unito: Londra e i suoi simboli","items":["big-ben","stonehenge"]},
       {"id":"ing1-royals","titolo":"La monarchia britannica: re e regine","items":["elisabetta-i","queen-victoria"]},
-      {"id":"ing1-english-world","titolo":"I Paesi di lingua inglese nel mondo","items":["statua-liberta","uluru","big-ben"]}
+      {"id":"ing1-english-world","titolo":"I Paesi di lingua inglese nel mondo","items":["statua-liberta","uluru","big-ben"]},
+      {"id":"ing1-oggi","titolo":"Persone di oggi","items":["attenborough","ed-sheeran","malala"]}
     ],
     2: [
       {"id":"ing2-shakespeare","titolo":"Shakespeare e l'Inghilterra elisabettiana","items":["shakespeare","elisabetta-i","globe"]},
       {"id":"ing2-usa","titolo":"Gli Stati Uniti: storia e luoghi","items":["dichiarazione-indipendenza","statua-liberta","lincoln"]},
-      {"id":"ing2-scienziati","titolo":"Grandi scienziati britannici","items":["newton","darwin","ada-lovelace"]}
+      {"id":"ing2-scienziati","titolo":"Grandi scienziati britannici","items":["newton","darwin","ada-lovelace"]},
+      {"id":"ing2-oggi","titolo":"Persone di oggi","items":["attenborough","ed-sheeran","malala"]}
     ],
     3: [
       {"id":"ing3-vittoriana","titolo":"L'età vittoriana e la Rivoluzione industriale","items":["queen-victoria","dickens","watt"]},
       {"id":"ing3-ww2","titolo":"La Seconda guerra mondiale","items":["churchill","turing"]},
       {"id":"ing3-diritti-civili","titolo":"Diritti civili e libertà","items":["rosa-parks","mlk","mandela","gandhi"]},
-      {"id":"ing3-anni-sessanta","titolo":"Gli anni Sessanta: musica e corsa allo spazio","items":["beatles","louis-armstrong","apollo-11"]}
+      {"id":"ing3-anni-sessanta","titolo":"Gli anni Sessanta: musica e corsa allo spazio","items":["beatles","louis-armstrong","apollo-11"]},
+      {"id":"ing3-oggi","titolo":"Persone di oggi","items":["attenborough","ed-sheeran","malala"]}
     ]
   }},
   spa: { nome:"Spagnolo", classi: {
     1: [
       {"id":"spa1-espana","titolo":"La Spagna: città e monumenti","items":["sagrada-familia","alhambra","santiago"]},
       {"id":"spa1-hispanoamerica","titolo":"I Paesi dell'America latina: paesaggi e culture","items":["machu-picchu","amazzonia"]},
-      {"id":"spa1-personaggi","titolo":"Personaggi del mondo ispanico","items":["cervantes","colombo","frida-kahlo"]}
+      {"id":"spa1-personaggi","titolo":"Personaggi del mondo ispanico","items":["cervantes","colombo","frida-kahlo"]},
+      {"id":"spa1-oggi","titolo":"Persone di oggi","items":["nadal","papa-francesco"]}
     ],
     2: [
       {"id":"spa2-quijote","titolo":"Cervantes e il Don Chisciotte","items":["cervantes","don-chisciotte"]},
       {"id":"spa2-siglo-oro","titolo":"Il Siglo de Oro: Carlo V e Velázquez","items":["carlo-v","las-meninas"]},
-      {"id":"spa2-1492","titolo":"1492: l'incontro tra due mondi","items":["colombo","magellano","machu-picchu"]}
+      {"id":"spa2-1492","titolo":"1492: l'incontro tra due mondi","items":["colombo","magellano","machu-picchu"]},
+      {"id":"spa2-oggi","titolo":"Persone di oggi","items":["nadal","papa-francesco"]}
     ],
     3: [
       {"id":"spa3-goya","titolo":"Goya e la guerra d'indipendenza spagnola","items":["goya-3-maggio","napoleone"]},
       {"id":"spa3-america-latina","titolo":"L'America latina: indipendenza, storia e arte","items":["bolivar","frida-kahlo","machu-picchu"]},
-      {"id":"spa3-modernismo","titolo":"Gaudí e il Modernismo catalano","items":["gaudi","sagrada-familia"]}
+      {"id":"spa3-modernismo","titolo":"Gaudí e il Modernismo catalano","items":["gaudi","sagrada-familia"]},
+      {"id":"spa3-oggi","titolo":"Persone di oggi","items":["nadal","papa-francesco"]}
     ]
   }},
   tec: { nome:"Tecnologia", classi: {
     1: [
       {"id":"tec1-disegno","titolo":"Il disegno tecnico e la rappresentazione grafica","items":["leonardo-volo","uomo-vitruviano"]},
       {"id":"tec1-materiali","titolo":"I materiali: carta, legno, metalli, vetro","items":["gutenberg","tour-eiffel"]},
-      {"id":"tec1-macchine-semplici","titolo":"Strumenti e macchine semplici: leve e carrucole","items":["archimede","leonardo-volo"]}
+      {"id":"tec1-macchine-semplici","titolo":"Strumenti e macchine semplici: leve e carrucole","items":["archimede","leonardo-volo"]},
+      {"id":"tec1-oggi","titolo":"Persone di oggi","items":["renzo-piano","faggin","cristoforetti","miyamoto"]}
     ],
     2: [
       {"id":"tec2-costruzioni","titolo":"Le costruzioni e l'abitazione","items":["cupola-brunelleschi","colosseo","tour-eiffel"]},
       {"id":"tec2-macchine-trasporti","titolo":"Macchine, motori e trasporti","items":["watt","fratelli-wright","apollo-11"]},
-      {"id":"tec2-progetto","titolo":"Progettare: dal disegno all'oggetto","items":["leonardo-volo","cupola-brunelleschi"]}
+      {"id":"tec2-progetto","titolo":"Progettare: dal disegno all'oggetto","items":["leonardo-volo","cupola-brunelleschi"]},
+      {"id":"tec2-oggi","titolo":"Persone di oggi","items":["renzo-piano","faggin","cristoforetti","miyamoto"]}
     ],
     3: [
       {"id":"tec3-energia","titolo":"L'energia: fonti rinnovabili e non rinnovabili","items":["eolico","fermi","volta"]},
       {"id":"tec3-elettricita","titolo":"Elettricità e grandi invenzioni","items":["volta","edison","tesla"]},
-      {"id":"tec3-comunicazione-informatica","titolo":"Telecomunicazioni e informatica","items":["marconi","ada-lovelace","turing","programma-101"]}
+      {"id":"tec3-comunicazione-informatica","titolo":"Telecomunicazioni e informatica","items":["marconi","ada-lovelace","turing","programma-101"]},
+      {"id":"tec3-oggi","titolo":"Persone di oggi","items":["renzo-piano","faggin","cristoforetti","miyamoto"]}
     ]
   }},
   inf: { nome:"Informatica", classi: {
     1: [
       {"id":"inf1-computer","titolo":"Com'è fatto un computer: hardware e software","items":["architettura-von-neumann","intel-4004","apple-i","eniac"]},
       {"id":"inf1-coding","titolo":"Pensiero computazionale e coding","items":["al-khwarizmi","ada-lovelace","grace-hopper","margaret-hamilton","seymour-papert","mitchel-resnick"]},
-      {"id":"inf1-cittadinanza-digitale","titolo":"Cittadinanza digitale e sicurezza online","items":["enigma","hedy-lamarr","tim-berners-lee","jimmy-wales"]}
+      {"id":"inf1-cittadinanza-digitale","titolo":"Cittadinanza digitale e sicurezza online","items":["enigma","hedy-lamarr","tim-berners-lee","jimmy-wales"]},
+      {"id":"inf1-oggi","titolo":"Persone di oggi","items":["miyamoto","faggin","carlo-acutis"]}
     ],
     2: [
       {"id":"inf2-storia-macchine","titolo":"Storia dell'informatica (1): da Pascal e Babbage alle schede perforate","items":["pascal","jacquard","babbage","ada-lovelace","boole","hollerith"]},
       {"id":"inf2-storia-computer","titolo":"Storia dell'informatica (2): dai primi computer al personal computer","items":["turing","eniac","katherine-johnson","programma-101","faggin","apple-i"]},
       {"id":"inf2-internet-web","titolo":"Internet e il web","items":["vint-cerf","tim-berners-lee","primo-server-web","larry-page-sergey-brin","linus-torvalds"]},
-      {"id":"inf2-robotica-3d","titolo":"Robotica e stampa 3D","items":["leonardo-robot","unimate","asimo","curiosity","reprap","josef-prusa"]}
+      {"id":"inf2-robotica-3d","titolo":"Robotica e stampa 3D","items":["leonardo-robot","unimate","asimo","curiosity","reprap","josef-prusa"]},
+      {"id":"inf2-oggi","titolo":"Persone di oggi","items":["miyamoto","faggin","carlo-acutis"]}
     ],
     3: [
       {"id":"inf3-geni-1","titolo":"I geni della tecnologia (1): dal garage al mondo","items":["steve-jobs","bill-gates","larry-page-sergey-brin","jeff-bezos","mark-zuckerberg"]},
       {"id":"inf3-geni-2","titolo":"I geni della tecnologia (2): dal garage al mondo","items":["kevin-systrom","chad-hurley-jawed-karim","sam-altman","josef-prusa","tim-sweeney"]},
       {"id":"inf3-intelligenza-artificiale","titolo":"L'intelligenza artificiale: come funziona, rischi ed etica","items":["turing","john-mccarthy","deep-blue","geoffrey-hinton","fei-fei-li","demis-hassabis"]},
-      {"id":"inf3-realta-virtuale","titolo":"Realtà virtuale, aumentata e mondi digitali","items":["telesphere-mask","ivan-sutherland","jaron-lanier","visore-vr","hololens","tim-sweeney"]}
+      {"id":"inf3-realta-virtuale","titolo":"Realtà virtuale, aumentata e mondi digitali","items":["telesphere-mask","ivan-sutherland","jaron-lanier","visore-vr","hololens","tim-sweeney"]},
+      {"id":"inf3-oggi","titolo":"Persone di oggi","items":["miyamoto","faggin","carlo-acutis"]}
     ]
   }},
   art: { nome:"Arte e immagine", classi: {
@@ -6226,53 +6351,62 @@ window.CURRICOLO = {
       {"id":"art1-preistoria-egitto","titolo":"L'arte della Preistoria e dell'antico Egitto","items":["lascaux","piramidi"]},
       {"id":"art1-grecia-roma","titolo":"L'arte greca e romana","items":["partenone","discobolo","colosseo"]},
       {"id":"art1-bizantina-romanica","titolo":"Arte bizantina e romanica","items":["giustiniano","pisa"]},
-      {"id":"art1-gotico-giotto","titolo":"Il Gotico e Giotto","items":["duomo-milano","notre-dame","nativita"]}
+      {"id":"art1-gotico-giotto","titolo":"Il Gotico e Giotto","items":["duomo-milano","notre-dame","nativita"]},
+      {"id":"art1-oggi","titolo":"Persone di oggi","items":["renzo-piano","miyazaki","jago"]}
     ],
     2: [
       {"id":"art2-primo-rinascimento","titolo":"Il primo Rinascimento a Firenze","items":["cupola-brunelleschi","masaccio","nascita-venere"]},
       {"id":"art2-leonardo","titolo":"Leonardo da Vinci","items":["leonardo","gioconda","ultima-cena","uomo-vitruviano"]},
       {"id":"art2-michelangelo-raffaello","titolo":"Michelangelo e Raffaello","items":["michelangelo","david","creazione-adamo","scuola-atene"]},
-      {"id":"art2-barocco","titolo":"Il Seicento: Caravaggio e Velázquez","items":["caravaggio-vocazione","san-paolo","las-meninas"]}
+      {"id":"art2-barocco","titolo":"Il Seicento: Caravaggio e Velázquez","items":["caravaggio-vocazione","san-paolo","las-meninas"]},
+      {"id":"art2-oggi","titolo":"Persone di oggi","items":["renzo-piano","miyazaki","jago"]}
     ],
     3: [
       {"id":"art3-neoclassicismo-romanticismo","titolo":"Neoclassicismo e Romanticismo","items":["canova-psiche","goya-3-maggio","liberta-popolo","hayez-bacio"]},
       {"id":"art3-realismo-impressionismo","titolo":"Realismo e Impressionismo","items":["quarto-stato","monet-impressione"]},
       {"id":"art3-postimpressionismo","titolo":"Post-impressionismo ed Espressionismo","items":["notte-stellata","urlo-munch"]},
-      {"id":"art3-avanguardie","titolo":"Le avanguardie del Novecento: Futurismo e Astrattismo","items":["boccioni-citta","kandinsky"]}
+      {"id":"art3-avanguardie","titolo":"Le avanguardie del Novecento: Futurismo e Astrattismo","items":["boccioni-citta","kandinsky"]},
+      {"id":"art3-oggi","titolo":"Persone di oggi","items":["renzo-piano","miyazaki","jago"]}
     ]
   }},
   mus: { nome:"Musica", classi: {
     1: [
       {"id":"mus1-strumenti","titolo":"Il suono e gli strumenti dell'orchestra","items":["stradivari","scala"]},
       {"id":"mus1-medioevo","titolo":"La musica nel Medioevo: canto gregoriano e notazione","items":["guido-arezzo","ildegarda","san-benedetto"]},
-      {"id":"mus1-musica-poesia","titolo":"Musica e poesia nel Medioevo: laude e chansons de geste","items":["san-francesco","morte-orlando"]}
+      {"id":"mus1-musica-poesia","titolo":"Musica e poesia nel Medioevo: laude e chansons de geste","items":["san-francesco","morte-orlando"]},
+      {"id":"mus1-oggi","titolo":"Persone di oggi","items":["einaudi","bocelli","maneskin","ed-sheeran"]}
     ],
     2: [
       {"id":"mus2-melodramma","titolo":"Il Seicento: nasce il melodramma","items":["monteverdi","ulisse-sirene"]},
       {"id":"mus2-barocco","titolo":"Il Barocco: Vivaldi e Bach","items":["vivaldi","bach"]},
-      {"id":"mus2-classicismo","titolo":"Il Classicismo: Mozart e Beethoven","items":["mozart","beethoven"]}
+      {"id":"mus2-classicismo","titolo":"Il Classicismo: Mozart e Beethoven","items":["mozart","beethoven"]},
+      {"id":"mus2-oggi","titolo":"Persone di oggi","items":["einaudi","bocelli","maneskin","ed-sheeran"]}
     ],
     3: [
       {"id":"mus3-opera","titolo":"L'Ottocento e il melodramma italiano","items":["rossini","verdi","puccini","scala"]},
       {"id":"mus3-inni","titolo":"Musica e identità: inni e canti della storia","items":["beethoven","verdi","parlamento-europeo"]},
-      {"id":"mus3-novecento","titolo":"Il Novecento: jazz, rock e pop","items":["louis-armstrong","beatles"]}
+      {"id":"mus3-novecento","titolo":"Il Novecento: jazz, rock e pop","items":["louis-armstrong","beatles"]},
+      {"id":"mus3-oggi","titolo":"Persone di oggi","items":["einaudi","bocelli","maneskin","ed-sheeran"]}
     ]
   }},
   mot: { nome:"Scienze motorie", classi: {
     1: [
       {"id":"mot1-olimpiadi-antiche","titolo":"Le Olimpiadi antiche e lo sport nel mondo greco","items":["olimpia","discobolo"]},
       {"id":"mot1-corpo","titolo":"Il corpo in movimento: schemi motori e capacità","items":["uomo-vitruviano","discobolo"]},
-      {"id":"mot1-regole-fairplay","titolo":"Giochi sportivi, regole e fair play","items":["naismith","jesse-owens"]}
+      {"id":"mot1-regole-fairplay","titolo":"Giochi sportivi, regole e fair play","items":["naismith","jesse-owens"]},
+      {"id":"mot1-oggi","titolo":"Persone di oggi","items":["sinner","bebe-vio","goggia","tamberi","antonelli"]}
     ],
     2: [
       {"id":"mot2-olimpiadi-moderne","titolo":"Le Olimpiadi moderne","items":["coubertin","atene-1896"]},
       {"id":"mot2-atletica","titolo":"L'atletica leggera: corse, salti e lanci","items":["jesse-owens","bikila","discobolo"]},
-      {"id":"mot2-ciclismo","titolo":"Il ciclismo e le grandi corse a tappe","items":["alfonsina-strada","bartali"]}
+      {"id":"mot2-ciclismo","titolo":"Il ciclismo e le grandi corse a tappe","items":["alfonsina-strada","bartali"]},
+      {"id":"mot2-oggi","titolo":"Persone di oggi","items":["sinner","bebe-vio","goggia","tamberi","antonelli"]}
     ],
     3: [
       {"id":"mot3-sport-diritti","titolo":"Sport e diritti: contro ogni discriminazione","items":["jesse-owens","alfonsina-strada","bikila","mandela"]},
       {"id":"mot3-sport-storia","titolo":"Sport e storia del Novecento","items":["jesse-owens","bartali","bikila"]},
-      {"id":"mot3-salute","titolo":"Salute, benessere e corretti stili di vita","items":["uomo-vitruviano","vesalio"]}
+      {"id":"mot3-salute","titolo":"Salute, benessere e corretti stili di vita","items":["uomo-vitruviano","vesalio"]},
+      {"id":"mot3-oggi","titolo":"Persone di oggi","items":["sinner","bebe-vio","goggia","tamberi","antonelli"]}
     ]
   }},
   rel: { nome:"Religione cattolica", classi: {
@@ -6280,37 +6414,43 @@ window.CURRICOLO = {
       {"id":"rel1-creazione","titolo":"Le grandi domande: la Creazione","items":["creazione-adamo","terra"]},
       {"id":"rel1-bibbia","titolo":"La Bibbia: patriarchi, Mosè e re Davide","items":["sacrificio-isacco","mose","david"]},
       {"id":"rel1-gesu","titolo":"Gesù di Nazareth: la storia e i Vangeli","items":["nativita","gerusalemme","ultima-cena"]},
-      {"id":"rel1-parabole","titolo":"Gesù rivela il Padre: parabole e chiamate","items":["figliol-prodigo","caravaggio-vocazione"]}
+      {"id":"rel1-parabole","titolo":"Gesù rivela il Padre: parabole e chiamate","items":["figliol-prodigo","caravaggio-vocazione"]},
+      {"id":"rel1-oggi","titolo":"Persone di oggi","items":["papa-francesco","leone-xiv","carlo-acutis","ciotti"]}
     ],
     2: [
       {"id":"rel2-chiesa-origini","titolo":"La Chiesa delle origini: Pietro e Paolo","items":["san-pietro","san-paolo"]},
       {"id":"rel2-monachesimo","titolo":"Il monachesimo e la Chiesa nel Medioevo","items":["san-benedetto","ildegarda","santiago"]},
       {"id":"rel2-francesco-chiara","titolo":"Francesco e Chiara d'Assisi","items":["san-francesco","santa-chiara"]},
-      {"id":"rel2-riforma","titolo":"Riforma protestante e Concilio di Trento","items":["lutero","concilio-trento"]}
+      {"id":"rel2-riforma","titolo":"Riforma protestante e Concilio di Trento","items":["lutero","concilio-trento"]},
+      {"id":"rel2-oggi","titolo":"Persone di oggi","items":["papa-francesco","leone-xiv","carlo-acutis","ciotti"]}
     ],
     3: [
       {"id":"rel3-testimoni","titolo":"Testimoni di fede e di carità","items":["don-bosco","kolbe","madre-teresa"]},
       {"id":"rel3-dialogo","titolo":"La Chiesa nel mondo contemporaneo e il dialogo tra le religioni","items":["vaticano-ii","gerusalemme"]},
-      {"id":"rel3-pace","titolo":"Costruttori di pace e di giustizia","items":["mlk","gandhi","madre-teresa"]}
+      {"id":"rel3-pace","titolo":"Costruttori di pace e di giustizia","items":["mlk","gandhi","madre-teresa"]},
+      {"id":"rel3-oggi","titolo":"Persone di oggi","items":["papa-francesco","leone-xiv","carlo-acutis","ciotti"]}
     ]
   }},
   civ: { nome:"Educazione civica", classi: {
     1: [
       {"id":"civ1-regole","titolo":"Regole, scuola e convivenza civile","items":["buon-governo","montessori"]},
       {"id":"civ1-ambiente","titolo":"Ambiente e Agenda 2030","items":["terra","amazzonia","eolico"]},
-      {"id":"civ1-infanzia","titolo":"I diritti dell'infanzia","items":["malala","montessori"]}
+      {"id":"civ1-infanzia","titolo":"I diritti dell'infanzia","items":["malala","montessori"]},
+      {"id":"civ1-oggi","titolo":"Persone di oggi","items":["mattarella","segre","ciotti","bebe-vio"]}
     ],
     2: [
       {"id":"civ2-diritti-umani","titolo":"I diritti umani","items":["dichiarazione-diritti","dichiarazione-universale"]},
       {"id":"civ2-europa","titolo":"L'Unione europea e la cittadinanza europea","items":["parlamento-europeo","beethoven","muro-berlino"]},
       {"id":"civ2-patrimonio","titolo":"La tutela del patrimonio culturale e del paesaggio (art. 9)","items":["colosseo","venezia","tre-cime"]},
-      {"id":"civ2-digitale","titolo":"Cittadinanza digitale","items":["turing","ada-lovelace"]}
+      {"id":"civ2-digitale","titolo":"Cittadinanza digitale","items":["turing","ada-lovelace"]},
+      {"id":"civ2-oggi","titolo":"Persone di oggi","items":["mattarella","segre","ciotti","bebe-vio"]}
     ],
     3: [
       {"id":"civ3-costituzione","titolo":"La Costituzione e la Repubblica","items":["liberazione","referendum-1946","costituzione"]},
       {"id":"civ3-legalita","titolo":"Legalità e lotta alle mafie","items":["albero-falcone","costituzione"]},
       {"id":"civ3-onu-pace","titolo":"L'ONU, la pace e la nonviolenza","items":["onu","gandhi","mlk","mandela"]},
-      {"id":"civ3-memoria","titolo":"Memoria e diritti: contro ogni discriminazione","items":["anne-frank","rosa-parks","bartali"]}
+      {"id":"civ3-memoria","titolo":"Memoria e diritti: contro ogni discriminazione","items":["anne-frank","rosa-parks","bartali"]},
+      {"id":"civ3-oggi","titolo":"Persone di oggi","items":["mattarella","segre","ciotti","bebe-vio"]}
     ]
   }}
 };
@@ -6506,7 +6646,7 @@ window.GIGANTI = [
   {"id":"vaticano-ii","nome":"Il Concilio Vaticano II","date":"1962–1965","tipo":"evento","disc":["rel"],"classi":[3],"perche":"Il concilio aperto da papa Giovanni XXIII: rinnovò la Chiesa e la liturgia e aprì il dialogo con il mondo e le altre religioni.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6b/Second_Vatican_Council_by_Lothar_Wolleh_007.jpg/960px-Second_Vatican_Council_by_Lothar_Wolleh_007.jpg","w":960,"h":960,"lic":"CC BY-SA 3.0","autore":"Lothar Wolleh","file":"Second_Vatican_Council_by_Lothar_Wolleh_007.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6b/Second_Vatican_Council_by_Lothar_Wolleh_007.jpg/330px-Second_Vatican_Council_by_Lothar_Wolleh_007.jpg"}},
   {"id":"gerusalemme","nome":"Gerusalemme","date":"Città santa","tipo":"luogo","disc":["rel"],"classi":[1,3],"perche":"Città santa per ebrei, cristiani e musulmani: nella foto il Muro occidentale e la Cupola della Roccia. Qui Gesù morì e risorse.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/Western_Wall_and_Dome_of_the_Rock_Jerusalem_-10_%2833400391921%29.jpg/960px-Western_Wall_and_Dome_of_the_Rock_Jerusalem_-10_%2833400391921%29.jpg","w":960,"h":640,"lic":"CC BY 2.0","autore":"Gary Bembridge from London, UK","file":"Western_Wall_and_Dome_of_the_Rock_Jerusalem_-10_(33400391921).jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/Western_Wall_and_Dome_of_the_Rock_Jerusalem_-10_%2833400391921%29.jpg/330px-Western_Wall_and_Dome_of_the_Rock_Jerusalem_-10_%2833400391921%29.jpg"}},
   {"id":"montessori","nome":"Maria Montessori","date":"1870–1952","tipo":"persona","disc":["civ"],"classi":[1],"perche":"Medico ed educatrice: il suo metodo, diffuso in tutto il mondo, rispetta i tempi e l'autonomia del bambino: «aiutami a fare da solo».","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/Maria_Montessori_%28portrait%29.jpg/960px-Maria_Montessori_%28portrait%29.jpg","w":960,"h":1280,"lic":"Public domain","autore":"Autore sconosciuto","file":"Maria_Montessori_(portrait).jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/Maria_Montessori_%28portrait%29.jpg/330px-Maria_Montessori_%28portrait%29.jpg"}},
-  {"id":"malala","nome":"Malala Yousafzai","date":"nata nel 1997","tipo":"persona","disc":["civ"],"classi":[1],"perche":"Ragazza pakistana ferita per aver difeso il diritto delle bambine a studiare: a 17 anni ha ricevuto il premio Nobel per la pace.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fe/Malala_Yousafzai_2015.jpg/960px-Malala_Yousafzai_2015.jpg","w":960,"h":960,"lic":"CC BY 2.0","autore":"DFID - UK Department for International Development","file":"Malala_Yousafzai_2015.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fe/Malala_Yousafzai_2015.jpg/330px-Malala_Yousafzai_2015.jpg"}},
+  {"id":"malala","nome":"Malala Yousafzai","date":"nata nel 1997","tipo":"persona","disc":["ing","civ"],"classi":[1,2,3],"perche":"Ragazza pakistana ferita per aver difeso il diritto delle bambine a studiare: a 17 anni ha ricevuto il premio Nobel per la pace.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fe/Malala_Yousafzai_2015.jpg/960px-Malala_Yousafzai_2015.jpg","w":960,"h":960,"lic":"CC BY 2.0","autore":"DFID - UK Department for International Development","file":"Malala_Yousafzai_2015.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fe/Malala_Yousafzai_2015.jpg/330px-Malala_Yousafzai_2015.jpg"}},
   {"id":"dichiarazione-universale","nome":"La Dichiarazione universale dei diritti umani","date":"10 dicembre 1948","tipo":"evento","disc":["civ"],"classi":[2],"perche":"Approvata dall'ONU dopo la Seconda guerra mondiale: Eleanor Roosevelt, che guidò la commissione, ne mostra il testo.","img":{"url":"https://upload.wikimedia.org/wikipedia/commons/d/d4/EleanorRooseveltHumanRights.png","w":535,"h":423,"lic":"Public domain","autore":"Autore sconosciuto","file":"EleanorRooseveltHumanRights.png","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d4/EleanorRooseveltHumanRights.png/330px-EleanorRooseveltHumanRights.png"}},
   {"id":"onu","nome":"L'Assemblea generale dell'ONU","date":"dal 1945","tipo":"luogo","disc":["civ"],"classi":[3],"perche":"La sala delle Nazioni Unite a New York dove gli Stati membri discutono insieme di pace, diritti umani e sviluppo.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/UN_General_Assembly_hall.jpg/960px-UN_General_Assembly_hall.jpg","w":960,"h":596,"lic":"CC BY-SA 2.0","autore":"Patrick Gruban","file":"UN_General_Assembly_hall.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/UN_General_Assembly_hall.jpg/330px-UN_General_Assembly_hall.jpg"}},
   {"id":"albero-falcone","nome":"L'Albero Falcone","date":"Palermo","tipo":"luogo","disc":["civ"],"classi":[3],"perche":"Il ficus davanti alla casa del giudice Giovanni Falcone, ucciso dalla mafia nel 1992: i cittadini vi lasciano messaggi di legalità.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/1/18/Giovanni_Falcone_tree.jpg/960px-Giovanni_Falcone_tree.jpg","w":960,"h":1280,"lic":"CC BY 3.0","autore":"Dedda71","file":"Giovanni_Falcone_tree.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/1/18/Giovanni_Falcone_tree.jpg/330px-Giovanni_Falcone_tree.jpg"}},
@@ -6528,7 +6668,7 @@ window.GIGANTI = [
   {"id":"boole","nome":"George Boole","date":"1815–1864","tipo":"persona","disc":["inf"],"classi":[2],"perche":"Matematico inglese che inventò l'algebra della logica con due soli valori, vero e falso: oggi i computer «ragionano» proprio con 1 e 0.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c7/Portrait_of_George_Boole.png/960px-Portrait_of_George_Boole.png","w":960,"h":1288,"lic":"Public domain","autore":"Autore sconosciuto","file":"Portrait_of_George_Boole.png","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c7/Portrait_of_George_Boole.png/330px-Portrait_of_George_Boole.png"}},
   {"id":"hollerith","nome":"Herman Hollerith","date":"1860–1929","tipo":"persona","disc":["inf"],"classi":[2],"perche":"Inventò una macchina a schede perforate per contare i dati del censimento americano del 1890. Dalla sua azienda nascerà l'IBM.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/42/Hollerith.jpg/960px-Hollerith.jpg","w":960,"h":1280,"lic":"Public domain","autore":"Charles Milton Bell","file":"Hollerith.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/42/Hollerith.jpg/330px-Hollerith.jpg"}},
   {"id":"katherine-johnson","nome":"Katherine Johnson","date":"1918–2020","tipo":"persona","disc":["inf"],"classi":[2],"perche":"Matematica afroamericana della NASA: calcolava le traiettorie dei voli spaziali. Prima di partire, l'astronauta John Glenn volle che controllasse lei i calcoli del computer.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/Katherine_Johnson_1983.jpg/960px-Katherine_Johnson_1983.jpg","w":960,"h":1200,"lic":"Public domain","autore":"NASA","file":"Katherine_Johnson_1983.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/Katherine_Johnson_1983.jpg/330px-Katherine_Johnson_1983.jpg"}},
-  {"id":"faggin","nome":"Federico Faggin","date":"nato nel 1941","tipo":"persona","disc":["inf"],"classi":[2],"perche":"Fisico di Vicenza che nel 1971 progettò l'Intel 4004, il primo microprocessore: il «cervello» di un computer racchiuso in un piccolo chip.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Federico_Faggin_%28cropped%29.jpg/960px-Federico_Faggin_%28cropped%29.jpg","w":960,"h":1207,"lic":"CC BY-SA 2.0","autore":"Intel Free Press","file":"Federico_Faggin_(cropped).jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Federico_Faggin_%28cropped%29.jpg/330px-Federico_Faggin_%28cropped%29.jpg"}},
+  {"id":"faggin","nome":"Federico Faggin","date":"nato nel 1941","tipo":"persona","disc":["tec","inf"],"classi":[1,2,3],"perche":"Fisico vicentino: nel 1971 progettò il primo microprocessore, l'Intel 4004, il cervello di ogni computer; poi sviluppò il touchpad.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Federico_Faggin_%28cropped%29.jpg/960px-Federico_Faggin_%28cropped%29.jpg","w":960,"h":1207,"lic":"CC BY-SA 2.0","autore":"Intel Free Press","file":"Federico_Faggin_(cropped).jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Federico_Faggin_%28cropped%29.jpg/330px-Federico_Faggin_%28cropped%29.jpg"}},
   {"id":"vint-cerf","nome":"Vint Cerf","date":"nato nel 1943","tipo":"persona","disc":["inf"],"classi":[2],"perche":"Con Bob Kahn inventò il TCP/IP, le regole con cui i computer di tutto il mondo si scambiano dati: è uno dei «padri di Internet».","img":{"url":"https://upload.wikimedia.org/wikipedia/commons/a/ae/Dr_Vint_Cerf_ForMemRS_%28cropped%29.jpg","w":720,"h":960,"lic":"CC BY-SA 4.0","autore":"Duncan Hull","file":"Dr_Vint_Cerf_ForMemRS_(cropped).jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ae/Dr_Vint_Cerf_ForMemRS_%28cropped%29.jpg/330px-Dr_Vint_Cerf_ForMemRS_%28cropped%29.jpg"}},
   {"id":"primo-server-web","nome":"Il primo server web","date":"1990","tipo":"opera","disc":["inf"],"classi":[2],"perche":"Il computer NeXT su cui Tim Berners-Lee fece funzionare il primo sito web, al CERN. L'etichetta avverte: «È un server, NON spegnerlo!».","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d1/First_Web_Server.jpg/960px-First_Web_Server.jpg","w":960,"h":720,"lic":"CC BY-SA 3.0","autore":"Coolcaesar (Wikipedia)","file":"First_Web_Server.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d1/First_Web_Server.jpg/330px-First_Web_Server.jpg"}},
   {"id":"linus-torvalds","nome":"Linus Torvalds","date":"nato nel 1969","tipo":"persona","disc":["inf"],"classi":[2],"perche":"A 21 anni, studente a Helsinki, scrisse Linux nella sua stanza e lo condivise gratis. Oggi Linux fa funzionare server, smartphone Android e supercomputer.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/01/LinuxCon_Europe_Linus_Torvalds_03_%28cropped%29.jpg/960px-LinuxCon_Europe_Linus_Torvalds_03_%28cropped%29.jpg","w":960,"h":1336,"lic":"CC BY-SA 4.0","autore":"Krd","file":"LinuxCon_Europe_Linus_Torvalds_03_(cropped).jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/01/LinuxCon_Europe_Linus_Torvalds_03_%28cropped%29.jpg/330px-LinuxCon_Europe_Linus_Torvalds_03_%28cropped%29.jpg"}},
@@ -6566,7 +6706,39 @@ window.GIGANTI = [
   {"id":"don-chisciotte","nome":"Don Chisciotte","date":"1605–1615","tipo":"opera","disc":["spa"],"classi":[2],"perche":"L'hidalgo che, a forza di leggere romanzi cavallereschi, si crede un cavaliere errante. Illustrazione di Gustave Doré.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/40/Gustave_Dor%C3%A9_-_Miguel_de_Cervantes_-_Don_Quixote_-_Part_1_-_Chapter_1_-_Plate_1_%22A_world_of_disorderly_notions%2C_picked_out_of_his_books%2C_crowded_into_his_imagination%22.jpg/960px-thumbnail.jpg","w":960,"h":1242,"lic":"Public domain","autore":"Gustave Doré","file":"Gustave_Doré_-_Miguel_de_Cervantes_-_Don_Quixote_-_Part_1_-_Chapter_1_-_Plate_1_\"A_world_of_disorderly_notions,_picked_out_of_his_books,_crowded_into_his_imagination\".jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/40/Gustave_Dor%C3%A9_-_Miguel_de_Cervantes_-_Don_Quixote_-_Part_1_-_Chapter_1_-_Plate_1_%22A_world_of_disorderly_notions%2C_picked_out_of_his_books%2C_crowded_into_his_imagination%22.jpg/330px-thumbnail.jpg"}},
   {"id":"gaudi","nome":"Antoni Gaudí","date":"1852–1926","tipo":"persona","disc":["spa"],"classi":[3],"perche":"Architetto catalano del Modernismo: a Barcellona progettò la Sagrada Família, Casa Batlló e il Parco Güell.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/7/72/Antoni_Gaudi_1878.jpg/960px-Antoni_Gaudi_1878.jpg","w":960,"h":1306,"lic":"Public domain","autore":"Pau Audouard Deglaire","file":"Antoni_Gaudi_1878.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/7/72/Antoni_Gaudi_1878.jpg/330px-Antoni_Gaudi_1878.jpg"}},
   {"id":"bolivar","nome":"Simón Bolívar","date":"1783–1830","tipo":"persona","disc":["spa"],"classi":[3],"perche":"Il «Libertador»: guidò la lotta per l'indipendenza dalla Spagna di Venezuela, Colombia, Ecuador, Perù e Bolivia.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Portrait_of_Sim%C3%B3n_Bol%C3%ADvar_by_Arturo_Michelena.jpg/960px-Portrait_of_Sim%C3%B3n_Bol%C3%ADvar_by_Arturo_Michelena.jpg","w":960,"h":1913,"lic":"Public domain","autore":"Arturo Michelena","file":"Portrait_of_Simón_Bolívar_by_Arturo_Michelena.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Portrait_of_Sim%C3%B3n_Bol%C3%ADvar_by_Arturo_Michelena.jpg/330px-Portrait_of_Sim%C3%B3n_Bol%C3%ADvar_by_Arturo_Michelena.jpg"}},
-  {"id":"frida-kahlo","nome":"Frida Kahlo","date":"1907–1954","tipo":"persona","disc":["spa"],"classi":[1,3],"perche":"Pittrice messicana famosa per gli autoritratti: trasformò il dolore e l'identità messicana in arte. Foto del padre Guillermo.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/06/Frida_Kahlo%2C_by_Guillermo_Kahlo.jpg/960px-Frida_Kahlo%2C_by_Guillermo_Kahlo.jpg","w":960,"h":1440,"lic":"Public domain","autore":"Guillermo Kahlo","file":"Frida_Kahlo,_by_Guillermo_Kahlo.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/06/Frida_Kahlo%2C_by_Guillermo_Kahlo.jpg/330px-Frida_Kahlo%2C_by_Guillermo_Kahlo.jpg"}}
+  {"id":"frida-kahlo","nome":"Frida Kahlo","date":"1907–1954","tipo":"persona","disc":["spa"],"classi":[1,3],"perche":"Pittrice messicana famosa per gli autoritratti: trasformò il dolore e l'identità messicana in arte. Foto del padre Guillermo.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/06/Frida_Kahlo%2C_by_Guillermo_Kahlo.jpg/960px-Frida_Kahlo%2C_by_Guillermo_Kahlo.jpg","w":960,"h":1440,"lic":"Public domain","autore":"Guillermo Kahlo","file":"Frida_Kahlo,_by_Guillermo_Kahlo.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/06/Frida_Kahlo%2C_by_Guillermo_Kahlo.jpg/330px-Frida_Kahlo%2C_by_Guillermo_Kahlo.jpg"}},
+  {"id":"segre","nome":"Liliana Segre","date":"nata nel 1930","tipo":"persona","disc":["sto","ita","civ"],"classi":[1,2,3],"perche":"Deportata ad Auschwitz a 13 anni, è tornata e da decenni racconta la Shoah ai ragazzi nelle scuole. Senatrice a vita dal 2018.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/Liliana_Segre_celebra_il_%22Giorno_della_Memoria%22_2025.jpg/960px-Liliana_Segre_celebra_il_%22Giorno_della_Memoria%22_2025.jpg","w":960,"h":640,"lic":"Attribution","autore":"Presidenza della Repubblica","file":"Liliana_Segre_celebra_il_\"Giorno_della_Memoria\"_2025.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/Liliana_Segre_celebra_il_%22Giorno_della_Memoria%22_2025.jpg/330px-Liliana_Segre_celebra_il_%22Giorno_della_Memoria%22_2025.jpg"}},
+  {"id":"alberto-angela","nome":"Alberto Angela","date":"nato nel 1962","tipo":"persona","disc":["sto","geo"],"classi":[1,2,3],"perche":"Paleontologo e divulgatore: con Ulisse e Meraviglie porta in televisione la storia, l'arte e i luoghi d'Italia, da Pompei ai nostri borghi.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/Alberto_Angela%2C2013.jpg/960px-Alberto_Angela%2C2013.jpg","w":960,"h":1443,"lic":"CC BY-SA 3.0","autore":"Barbara Ledda","file":"Alberto_Angela,2013.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/Alberto_Angela%2C2013.jpg/330px-Alberto_Angela%2C2013.jpg"}},
+  {"id":"mattarella","nome":"Sergio Mattarella","date":"nato nel 1941","tipo":"persona","disc":["sto","civ"],"classi":[1,2,3],"perche":"Presidente della Repubblica dal 2015, rieletto nel 2022: è il garante della Costituzione e dell'unità del Paese.","img":{"url":"https://upload.wikimedia.org/wikipedia/commons/a/a3/Sergio_Mattarella_Presidente_della_Repubblica_Italiana.jpg","w":598,"h":748,"lic":"Attribution","autore":"Presidenza della Repubblica","file":"Sergio_Mattarella_Presidente_della_Repubblica_Italiana.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a3/Sergio_Mattarella_Presidente_della_Repubblica_Italiana.jpg/330px-Sergio_Mattarella_Presidente_della_Repubblica_Italiana.jpg"}},
+  {"id":"papa-francesco","nome":"Papa Francesco","date":"1936–2025","tipo":"persona","disc":["sto","spa","rel"],"classi":[1,2,3],"perche":"Jorge Mario Bergoglio, argentino, primo papa venuto dalle Americhe (2013–2025): ha parlato di cura del creato, di pace e dei poveri.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ab/Pope_Francis_Korea_Haemi_Castle_19.jpg/960px-Pope_Francis_Korea_Haemi_Castle_19.jpg","w":960,"h":1272,"lic":"CC BY-SA 2.0","autore":"Korea.net (Jeon Han)","file":"Pope_Francis_Korea_Haemi_Castle_19.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ab/Pope_Francis_Korea_Haemi_Castle_19.jpg/330px-Pope_Francis_Korea_Haemi_Castle_19.jpg"}},
+  {"id":"benigni","nome":"Roberto Benigni","date":"nato nel 1952","tipo":"persona","disc":["ita"],"classi":[1,2,3],"perche":"Attore e regista, premio Oscar per La vita è bella: recita e spiega la Divina Commedia in piazza e in televisione.","img":{"url":"https://upload.wikimedia.org/wikipedia/commons/0/0d/Benigni.jpg","w":500,"h":750,"lic":"Public domain","autore":"it:User:Starlight","file":"Benigni.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0d/Benigni.jpg/330px-Benigni.jpg"}},
+  {"id":"davenia","nome":"Alessandro D'Avenia","date":"nato nel 1977","tipo":"persona","disc":["ita"],"classi":[1,2,3],"perche":"Insegnante di lettere e scrittore: nei suoi romanzi, come Bianca come il latte, rossa come il sangue, racconta la scuola e i ragazzi.","img":{"url":"https://upload.wikimedia.org/wikipedia/commons/2/22/Alessandro_D%27Avenia_2012.jpg","w":352,"h":493,"lic":"CC BY 2.0","autore":"Associazione Amici di Piero Chiara","file":"Alessandro_D'Avenia_2012.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/2/22/Alessandro_D%27Avenia_2012.jpg/330px-Alessandro_D%27Avenia_2012.jpg"}},
+  {"id":"dami","nome":"Elisabetta Dami","date":"nata nel 1958","tipo":"persona","disc":["ita"],"classi":[1,2,3],"perche":"Ha inventato Geronimo Stilton, il topo giornalista dei libri che tanti di voi hanno letto alle elementari, tradotti in decine di lingue.","img":{"url":"https://upload.wikimedia.org/wikipedia/commons/6/6f/Elisabettadami-2019.jpg","w":829,"h":1244,"lic":"Public domain","autore":"Marco Ottico","file":"Elisabettadami-2019.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6f/Elisabettadami-2019.jpg/330px-Elisabettadami-2019.jpg"}},
+  {"id":"messner","nome":"Reinhold Messner","date":"nato nel 1944","tipo":"persona","disc":["geo"],"classi":[1,2,3],"perche":"Alpinista altoatesino: il primo a salire tutti i 14 ottomila della Terra, l'Everest anche senza ossigeno. Oggi racconta la montagna nei suoi musei.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/39/Reinhold_Messner_at_Frankfurt_Book_Fair_2017_%2826%29_%28cropped%29.jpg/960px-Reinhold_Messner_at_Frankfurt_Book_Fair_2017_%2826%29_%28cropped%29.jpg","w":960,"h":1349,"lic":"CC BY-SA 4.0","autore":"Ptolusque","file":"Reinhold_Messner_at_Frankfurt_Book_Fair_2017_(26)_(cropped).jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/39/Reinhold_Messner_at_Frankfurt_Book_Fair_2017_%2826%29_%28cropped%29.jpg/330px-Reinhold_Messner_at_Frankfurt_Book_Fair_2017_%2826%29_%28cropped%29.jpg"}},
+  {"id":"cristoforetti","nome":"Samantha Cristoforetti","date":"nata nel 1977","tipo":"persona","disc":["geo","sci","tec"],"classi":[1,2,3],"perche":"Astronauta dell'ESA: due missioni sulla Stazione spaziale internazionale e nel 2022 la prima donna europea al comando della stazione.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/Samantha_Cristoforetti_official_portrait_in_an_EMU_spacesuit.jpg/960px-Samantha_Cristoforetti_official_portrait_in_an_EMU_spacesuit.jpg","w":960,"h":1200,"lic":"Public domain","autore":"Robert Markowitz","file":"Samantha_Cristoforetti_official_portrait_in_an_EMU_spacesuit.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/Samantha_Cristoforetti_official_portrait_in_an_EMU_spacesuit.jpg/330px-Samantha_Cristoforetti_official_portrait_in_an_EMU_spacesuit.jpg"}},
+  {"id":"attenborough","nome":"David Attenborough","date":"nato nel 1926","tipo":"persona","disc":["geo","sci","ing"],"classi":[1,2,3],"perche":"Naturalista inglese: da oltre settant'anni racconta nei documentari, come Il pianeta blu, la vita sulla Terra e come proteggerla.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/6/69/David_Attenborough_in_2025.jpg/960px-David_Attenborough_in_2025.jpg","w":960,"h":1280,"lic":"OGL 3","autore":"Governo del Regno Unito","file":"David_Attenborough_in_2025.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/6/69/David_Attenborough_in_2025.jpg/330px-David_Attenborough_in_2025.jpg"}},
+  {"id":"rubik","nome":"Ernő Rubik","date":"nato nel 1944","tipo":"persona","disc":["mat"],"classi":[1,2,3],"perche":"Architetto e professore ungherese: nel 1974 inventò il cubo che porta il suo nome per spiegare ai suoi studenti lo spazio e le rotazioni.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/6/66/Erno_Rubik_Genius_Gala_2014.jpg/960px-Erno_Rubik_Genius_Gala_2014.jpg","w":960,"h":1224,"lic":"Public domain","autore":"Babak Mansouri","file":"Erno_Rubik_Genius_Gala_2014.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/6/66/Erno_Rubik_Genius_Gala_2014.jpg/330px-Erno_Rubik_Genius_Gala_2014.jpg"}},
+  {"id":"figalli","nome":"Alessio Figalli","date":"nato nel 1984","tipo":"persona","disc":["mat"],"classi":[1,2,3],"perche":"Matematico romano: nel 2018 ha vinto la Medaglia Fields, il premio più importante per i matematici sotto i 40 anni.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e8/Alessio_Figalli_-2019_%28cropped%29.jpg/960px-Alessio_Figalli_-2019_%28cropped%29.jpg","w":960,"h":1460,"lic":"CC BY-SA 2.0","autore":"Jérémy Barande","file":"Alessio_Figalli_-2019_(cropped).jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e8/Alessio_Figalli_-2019_%28cropped%29.jpg/330px-Alessio_Figalli_-2019_%28cropped%29.jpg"}},
+  {"id":"gianotti","nome":"Fabiola Gianotti","date":"nata nel 1960","tipo":"persona","disc":["sci"],"classi":[1,2,3],"perche":"Fisica romana: guidò al CERN l'esperimento che nel 2012 scoprì il bosone di Higgs, poi fu la prima donna a dirigere il CERN.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/b/ba/Dr_Fabiola_Gianotti.jpg/960px-Dr_Fabiola_Gianotti.jpg","w":960,"h":1344,"lic":"CC BY 4.0","autore":"Maximilien Brice","file":"Dr_Fabiola_Gianotti.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/b/ba/Dr_Fabiola_Gianotti.jpg/330px-Dr_Fabiola_Gianotti.jpg"}},
+  {"id":"parisi","nome":"Giorgio Parisi","date":"nato nel 1948","tipo":"persona","disc":["sci"],"classi":[1,2,3],"perche":"Fisico romano, premio Nobel 2021 per aver capito come funzionano i sistemi complessi, dal clima ai voli degli stormi di storni.","img":{"url":"https://upload.wikimedia.org/wikipedia/commons/c/c1/Parisi_giorgio.jpg","w":697,"h":470,"lic":"CC BY-SA 4.0","autore":"Lorenza Parisi","file":"Parisi_giorgio.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c1/Parisi_giorgio.jpg/330px-Parisi_giorgio.jpg"}},
+  {"id":"piero-angela","nome":"Piero Angela","date":"1928–2022","tipo":"persona","disc":["sci"],"classi":[1,2,3],"perche":"Giornalista e divulgatore: con Quark e Superquark ha spiegato la scienza in televisione a tre generazioni di italiani.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/Piero_Angela_2013.JPG/960px-Piero_Angela_2013.JPG","w":960,"h":1244,"lic":"CC BY-SA 3.0","autore":"Niccolò Caranti","file":"Piero_Angela_2013.JPG","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/Piero_Angela_2013.JPG/330px-Piero_Angela_2013.JPG"}},
+  {"id":"ed-sheeran","nome":"Ed Sheeran","date":"nato nel 1991","tipo":"persona","disc":["ing","mus"],"classi":[1,2,3],"perche":"Cantautore inglese che suona con chitarra e loop station: canzoni come Perfect e Shape of You sono tra le più ascoltate di sempre.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c1/Ed_Sheeran-6886_%28cropped%29.jpg/960px-Ed_Sheeran-6886_%28cropped%29.jpg","w":960,"h":1213,"lic":"CC BY-SA 3.0","autore":"Harald Krichel","file":"Ed_Sheeran-6886_(cropped).jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c1/Ed_Sheeran-6886_%28cropped%29.jpg/330px-Ed_Sheeran-6886_%28cropped%29.jpg"}},
+  {"id":"antonelli","nome":"Andrea Kimi Antonelli","date":"nato nel 2006","tipo":"persona","disc":["mot"],"classi":[1,2,3],"perche":"Pilota bolognese di Formula 1: nel 2025, a 18 anni, è entrato in Mercedes al posto di Lewis Hamilton e a Montréal è salito sul podio.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/7/79/Kimi_Antonelli_at_the_Melbourne_Walk_during_the_2026_Australian_Grand_Prix_%28028A7923%29_cropped.jpg/960px-Kimi_Antonelli_at_the_Melbourne_Walk_during_the_2026_Australian_Grand_Prix_%28028A7923%29_cropped.jpg","w":960,"h":1200,"lic":"CC BY-SA 4.0","autore":"Yu Chu Chin","file":"Kimi_Antonelli_at_the_Melbourne_Walk_during_the_2026_Australian_Grand_Prix_(028A7923)_cropped.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/7/79/Kimi_Antonelli_at_the_Melbourne_Walk_during_the_2026_Australian_Grand_Prix_%28028A7923%29_cropped.jpg/330px-Kimi_Antonelli_at_the_Melbourne_Walk_during_the_2026_Australian_Grand_Prix_%28028A7923%29_cropped.jpg"}},
+  {"id":"nadal","nome":"Rafael Nadal","date":"nato nel 1986","tipo":"persona","disc":["spa"],"classi":[1,2,3],"perche":"Tennista spagnolo: 22 titoli del Grande Slam, di cui 14 al Roland Garros, un record. Si è ritirato nel 2024.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/7/71/Rafael_Nadal_en_2024_%28cropped%29.jpg/960px-Rafael_Nadal_en_2024_%28cropped%29.jpg","w":960,"h":1293,"lic":"CC BY-SA 4.0","autore":"Barcex","file":"Rafael_Nadal_en_2024_(cropped).jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/7/71/Rafael_Nadal_en_2024_%28cropped%29.jpg/330px-Rafael_Nadal_en_2024_%28cropped%29.jpg"}},
+  {"id":"miyamoto","nome":"Shigeru Miyamoto","date":"nato nel 1952","tipo":"persona","disc":["tec","inf"],"classi":[1,2,3],"perche":"Autore giapponese di videogiochi Nintendo: ha inventato Super Mario e The Legend of Zelda. Progettare un gioco è tecnologia e informatica.","img":{"url":"https://upload.wikimedia.org/wikipedia/commons/8/8f/Miyamoto2026.png","w":754,"h":942,"lic":"CC BY-SA 4.0","autore":"AbelDionis","file":"Miyamoto2026.png","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8f/Miyamoto2026.png/330px-Miyamoto2026.png"}},
+  {"id":"renzo-piano","nome":"Renzo Piano","date":"nato nel 1937","tipo":"persona","disc":["tec","art"],"classi":[1,2,3],"perche":"Architetto genovese: ha progettato il Centre Pompidou di Parigi e il ponte San Giorgio di Genova, aperto nel 2020. Senatore a vita.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Renzo_Piano%2C_portrait.jpg/960px-Renzo_Piano%2C_portrait.jpg","w":960,"h":1440,"lic":"CC BY-SA 2.0","autore":"Cirone-Musi (Festival della Scienza)","file":"Renzo_Piano,_portrait.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Renzo_Piano%2C_portrait.jpg/330px-Renzo_Piano%2C_portrait.jpg"}},
+  {"id":"miyazaki","nome":"Hayao Miyazaki","date":"nato nel 1941","tipo":"persona","disc":["art"],"classi":[1,2,3],"perche":"Regista giapponese di film d'animazione disegnati a mano, come Il mio vicino Totoro e La città incantata, premio Oscar.","img":{"url":"https://upload.wikimedia.org/wikipedia/commons/f/ff/HayaoMiyazakiCCJuly09.jpg","w":342,"h":519,"lic":"CC BY 2.0","autore":"Natasha Baucas","file":"HayaoMiyazakiCCJuly09.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/HayaoMiyazakiCCJuly09.jpg/330px-HayaoMiyazakiCCJuly09.jpg"}},
+  {"id":"jago","nome":"Jago (Jacopo Cardillo)","date":"nato nel 1987","tipo":"persona","disc":["art"],"classi":[1,2,3],"perche":"Scultore che lavora il marmo come i maestri antichi e racconta il suo lavoro sui social. A Napoli c'è il suo Figlio velato.","img":{"url":"https://upload.wikimedia.org/wikipedia/commons/3/3a/Sculptor_Jago_D%C3%A9luge.png","w":408,"h":383,"lic":"CC BY 3.0","autore":"Déluge","file":"Sculptor_Jago_Déluge.png","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3a/Sculptor_Jago_D%C3%A9luge.png/330px-Sculptor_Jago_D%C3%A9luge.png"}},
+  {"id":"einaudi","nome":"Ludovico Einaudi","date":"nato nel 1955","tipo":"persona","disc":["mus"],"classi":[1,2,3],"perche":"Pianista e compositore torinese: brani come Nuvole bianche ed Experience si suonano anche a scuola e accompagnano tanti film.","img":{"url":"https://upload.wikimedia.org/wikipedia/commons/e/e5/Ludovico_Einaudi_in_Tehran_12_%28cropped%292.jpg","w":322,"h":430,"lic":"CC BY 4.0","autore":"Meghdad Madadi","file":"Ludovico_Einaudi_in_Tehran_12_(cropped)2.jpg","mini":"https://upload.wikimedia.org/wikipedia/commons/e/e5/Ludovico_Einaudi_in_Tehran_12_%28cropped%292.jpg"}},
+  {"id":"bocelli","nome":"Andrea Bocelli","date":"nato nel 1958","tipo":"persona","disc":["mus"],"classi":[1,2,3],"perche":"Tenore toscano, cieco dall'età di 12 anni: porta l'opera nel mondo. A Pasqua 2020 cantò da solo nel Duomo di Milano vuoto.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3e/Andrea_Bocelli_-_5315303241.jpg/960px-Andrea_Bocelli_-_5315303241.jpg","w":960,"h":1280,"lic":"CC BY 2.0","autore":"othree","file":"Andrea_Bocelli_-_5315303241.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3e/Andrea_Bocelli_-_5315303241.jpg/330px-Andrea_Bocelli_-_5315303241.jpg"}},
+  {"id":"maneskin","nome":"Måneskin","date":"dal 2016","tipo":"persona","disc":["mus"],"classi":[1,2,3],"perche":"Band rock romana: dopo X Factor, nel 2021 vinse Sanremo e l'Eurovision con Zitti e buoni, portando il rock italiano nel mondo.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/9/96/M%C3%A5neskin_2021.jpg/960px-M%C3%A5neskin_2021.jpg","w":960,"h":558,"lic":"CC BY 3.0","autore":"Funweek.it","file":"Måneskin_2021.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/9/96/M%C3%A5neskin_2021.jpg/330px-M%C3%A5neskin_2021.jpg"}},
+  {"id":"sinner","nome":"Jannik Sinner","date":"nato nel 2001","tipo":"persona","disc":["mot"],"classi":[1,2,3],"perche":"Tennista altoatesino, primo italiano numero 1 del mondo: ha vinto gli Australian Open, gli US Open e Wimbledon.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/48/Jannik_Sinner_US_Open_2025_%28cropped%29.jpg/960px-Jannik_Sinner_US_Open_2025_%28cropped%29.jpg","w":960,"h":1595,"lic":"Public domain","autore":"The White House","file":"Jannik_Sinner_US_Open_2025_(cropped).jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/4/48/Jannik_Sinner_US_Open_2025_%28cropped%29.jpg/330px-Jannik_Sinner_US_Open_2025_%28cropped%29.jpg"}},
+  {"id":"bebe-vio","nome":"Bebe Vio","date":"nata nel 1997","tipo":"persona","disc":["mot","civ"],"classi":[1,2,3],"perche":"Schermitrice paralimpica: a 11 anni perse braccia e gambe per una meningite. Ha vinto due ori paralimpici nel fioretto e porta lo sport ai ragazzi disabili.","img":{"url":"https://upload.wikimedia.org/wikipedia/commons/8/8f/Beatrice_Vio_2018_%28cropped%29.jpg","w":456,"h":673,"lic":"CC BY-SA 3.0","autore":"Scott335","file":"Beatrice_Vio_2018_(cropped).jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8f/Beatrice_Vio_2018_%28cropped%29.jpg/330px-Beatrice_Vio_2018_%28cropped%29.jpg"}},
+  {"id":"goggia","nome":"Sofia Goggia","date":"nata nel 1992","tipo":"persona","disc":["mot"],"classi":[1,2,3],"perche":"Sciatrice bergamasca: oro olimpico in discesa libera nel 2018 e argento nel 2022, tornata a vincere dopo molti infortuni.","img":{"url":"https://upload.wikimedia.org/wikipedia/commons/e/e2/Sofia_Goggia.jpg","w":739,"h":602,"lic":"CC BY 3.0","autore":"Palazzo Chigi","file":"Sofia_Goggia.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e2/Sofia_Goggia.jpg/330px-Sofia_Goggia.jpg"}},
+  {"id":"tamberi","nome":"Gianmarco Tamberi","date":"nato nel 1992","tipo":"persona","disc":["mot"],"classi":[1,2,3],"perche":"Altista marchigiano: dopo un grave infortunio vinse l'oro olimpico nel 2021, condiviso con l'amico Barshim. Un esempio di fair play.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/2/29/2022-08-18_European_Championships_2022_%E2%80%93_Men%27s_High_Jump_by_Sandro_Halank%E2%80%93035.jpg/960px-2022-08-18_European_Championships_2022_%E2%80%93_Men%27s_High_Jump_by_Sandro_Halank%E2%80%93035.jpg","w":960,"h":1278,"lic":"CC BY-SA 4.0","autore":"Sandro Halank","file":"2022-08-18_European_Championships_2022_–_Men's_High_Jump_by_Sandro_Halank–035.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/2/29/2022-08-18_European_Championships_2022_%E2%80%93_Men%27s_High_Jump_by_Sandro_Halank%E2%80%93035.jpg/330px-2022-08-18_European_Championships_2022_%E2%80%93_Men%27s_High_Jump_by_Sandro_Halank%E2%80%93035.jpg"}},
+  {"id":"leone-xiv","nome":"Papa Leone XIV","date":"nato nel 1955","tipo":"persona","disc":["rel"],"classi":[1,2,3],"perche":"Robert Francis Prevost, nato a Chicago e per anni missionario in Perù: è papa dall'8 maggio 2025, il primo statunitense.","img":{"url":"https://upload.wikimedia.org/wikipedia/commons/8/80/Leo_XIV_%2813_October_2025%29.jpg","w":634,"h":846,"lic":"CC BY-SA 4.0","autore":"Ricardo Stuckert","file":"Leo_XIV_(13_October_2025).jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/8/80/Leo_XIV_%2813_October_2025%29.jpg/330px-Leo_XIV_%2813_October_2025%29.jpg"}},
+  {"id":"carlo-acutis","nome":"San Carlo Acutis","date":"1991–2006","tipo":"persona","disc":["inf","rel"],"classi":[1,2,3],"perche":"Ragazzo milanese appassionato di computer, morto a 15 anni: creò un sito sui miracoli eucaristici. Santo dal 2025; riposa ad Assisi. Qui in un rilievo a Londra.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/2/21/Covent_Garden%2C_Corpus_Christi_Catholic_Church%2C_Carlo_Acutis_memorial_%28cropped%29.jpg/960px-Covent_Garden%2C_Corpus_Christi_Catholic_Church%2C_Carlo_Acutis_memorial_%28cropped%29.jpg","w":960,"h":1424,"lic":"CC BY-SA 4.0","autore":"AndyScott","file":"Covent_Garden,_Corpus_Christi_Catholic_Church,_Carlo_Acutis_memorial_(cropped).jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/2/21/Covent_Garden%2C_Corpus_Christi_Catholic_Church%2C_Carlo_Acutis_memorial_%28cropped%29.jpg/330px-Covent_Garden%2C_Corpus_Christi_Catholic_Church%2C_Carlo_Acutis_memorial_%28cropped%29.jpg"}},
+  {"id":"ciotti","nome":"Don Luigi Ciotti","date":"nato nel 1945","tipo":"persona","disc":["rel","civ"],"classi":[1,2,3],"perche":"Sacerdote, fondatore del Gruppo Abele e di Libera, l'associazione contro le mafie che il 21 marzo ricorda le vittime innocenti.","img":{"url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/1/18/Luigi_Ciotti.jpg/960px-Luigi_Ciotti.jpg","w":960,"h":1859,"lic":"CC BY-SA 3.0","autore":"Niccolò Caranti","file":"Luigi_Ciotti.jpg","mini":"https://thumb.wikimedia.org/wikipedia/commons/thumb/1/18/Luigi_Ciotti.jpg/330px-Luigi_Ciotti.jpg"}}
 ];
 
 /* ---- c2_avatar.js ---- */
@@ -8839,13 +9011,7 @@ function bDesk(w) { return () => { const g = new THREE.Group(), h = .76, d = .5;
   box(g, w - .1, .03, .02, MAT.metal, 0, h - .07, -d / 2 + .05); box(g, w - .1, .03, .02, MAT.metal, 0, h - .07, d / 2 - .05);
   box(g, w - .12, .012, .3, MAT.metal, 0, h - .2, -.04); box(g, w - .12, .1, .012, MAT.metal, 0, h - .2, -.19);
   return g; }; }
-function bChair(v = 0, opts = {}) { const g = new THREE.Group(), col = colorMat((FABRICS[v] || FABRICS[0]).c, .42), sh = opts.h || .44;
-  rbox(g, .42, .03, .40, .06, col, 0, sh, -.01);
-  const back = rbox(g, .40, .26, .025, .012, col, 0, 0, 0); back.position.set(0, sh + .22, .2); back.rotation.x = -.12;
-  [[-.18, -.17], [.18, -.17]].forEach(([x, z]) => cyl(g, .012, .012, sh, MAT.metal, x, 0, z, 8));
-  [-.18, .18].forEach(x => { const t = tube(g, [[x, 0, .19], [x, sh, .18], [x, sh + .3, .22]], .012, MAT.metal, 8); t.castShadow = true; });
-  cyl(g, .014, .014, .38, MAT.metal, 0, sh - .02, 0, 6).rotation.z = Math.PI / 2;
-  return g; }
+function bChair(v = 0) { const g = new THREE.Group(); g.add(mesh(snowChairGeo(), colorMat((FABRICS[v] || FABRICS[0]).c, .42))); return g; } // monoscocca come in laboratorio (c5_sedia.js)
 function bTeacherDesk() { const g = new THREE.Group(), w = 1.3, d = .7, h = .76;
   deskTop(g, w, d, h, .03);
   box(g, .03, h - .03, d - .06, MAT.beech, -w / 2 + .05, 0, 0); box(g, .03, h - .03, d - .06, MAT.beech, w / 2 - .05, 0, 0);
@@ -9079,7 +9245,7 @@ const CATALOG = [
   { id: 'cattedra', name: 'Cattedra', cat: 'arredi', sub: 'Banchi e tavoli', place: 'floor', faces: 'user', kind: 'teacher', surface: .76, build: bTeacherDesk, desc: 'La cattedra del docente.' },
   { id: 'banco-lab', name: 'Bancone di laboratorio', cat: 'arredi', sub: 'Banchi e tavoli', place: 'floor', faces: 'user', surface: .9, build: bLabBench, disc: ['sci'], desc: 'Piano in resina con lavello per esperimenti.' },
   { id: 'banco-lavoro', name: 'Banco da lavoro', cat: 'arredi', sub: 'Banchi e tavoli', place: 'floor', faces: 'user', surface: .86, build: bWorkbench, disc: ['tec', 'art'], desc: 'Con morsa e pannello porta attrezzi.' },
-  { id: 'sedia', name: 'Sedia studente', cat: 'arredi', sub: 'Sedute', place: 'floor', faces: 'user', kind: 'chair', seat: 1.12, variants: FABRICS, build: (o) => bChair(o.v), desc: 'Sedia in polipropilene: scegli il colore.' },
+  { id: 'sedia', name: 'Sedia studente', cat: 'arredi', sub: 'Sedute', place: 'floor', faces: 'user', kind: 'chair', seat: 1.12, variants: FABRICS, build: (o) => bChair(o.v), desc: 'Sedia monoscocca in polipropilene, come quelle del laboratorio: scegli il colore.' },
   { id: 'sedia-docente', name: 'Sedia docente', cat: 'arredi', sub: 'Sedute', place: 'floor', faces: 'user', kind: 'tchair', seat: 1.15, build: bTeacherChair, desc: 'Sedia in faggio per il docente.' },
   { id: 'sgabello', name: 'Sgabello alto', cat: 'arredi', sub: 'Sedute', place: 'floor', faces: 'user', seat: 1.3, build: bStool, desc: 'Per banconi di laboratorio.' },
   { id: 'pouf', name: 'Pouf', cat: 'arredi', sub: 'Sedute', place: 'floor', faces: 'user', seat: 1.0, variants: FABRICS, build: (o) => bPouf(o.v == null ? 2 : o.v), desc: 'Seduta morbida per angolo lettura e cerchio.' },
@@ -9201,6 +9367,195 @@ function buildBanner(item) { const g = new THREE.Group(), c = makeCanvas(2048, 4
   const p = new THREE.Mesh(new THREE.PlaneGeometry(3.2, .625), new THREE.MeshStandardMaterial({ map: tex, roughness: .9 })); p.position.z = .01; g.add(p);
   g.userData.redraw = () => { drawBanner(c, item.text || '', item.v || 0); tex.needsUpdate = true; }; return g; }
 CAT['striscione'] = { id: 'striscione', name: 'Striscione con scritta', cat: 'parete', sub: 'Crea tu', place: 'wall', wallV: 2.55, variants: FABRICS, desc: 'Scrivi il titolo della tua lezione.', build: (o, item) => buildBanner(item) };
+
+/* =====================================================================
+   Sedia studente: monoscocca in polipropilene tipo Pedrali "Snow", la stessa
+   del laboratorio di informatica nel Minigolf delle Skill (Skill_Case), da
+   cui la geometria e' copiata senza modifiche: guscio unico seduta+schienale
+   (rbox suddiviso e piegato lungo il profilo) e bordi/gambe a tubo di raggio
+   variabile, ~5750 triangoli in una sola BufferGeometry condivisa da tutte
+   le sedie. Nel minigolf guarda verso +z; qui le sedie guardano verso -z
+   (convenzione del magazzino), quindi la geometria e' girata di 180 gradi.
+   Seduta a 0,45 m, ingombro 0,45 x 0,50 m, altezza 0,80 m.
+   ===================================================================== */
+let _snowGeo = null;
+function snowChairGeo() { if (_snowGeo) return _snowGeo;
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const GAMBE_SEDIA=[[-.205,-.245],[.205,-.245],[-.214,.229],[.214,.229]];   // [x,z] centri dei piedi a terra: post. sx/dx, ant. sx/dx (raggio piede 1,25 cm)
+  function unisci(lista) {
+    const parti = lista.map(g => g.index ? g.toNonIndexed() : g); let n = 0; for (const g of parti) n += g.attributes.position.count;
+    const P = new Float32Array(n * 3), N = new Float32Array(n * 3), U = new Float32Array(n * 2); let o = 0;
+    for (const g of parti) { P.set(g.attributes.position.array, o * 3); N.set(g.attributes.normal.array, o * 3); if (g.attributes.uv) U.set(g.attributes.uv.array, o * 2); o += g.attributes.position.count; }
+    const r = new THREE.BufferGeometry(); r.setAttribute('position', new THREE.BufferAttribute(P, 3)); r.setAttribute('normal', new THREE.BufferAttribute(N, 3)); r.setAttribute('uv', new THREE.BufferAttribute(U, 2)); return r; }
+  const geo = (() => {
+  // Sedia monoscocca in polipropilene tipo Pedrali "Snow" (h 0,80, seduta 0,45, l 0,45, p 0,50; guarda verso +z).
+  // TECNICA (riusabile per altri gusci):
+  //  GUSCIO = rbox SUDDIVISO (stazioni fitte solo dove serve) deformato da una mappa F(x,s,t)->mondo, con
+  //   s = ascissa lungo il profilo laterale (bordo anteriore -> cima dello schienale) e t = spessore:
+  //   1) angoli in pianta arrotondati con una mappa radiale (quadrato con spigolo RE -> quarto di cerchio)
+  //   2) larghezza e spessore variabili lungo s
+  //   3) sezione piegata ad arco a spessore costante (fianchi dello schienale che avvolgono la schiena)
+  //   4) piegatura sul profilo laterale (cascata anteriore, raccordo seduta-schienale, schienale inclinato)
+  //   Le normali dell'rbox si trasformano con i cofattori dello jacobiano numerico di F: lisce e corrette.
+  //  BORDI A RULLO + GAMBE = tubi a raggio variabile (anelli adattivi, trasporto parallelo, calotte):
+  //   B) un solo tubo: piede post. sx -> gamba -> bordo sx dello schienale -> bordo superiore -> bordo dx -> piede post. dx
+  //   A) per lato: piede ant. -> gamba -> gomito nell'angolo della seduta -> bordo laterale -> raccordo, finisce dentro B
+  //   I tubi inglobano il bordo arrotondato del guscio e sporgono di LIP/LAT: superfici mai coincidenti (niente
+  //   zig-zag di intersezione). Nessuna traversa tra le gambe. ~5750 triangoli, ~15 ms di costruzione.
+  const PI=Math.PI, D2R=PI/180, cl=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,t)=>a+(b-a)*t;
+  const sst=(a,b,x)=>{ const t=cl((x-a)/(b-a),0,1); return t*t*(3-2*t); };
+  // ---------- profilo laterale della linea media (piano z-y), tratti [lunghezza, rotazione]; th = direzione
+  const TH0=163*D2R, LS=.30, RB=.05, AB=84*D2R;
+  const SEG=[[.03,20*D2R],[LS,0],[RB*AB,-AB],[.192,0],[.15,6*D2R]];
+  const S=[]; let L=0, fine;
+  { let z=0,y=0,th=TH0;
+    for(const [l,a] of SEG){ const k=a/l; S.push({s:L,z,y,th,l,k});
+      if(a===0){ z+=l*Math.cos(th); y+=l*Math.sin(th); } else { z+=(Math.sin(th+a)-Math.sin(th))/k; y-=(Math.cos(th+a)-Math.cos(th))/k; }
+      th+=a; L+=l; }
+    fine={z,y,th}; }
+  const S1=.03, SB0=.03+LS, SB1=SB0+RB*AB;            // fine cascata, inizio/fine raccordo seduta-schienale
+  function prof0(s){
+    if(s<=0){ const q=S[0]; return {z:q.z+s*Math.cos(q.th),y:q.y+s*Math.sin(q.th),th:q.th}; }
+    if(s>=L){ const d=s-L; return {z:fine.z+d*Math.cos(fine.th),y:fine.y+d*Math.sin(fine.th),th:fine.th}; }
+    let q=S[0]; for(const g of S) if(s>=g.s) q=g;
+    const d=s-q.s;
+    if(q.k===0) return {z:q.z+d*Math.cos(q.th),y:q.y+d*Math.sin(q.th),th:q.th};
+    const th=q.th+q.k*d; return {z:q.z+(Math.sin(th)-Math.sin(q.th))/q.k,y:q.y-(Math.cos(th)-Math.cos(q.th))/q.k,th};
+  }
+  // tabelle lungo s (interpolazione smussata tra chiavi)
+  const tab=K=>s=>{ if(s<=K[0][0]) return K[0][1]; for(let i=1;i<K.length;i++) if(s<=K[i][0]) return lerp(K[i-1][1],K[i][1],sst(K[i-1][0],K[i][0],s)); return K[K.length-1][1]; };
+  const HW=tab([[0,.224],[SB0,.21],[SB1,.205],[L,.208]]);       // semilarghezza
+  const TH=tab([[0,.034],[SB0,.03],[SB1,.025],[L,.023]]);       // spessore guscio
+  const Y0=.45-TH(S1)/2-prof0(S1).y, Z0=.231-S[0].z;             // seduta a 0,45 m, fronte a z=+0,245 circa
+  const prof=s=>{ const p=prof0(s); p.z+=Z0; p.y+=Y0; return p; };
+  // sezione: angolo della tangente lungo la mezza larghezza (fianchi che avvolgono sullo schienale)
+  const PHIs=4*D2R, PHIb=66*D2R, G=v=>{ v=cl(v,0,1); const e=cl((v-.45)/.55,0,1); return .12*v+.88*e*e; };
+  function sezione(u,tt,s){
+    const hw=HW(s), fm=lerp(PHIs,PHIb,sst(SB1-.02,SB1+.1,s)), au=Math.abs(u), M=20, h=au/M;
+    let X=0,Y=0; for(let i=0;i<M;i++){ const f=fm*G((i+.5)*h/hw); X+=Math.cos(f)*h; Y+=Math.sin(f)*h; }
+    const f=fm*G(au/hw);
+    return [(u<0?-1:1)*(X-tt*Math.sin(f)), Y+tt*Math.cos(f)];
+  }
+  // dominio sviluppato (u lungo la sezione, s lungo il profilo, tt nello spessore) -> mondo [x,y,z]
+  function piega(u,s,tt){ const q=sezione(u,tt,s), p=prof(s); return [q[0], p.y-q[1]*Math.cos(p.th), p.z+q[1]*Math.sin(p.th)]; }
+  // ---------- guscio: rbox suddiviso
+  const W0=.42, T0=.026, RE=.0125, RC=.065, RF=.045;
+  function arrot(dx,ds,R){            // quadrato [0,R]^2 con spigolo esterno di raggio RE -> quarto di cerchio di raggio R
+    const d=Math.hypot(dx,ds); if(d<1e-9) return [dx,ds];
+    const a=dx/d, b=ds/d, c=R-RE; let tau;
+    if(a>1e-9 && b*R/a<=c) tau=R/a; else if(b>1e-9 && a*R/b<=c) tau=R/b;
+    else { const p=(a+b)*c; tau=p+Math.sqrt(Math.max(0,p*p-2*c*c+RE*RE)); }
+    return [dx*R/tau, ds*R/tau];
+  }
+  function mappa(x,s,t){
+    let ax=Math.abs(x); const sg=x<0?-1:1, h0=W0/2;
+    if(ax>h0-RC && s>L-RC){ const m=arrot(ax-(h0-RC),s-(L-RC),RC); ax=h0-RC+m[0]; s=L-RC+m[1]; }
+    else if(ax>h0-RF && s<RF){ const m=arrot(ax-(h0-RF),RF-s,RF); ax=h0-RF+m[0]; s=RF-m[1]; }
+    return piega(sg*ax*HW(s)/h0, s, t*TH(s)/T0);
+  }
+  const tratti=(a,P)=>{ const r=[a]; let p=a; for(const [b,n] of P){ for(let i=1;i<=n;i++) r.push(p+(b-p)*i/n); p=b; } return r; };
+  function rboxS(w,h,d,r,k,SX,SY,SZ){  // come rbox, ma con stazioni intermedie (coordinate centrate) sulle parti piane
+    const nx=2*k+SX.length-1, ny=2*k+SY.length-1, nz=2*k+SZ.length-1;
+    const g=new THREE.BoxGeometry(1,1,1,nx,ny,nz), P=g.attributes.position, N=g.attributes.normal, hx=w/2, hy=h/2, hz=d/2;
+    const ax=(t,half,st,n)=>{ const i=Math.round((t+.5)*n); return i<=k ? -half+r*i/k : i>=n-k ? half-r*(n-i)/k : st[i-k]; };
+    for(let i=0;i<P.count;i++){
+      const x=ax(P.getX(i),hx,SX,nx), y=ax(P.getY(i),hy,SY,ny), z=ax(P.getZ(i),hz,SZ,nz);
+      const qx=cl(x,-hx+r,hx-r), qy=cl(y,-hy+r,hy-r), qz=cl(z,-hz+r,hz-r);
+      let a=x-qx, b=y-qy, c=z-qz; const l=Math.hypot(a,b,c)||1; a/=l; b/=l; c/=l;
+      P.setXYZ(i,qx+a*r,qy+b*r,qz+c*r); N.setXYZ(i,a,b,c);
+    }
+    return g;
+  }
+  const hx=W0/2-RE, SX=tratti(-hx,[[-.17,3],[-.09,3],[.09,3],[.17,3],[hx,3]]);
+  const SY=tratti(RE,[[RF,3],[SB0,4],[SB1,5],[SB1+.12,3],[L-RC,3],[L-RE,4]]).map(s=>s-L/2);
+  const guscio=rboxS(W0,L,T0,RE,2,SX,SY,[-(T0/2-RE),T0/2-RE]);
+  { const P=guscio.attributes.position, N=guscio.attributes.normal, e=1e-5, F=(x,y,z)=>mappa(x,y+L/2,z);
+    const sub=(a,b)=>[(a[0]-b[0])/(2*e),(a[1]-b[1])/(2*e),(a[2]-b[2])/(2*e)];
+    const cr=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+    for(let i=0;i<P.count;i++){
+      const x=P.getX(i), y=P.getY(i), z=P.getZ(i), nx=N.getX(i), ny=N.getY(i), nz=N.getZ(i);
+      const jx=sub(F(x+e,y,z),F(x-e,y,z)), jy=sub(F(x,y+e,z),F(x,y-e,z)), jz=sub(F(x,y,z+e),F(x,y,z-e));
+      const A=cr(jy,jz), B=cr(jz,jx), C=cr(jx,jy);
+      let m0=nx*A[0]+ny*B[0]+nz*C[0], m1=nx*A[1]+ny*B[1]+nz*C[1], m2=nx*A[2]+ny*B[2]+nz*C[2]; const l=Math.hypot(m0,m1,m2)||1;
+      const p=F(x,y,z); P.setXYZ(i,p[0],p[1],p[2]); N.setXYZ(i,m0/l,m1/l,m2/l);
+    }
+  }
+  const parti=[guscio];
+  // ---------- tubo a raggio variabile lungo una Catmull-Rom centripeta per punti [[Vector3,r],...];
+  // anelli adattivi (fitti dove la curva gira), calotte emisferiche schiacciate di capI/capF (0 = aperto)
+  function tubo(Q,NR,capI,capF,dsMax=.09,daMax=.2){
+    const curva=new THREE.CatmullRomCurve3(Q.map(q=>q[0]),false,'centripetal'), nQ=Q.length-1, M=500, cp=[];
+    const rad=t=>{ const f=t*nQ, i=Math.min(nQ-1,Math.floor(f)); return lerp(Q[i][1],Q[i+1][1],f-i); };
+    for(let j=0;j<=M;j++) cp.push(curva.getPoint(j/M));
+    const sel=[0]; let acc=0;
+    for(let j=1;j<=M;j++){
+      const d1=cp[j].clone().sub(cp[j-1]); let da=0;
+      if(j>1) da=cp[j-1].clone().sub(cp[j-2]).angleTo(d1);
+      acc+=d1.length()/dsMax+da/daMax;
+      if(acc>=1||j===M){ if(j===M&&acc<.4&&sel.length>1) sel.pop(); sel.push(j); acc=0; }
+    }
+    const an=sel.map(j=>({c:cp[j],T:cp[Math.min(M,j+1)].clone().sub(cp[Math.max(0,j-1)]).normalize(),r:rad(j/M)}));
+    for(let i=0;i<an.length;i++){ const a=an[Math.max(0,i-1)], b=an[Math.min(an.length-1,i+1)];
+      const al=Math.atan2(b.r-a.r,b.c.distanceTo(a.c)||1); an[i].kr=Math.cos(al); an[i].kt=-Math.sin(al); }
+    const calotta=(a,sgn,sq,NC=3)=>{ const o=[]; for(let k=NC;k>=1;k--){ const b=k/NC*PI/2;
+      o.push({c:a.c.clone().addScaledVector(a.T,sgn*a.r*Math.sin(b)*sq),T:a.T,r:a.r*Math.cos(b),kr:Math.cos(b),kt:sgn*Math.sin(b)}); } return o; };
+    let A=an;
+    if(capI) A=calotta(an[0],-1,capI).concat(A);
+    if(capF) A=A.concat(calotta(an[an.length-1],1,capF).reverse());
+    // anelli orientati per trasporto parallelo (nessuna torsione); normali inclinate secondo la rastremazione
+    let Nv=Math.abs(A[0].T.y)<.9?V(0,1,0):V(1,0,0); Nv.sub(A[0].T.clone().multiplyScalar(A[0].T.dot(Nv))).normalize();
+    const pos=[],nor=[],uv=[],idx=[], kF=1/Math.cos(PI/NR);   // vertici sul cerchio circoscritto: le facce del poligono stanno sul raggio nominale
+    A.forEach((a,i)=>{
+      Nv.sub(a.T.clone().multiplyScalar(a.T.dot(Nv))).normalize(); const B=a.T.clone().cross(Nv);
+      for(let k=0;k<=NR;k++){ const g=k/NR*2*PI, ra=Nv.clone().multiplyScalar(Math.cos(g)).addScaledVector(B,Math.sin(g));
+        const p=a.c.clone().addScaledVector(ra,a.r*kF), n=ra.multiplyScalar(a.kr).addScaledVector(a.T,a.kt).normalize();
+        pos.push(p.x,p.y,p.z); nor.push(n.x,n.y,n.z); uv.push(k/NR,i/(A.length-1)); }
+    });
+    for(let i=0;i<A.length-1;i++) for(let k=0;k<NR;k++){
+      const a=i*(NR+1)+k, c=a+1, b=a+NR+1, d=b+1;
+      if(A[i].r>1e-7) idx.push(a,c,b); if(A[i+1].r>1e-7) idx.push(c,d,b);
+    }
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+    g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2)); g.setIndex(idx); return g;
+  }
+  const vp=q=>V(q[0],q[1],q[2]);
+  // ---------- bordi a rullo: tubi che inglobano completamente il bordo arrotondato del guscio
+  // (sporgono di LIP sulle facce e di LAT in pianta: le superfici non coincidono mai, niente zig-zag)
+  const LIP=.0025, LAT=.0015, h0=W0/2;
+  const toff=(s,r)=>Math.min(0,TH(s)/2+LIP-r);                       // se il tubo e' grosso, sporge sul retro/sotto
+  const lato=(sg,s,r)=>[vp(piega(sg*(HW(s)-r+LAT),s,toff(s,r))),r];  // lungo il fianco (u dal bordo)
+  const piano=(xf,s,r)=>[vp(piega(xf*HW(s)/h0,s,toff(s,r))),r];      // da coordinate piane (angoli e bordo superiore)
+  const RP=.0125, RT=.02, RS=.0185, RJ=.023, RA=.014, SC=L-RC, SL=.018, RG=.03, SQ=.8;
+  // B) UN solo tubo: piede post. sx -> gamba -> bordo sx dello schienale -> bordo superiore -> bordo dx -> gamba -> piede post. dx
+  //    Nodo j (fine del raccordo seduta-schienale) spostato del 30% verso il centro del rullo A: la sfera RJ contiene
+  //    la fine di A e copre ancora il bordo del guscio (prima il bordo bucava i rulli di ~2 mm nell'angolo interno).
+  const rFi=s=>lerp(RJ,RA,sst(SB1,SC,s)), QB=[];
+  for(const sg of [-1,1]){
+    const [gx,gz]=GAMBE_SEDIA[sg<0?0:1], piede=V(gx,RP*SQ,gz), j=lato(sg,SB1,RJ)[0].lerp(lato(sg,SB1,RS)[0],.3), gamba=[[piede,RP],[piede.clone().lerp(j,.5),lerp(RP,RJ,.5)],[j,RJ]];
+    const fianco=[]; for(let i=1;i<=10;i++){ const ss=SB1+(SC-SB1)*i/10; fianco.push(lato(sg,ss,rFi(ss))); }
+    const ang=[]; for(let i=1;i<=8;i++){ const a=PI/2*i/8, ro=RC-RA+LAT; ang.push(piano(sg*(h0-RC+ro*Math.cos(a)),SC+ro*Math.sin(a),RA)); }  // dal fianco verso l'alto
+    if(sg<0) QB.push(...gamba,...fianco,...ang);
+    else { const cima=[]; for(let i=1;i<=9;i++) cima.push(piano(-(h0-RC)+2*(h0-RC)*i/10,L-RA+LAT,RA)); QB.push(...cima,...ang.reverse(),...fianco.reverse(),...gamba.reverse()); }
+  }
+  parti.push(tubo(QB,12,SQ,SQ,.07));
+  // A) per lato: piede ant. -> gamba -> gomito nell'angolo -> bordo laterale della seduta -> raccordo; termina dentro B
+  for(const sg of [-1,1]){
+    const [fx,fz]=GAMBE_SEDIA[sg<0?2:3], piede=V(fx,RP*SQ,fz);
+    const top=lato(sg,SL,RT)[0], d1=top.clone().sub(piede).normalize(), d2=lato(sg,SL+.05,RS)[0].sub(top).normalize();
+    const td=RG*Math.tan(d1.angleTo(d2)/2), P1=top.clone().addScaledVector(d1,-td), P2=lato(sg,SL+td,RS)[0];
+    const QA=[[piede,RP],[piede.clone().lerp(P1,.5),lerp(RP,RT,.5)],[P1,RT]];
+    for(const t of [.25,.5,.75]) QA.push([P1.clone().multiplyScalar((1-t)*(1-t)).addScaledVector(top,2*t*(1-t)).addScaledVector(P2,t*t),lerp(RT,RS,t)]);
+    QA.push([P2,RS]);
+    for(const s of [.13,.2,.27,SB0-.02,SB0,SB0+.25*(SB1-SB0),SB0+.5*(SB1-SB0),SB0+.75*(SB1-SB0)]) QA.push(lato(sg,s,RS));
+    // il rullo segue il bordo fino a SB1 (guscio sempre coperto), poi si stringe dentro il nodo j del tubo B e finisce li'
+    QA.push([lato(sg,SB1,RS)[0],RS-.002],[lato(sg,SB1+.025,rFi(SB1+.025))[0],rFi(SB1+.025)-.005]);
+    parti.push(tubo(QA,12,SQ,1));
+  }
+  return unisci(parti);
+  })();
+  geo.rotateY(Math.PI); geo.computeBoundingBox(); geo.computeBoundingSphere();
+  return _snowGeo = geo; }
 
 /* =====================================================================
    Nuovi oggetti: sedute da open space universitario, realta' virtuale e
@@ -11229,7 +11584,7 @@ const SCHEDE = {
   'tavolo-regolabile': { materiale: "Piano in laminato HPL con bordo in ABS; struttura in acciaio verniciato con gambe telescopiche; manovella in acciaio e plastica.", tecnologia: "La manovella fa girare una vite che alza o abbassa le gambe telescopiche. Lascia sotto il piano lo spazio libero per una carrozzina (almeno 70 cm).", cura: "Riporre la manovella: non deve sporgere nei passaggi." },
 
   // ---- Sedute ----
-  'sedia': { materiale: "Scocca in polipropilene colorato in massa; telaio in tubolare d'acciaio verniciato a polveri; puntali antiscivolo.", tecnologia: "Scocca stampata a iniezione in un solo pezzo, con fori di aerazione. Seduta alta 46 cm (taglia 6, UNI EN 1729); si impila.", cura: "Non dondolarsi sulle gambe posteriori." },
+  'sedia': { materiale: "Polipropilene colorato in massa, anche nelle gambe: niente parti in metallo, niente viti.", tecnologia: "Monoscocca: seduta, schienale e gambe sono stampati a iniezione in un solo pezzo, con i bordi arrotondati. Seduta alta 45 cm; si impila. E' la sedia del laboratorio di informatica.", cura: "Non dondolarsi sulle gambe posteriori." },
   'sedia-docente': { materiale: "Struttura in faggio massello; seduta e schienale in faggio multistrato curvato; finitura con vernice all'acqua.", tecnologia: "Il multistrato nasce da fogli sottili di legno incollati con le venature incrociate e curvati a caldo in uno stampo: è leggero e non si deforma." },
   'sgabello': { materiale: "Seduta in faggio multistrato o polipropilene; struttura in tubolare d'acciaio verniciato con anello poggiapiedi.", tecnologia: "Seduta alta circa 65 cm, adatta a banconi da laboratorio di circa 90 cm. L'anello poggiapiedi sostiene le gambe e migliora la postura.", cura: "Salire e scendere con calma: è alto e può ribaltarsi." },
   'pouf': { materiale: "Imbottitura in poliuretano espanso ignifugo; rivestimento in tessuto sfoderabile o similpelle lavabile.", tecnologia: "Seduta bassa senza schienale, leggera da spostare. Gli imbottiti per la scuola devono essere ignifughi: classe 1 IM di reazione al fuoco.", cura: "Lavare la fodera con regolarità." },
@@ -11527,7 +11882,7 @@ function hideGuideMarks() { const a = $('#guideArrow'), r = $('#guideRing'); if 
 { const _sf = startFly; startFly = function () { GUIDA.flags.flew = true; return _sf.apply(this, arguments); }; }
 { const _am = architectModal; architectModal = function () { GUIDA.flags.arch = true; return _am.apply(this, arguments); }; }
 // avvio automatico al primo uso, dopo la scelta della lezione
-setInterval(() => { if (!GUIDA.on && !GUIDA.started && S.lesson.studentCode && !guideDone() && !$('#modalRoot').children.length && !$('#loader')) { GUIDA.started = true; startGuide(0); } }, 1200);
+setInterval(() => { if (!GUIDA.on && !GUIDA.started && !document.body.classList.contains('intro') && S.lesson.studentCode && !guideDone() && !$('#modalRoot').children.length && !$('#loader')) { GUIDA.started = true; startGuide(0); } }, 1200);
 
 /* =====================================================================
    Musica d'ambiente per disciplina. Il catalogo (musica.js) contiene
@@ -11551,7 +11906,7 @@ function musAudio() { if (MUS.audio) return MUS.audio; const a = MUS.audio = new
   // se l'mp3 non arriva si prova l'ogg, poi si avvisa
   a.addEventListener('error', () => { const t = MUS.cur; if (!t || !a.getAttribute('src')) return; if (t.ogg && !a.dataset.riserva) { a.dataset.riserva = '1'; a.src = t.ogg; a.play().catch(() => {}); } else { toast('Brano non disponibile: controlla la connessione', 'warn'); musUI(); } });
   a.addEventListener('ended', () => { if (MUS.auto) musNext(); else musUI(); });
-  ['play', 'pause'].forEach(ev => a.addEventListener(ev, musUI)); return a; }
+  ['play', 'pause'].forEach(ev => { a.addEventListener(ev, musUI); a.addEventListener(ev, tapSync); }); return a; }
 function musPlay(id) { const t = musFind(id); if (!t) return; const a = musAudio();
   if (MUS.cur && MUS.cur.id === id && a.getAttribute('src')) { a.play().catch(() => {}); return; }
   MUS.cur = t; delete a.dataset.riserva; a.src = t.mp3; a.play().catch(() => toast('Il browser ha fermato l\'audio: premi di nuovo play', 'warn')); musUI(); }
@@ -11563,6 +11918,7 @@ function musPanelHTML() { const d = S.lesson.disc, ch = musChosen(), a = MUS.aud
     <div class="mt"><b>${esc(t.titolo)}</b><span>${esc(t.autore)} · ${esc(t.durata)} · ${esc(t.umore)}</span><em>${esc(t.perche)}</em></div>
     <button class="btn small ${ch === t.id ? 'ok' : ''}" data-mc="${t.id}" title="La musica che si sente entrando nella tua aula">${ch === t.id ? 'Scelta' : 'Scegli'}</button></div>`; };
   return `<div class="mhead"><b>Musica d'ambiente</b><span>${esc(DISC[d].n)}: scegli la musica della tua aula</span></div>
+    <div class="mtap"><button class="iconbtn" id="mTap" title="${TAP.on ? 'Spegni' : 'Accendi'} la musica di sottofondo">${TAP.on ? IC_VOL_ON : IC_VOL_OFF}</button><span><b>Sottofondo dell'app</b>${TAP.broken ? 'File intro.mp3 non trovato' : TAP.on ? 'Acceso: si abbassa da solo quando ascolti un brano' : 'Spento'}</span><input type="range" id="mTapVol" min="0" max=".5" step=".02" value="${TAP.APP}" title="Volume del sottofondo" aria-label="Volume del sottofondo" ${TAP.on ? '' : 'disabled'}></div>
     <div class="mlist">${musList(d).map(row).join('')}<div class="msub">Per studiare e concentrarsi</div>${musList('studio').map(row).join('')}</div>
     <div class="mctl"><button class="iconbtn" id="mToggle" title="${playing ? 'Pausa' : 'Ascolta'}">${playing ? IC_PAUSE : IC_PLAY}</button><button class="iconbtn" id="mNext" title="Brano successivo">${IC_NEXT}</button>
       <input type="range" id="mVol" min="0" max="1" step="0.05" value="${MUS.vol}" title="Volume" aria-label="Volume"><label class="tiny"><input type="checkbox" id="mAuto" ${MUS.auto ? 'checked' : ''}> uno dopo l'altro</label></div>
@@ -11572,7 +11928,8 @@ function musUI() { const b = $('#btnMusic'), a = MUS.audio; if (b) b.classList.t
   $$('[data-mp]', p).forEach(x => x.onclick = () => { if (MUS.cur && MUS.cur.id === x.dataset.mp) musToggle(); else musPlay(x.dataset.mp); });
   $$('[data-mc]', p).forEach(x => x.onclick = () => musChoose(x.dataset.mc));
   $('#mToggle').onclick = musToggle; $('#mNext').onclick = musNext; $('#mAuto').onchange = e => { MUS.auto = e.target.checked; };
-  $('#mVol').oninput = e => { MUS.vol = +e.target.value; musAudio().volume = MUS.vol; }; }
+  $('#mVol').oninput = e => { MUS.vol = +e.target.value; musAudio().volume = MUS.vol; };
+  $('#mTap').onclick = tapToggle; $('#mTapVol').oninput = e => { TAP.APP = +e.target.value; tapSave(); tapSync(); }; }
 function musPanel() { if (MUS.panel) { musClose(); return; } const p = MUS.panel = document.createElement('div'); p.id = 'musicPanel'; document.body.appendChild(p); musUI();
   const r = $('#btnMusic').getBoundingClientRect(); p.style.top = r.bottom + 8 + 'px'; p.style.left = clamp(r.right - p.offsetWidth, 8, innerWidth - p.offsetWidth - 8) + 'px';
   setTimeout(() => addEventListener('pointerdown', musOutside, true), 0); }
@@ -11581,6 +11938,153 @@ function musClose() { if (MUS.panel) MUS.panel.remove(); MUS.panel = null; remov
 // il volo 3D parte con la musica scelta per l'aula (se non sta gia' suonando altro) e la ferma alla fine
 { const _sf = startFly; startFly = function () { const id = musChosen(); if (id && (!MUS.audio || MUS.audio.paused)) { MUS.fly = true; musPlay(id); } return _sf.apply(this, arguments); }; }
 { const _ef = endFly; endFly = function () { if (MUS.fly && MUS.audio) { MUS.fly = false; MUS.audio.pause(); } return _ef.apply(this, arguments); }; }
+
+/* ---------- tappeto musicale: intro.mp3, il file accanto a index.html (va pubblicato insieme) ----------
+   Suona piano sotto l'app e piu' forte nella presentazione (e16_intro.js), in loop. Si abbassa fino a
+   fermarsi quando parte un brano del pannello o il volo 3D con la musica dell'aula, e riprende quando
+   quel brano si ferma. Il browser lascia partire l'audio solo dopo un gesto: parte al primo clic o tasto.
+   Si silenzia dal pulsante con l'altoparlante nella barra in alto, dal pannello Musica o dalla
+   presentazione; scelta e volume restano in questo browser (settingaula.tappeto). */
+const TAP = { a: null, on: true, APP: .16, INTRO: .6, started: false, broken: false, timer: null };
+try { const t = JSON.parse(localStorage.getItem('settingaula.tappeto') || '{}'); if (t.on === false) TAP.on = false; if (typeof t.vol === 'number') TAP.APP = clamp(t.vol, 0, .5); } catch (e) {}
+const tapSave = () => { try { localStorage.setItem('settingaula.tappeto', JSON.stringify({ on: TAP.on, vol: TAP.APP })); } catch (e) {} };
+const IC_VOL_ON = '<svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+const IC_VOL_OFF = '<svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="m17 9 5 6M22 9l-5 6"/></svg>';
+function tapAudio() { if (TAP.a) return TAP.a; const a = TAP.a = new Audio('intro.mp3'); a.loop = true; a.preload = 'auto'; a.volume = 0;
+  a.addEventListener('error', () => { TAP.broken = true; tapUI(); }); return a; }
+function tapWant() { if (!TAP.on || !TAP.started || TAP.broken || (MUS.audio && !MUS.audio.paused)) return 0;
+  return typeof INTRO !== 'undefined' && INTRO.on && INTRO.play ? TAP.INTRO : TAP.APP; }
+// porta il volume a quello voluto in ~1 s (dissolvenza), poi mette in pausa se il volume voluto e' zero
+function tapSync() { const a = tapAudio(), v = tapWant(); clearInterval(TAP.timer);
+  if (v > 0 && a.paused) a.play().catch(() => {});
+  TAP.timer = setInterval(() => { const d = v - a.volume; if (Math.abs(d) <= .025) { a.volume = v; clearInterval(TAP.timer); if (!v) a.pause(); } else a.volume = clamp(a.volume + Math.sign(d) * .025, 0, 1); }, 40);
+  tapUI(); }
+function tapToggle() { TAP.on = !TAP.on; TAP.started = true; tapSave(); tapSync(); if (MUS.panel) musUI(); }
+function tapUI() { const b = $('#btnTappeto'); if (b) { b.innerHTML = TAP.on ? IC_VOL_ON : IC_VOL_OFF; b.classList.toggle('off', !TAP.on); b.title = TAP.on ? 'Musica di sottofondo accesa: clicca per silenziarla' : 'Musica di sottofondo spenta: clicca per accenderla'; b.setAttribute('aria-pressed', TAP.on ? 'true' : 'false'); }
+  const m = $('#ixMute'); if (m && typeof IX_ICON !== 'undefined') m.innerHTML = TAP.on ? IX_ICON.on : IX_ICON.off; }
+function tapFirst(e) { if (e.target && e.target.closest && e.target.closest('#btnTappeto, #ixMute, #mTap')) return; // il primo clic sul pulsante decide lui
+  removeEventListener('pointerdown', tapFirst, true); removeEventListener('keydown', tapFirst, true); if (!TAP.started) { TAP.started = true; tapSync(); } }
+addEventListener('pointerdown', tapFirst, true); addEventListener('keydown', tapFirst, true);
+
+/* =====================================================================
+   Presentazione: sostituisce la spiegazione del docente. Gira dentro l'aula
+   3D vera: la telecamera vola, banchi e sedie si spostano davvero da un
+   allestimento all'altro (applyLayout) e lo schermo della classe mostra la
+   disciplina. Tre atti: l'idea (ogni disciplina ha il suo ambiente di
+   apprendimento), la carrellata dei setting, la consegna (arredare le 14
+   aule). Circa 70 s, sul tappeto musicale intro.mp3 (TAP in e15_musica.js),
+   che riparte dall'inizio e poi continua piano sotto l'app.
+   Si apre dal pulsante con lo schermo nella barra in alto oppure con
+   index.html#intro, da proiettare. Esc o "Salta" chiudono; le frecce
+   destra e sinistra passano alla scena dopo o prima.
+   Alla chiusura tutto torna com'era: scena, luci, telecamera, dati della
+   ricerca (S.meta), guida. La presentazione non lascia tracce nei dati.
+   Testi: accenti come entita' HTML (il sorgente resta ASCII, come gli altri moduli).
+   ===================================================================== */
+const INTRO = { on: false, play: false, t: 0, i: -1, el: null, snap: null, meta: null, cam: null, goal: null, guide: false };
+const INTRO_SETS = [['ita', 'anfiteatro'], ['sto', 'debate'], ['sci', 'immersiva'], ['inf', 'laboratorio'], ['art', 'atelier'], ['mus', 'orchestra'], ['mot', 'libero'], ['rel', 'cerchio'], ['tec', 'openspace']];
+const IX_ICON = {
+  play: '<svg class="i" viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z" style="fill:currentColor"/></svg>',
+  intro: '<svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M10 8.2v5.6l4.8-2.8z"/></svg>',
+  arreda: '<svg viewBox="0 0 24 24"><path d="M4 11h16v3H4zM6 14v6M18 14v6M7 11V6a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v5"/></svg>',
+  volo: '<svg viewBox="0 0 24 24"><path d="M2 12h4l3-8 4 16 3-8h6"/></svg>',
+  arch: '<svg viewBox="0 0 24 24"><path d="M12 3v4M12 7 6 21M12 7l6 14M8.5 15h7"/><circle cx="12" cy="6" r="1.5"/></svg>',
+  ok: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16.5 9"/></svg>',
+  on: '<svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>',
+  off: '<svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="m17 9 5 6M22 9l-5 6"/></svg>' };
+// parole che entrano una alla volta; *parola* = evidenziata
+const ixWords = (s, d0 = 0, step = .07) => s.split(' ').map((w, i) => { const hi = /^\*.*\*[.,?]?$/.test(w), txt = w.replace(/\*/g, '');
+  return `<span class="w${hi ? ' hi' : ''}" style="animation-delay:${(d0 + i * step).toFixed(2)}s">${txt}</span>`; }).join(' ');
+function ixPreset(d, l) { const p = (PRESETS[d] || []).find(x => x.layout === l) || {}; return { d, layout: l, ex: p.ex || (l === 'libero' ? { mats: true } : {}), name: p.name || LAYOUTS[l].name, why: p.why || LAYOUTS[l].desc }; }
+function ixScenes() {
+  const sets = INTRO_SETS.filter(([d, l]) => DISC[d] && LAYOUTS[l]).map(([d, l]) => ixPreset(d, l)), N = sets.length;
+  const sc = [
+    { id: 'idea', act: 0, dur: 5.2, cam: { phi: .82, r: 12.5, spin: .09, tx: 0, ty: .3, tz: 0, fov: 44 },
+      html: () => `<div class="ix-center"><div class="ix-kick">Setting Aula &middot; La scuola che vorrei</div><h1>${ixWords('Ogni disciplina ha il suo modo di *imparare.*', .25)}</h1></div>` },
+    { id: 'verbi', act: 0, dur: 5.6, cam: { phi: 1.0, r: 9.5, spin: .14, tx: 0, ty: .5, tz: 0, fov: 46 },
+      html: () => `<div class="ix-center"><div class="ix-verbi">${['Si legge.', 'Si discute.', 'Si sperimenta.', 'Si costruisce.', 'Ci si muove.'].map((v, i) => `<span style="animation-delay:${(.15 + i * .55).toFixed(2)}s">${v}</span>`).join('')}</div></div>` },
+    { id: 'oggi', act: 0, dur: 5.4, cam: { phi: 1.22, r: 6.2, spin: .05, tx: .2, ty: .9, tz: -.6, fov: 50 },
+      html: () => `<div class="ix-low"><div class="ix-kick">L'aula, oggi</div><h2>${ixWords('Eppure l\'aula, quasi sempre, &egrave; *questa.*', .2)}</h2><p class="ix-sub" style="animation-delay:1.4s">Stessi banchi, stessa disposizione, per ogni lezione.</p></div>` },
+    { id: 'idea2', act: 0, dur: 7, cam: { phi: .32, r: 12.5, spin: .16, tx: 0, ty: 0, tz: 0, fov: 42 },
+      html: () => `<div class="ix-center"><div class="ix-ring">${Object.entries(DISC).map(([k, v], i, a) => { const an = i / a.length * Math.PI * 2 - Math.PI / 2;
+          return `<span class="ix-chip" style="--x:${(50 + Math.cos(an) * 41).toFixed(1)}%;--y:${(50 + Math.sin(an) * 40).toFixed(1)}%;--c:${v.c};animation-delay:${(1.6 + i * .09).toFixed(2)}s"><b>${v.s}</b>${esc(v.n)}</span>`; }).join('')}</div>
+        <div class="ix-kick">L'idea</div><h1 class="ix-mid">${ixWords('E se ogni disciplina avesse il suo *ambiente* *di* *apprendimento?*', .2, .08)}</h1></div>` }];
+  sets.forEach((p, k) => sc.push({ id: 'set', act: 1, dur: 3.9, set: p, n: k + 1, N,
+    cam: p.layout === 'immersiva' ? { phi: 1.08, r: 7.2, spin: .2, tx: 0, ty: 1, tz: 0, fov: 54 } : { phi: k % 2 ? .78 : .95, r: k % 2 ? 10.5 : 9.2, spin: k % 2 ? -.17 : .17, tx: 0, ty: .3, tz: 0, fov: 46 },
+    html: () => `<div class="ix-top"><div class="ix-kick">Un setting per ogni disciplina</div></div>
+      <div class="ix-third" style="--c:${DISC[p.d].c}"><div class="ix-disc"><b>${DISC[p.d].s}</b>${esc(DISC[p.d].n)}<span>${String(k + 1).padStart(2, '0')} / ${String(N).padStart(2, '0')}</span></div>
+        <h2>${esc(p.name)}</h2><p>${esc(p.why)}</p></div>` }));
+  sc.push({ id: 'consegna', act: 2, dur: 12, cam: { phi: .5, r: 12, spin: .07, tx: 0, ty: 0, tz: 0, fov: 44 },
+    html: () => `<div class="ix-cons"><div class="ix-kick">La consegna</div><h1>${ixWords('Tocca a voi: arredate le *14* *aule.*', .15)}</h1>
+      <div class="ix-steps">${[['arreda', 'Arreda', 'Scegli banchi, sedute, pareti e tecnologie dal magazzino.'], ['volo', 'Volo 3D', 'Esplora l\'aula in volo e guarda se funziona davvero.'],
+        ['arch', 'Architetto', 'Verifica la sicurezza: porta, percorsi, passaggi, spazio per tutti.'], ['ok', 'Approvata', 'L\'aula entra nella tua raccolta: passa alla disciplina dopo.']]
+        .map(([ic, t, x], i) => `<div class="ix-step" style="animation-delay:${(1.2 + i * .5).toFixed(2)}s"><i>${IX_ICON[ic]}</i><b><em>${i + 1}</em>${t}</b><span>${x}</span></div>`).join('<div class="ix-arrow"></div>')}</div>
+      <div class="ix-count"><div class="ix-boxes">${Object.values(DISC).map(v => `<i style="--c:${v.c}"></i>`).join('')}</div><b id="ixN">0/14</b><span>aule approvate</span></div></div>` });
+  sc.push({ id: 'fine', act: 2, dur: 0, cam: { phi: .9, r: 11.2, spin: .06, tx: 0, ty: .4, tz: .3, fov: 50 },
+    html: () => `<div class="ix-center"><div class="ix-kick">Setting Aula</div><h1>${ixWords('Progettate la scuola che *vorreste.*', .15)}</h1>
+      <div class="ix-end"><button class="btn primary" id="ixGo">Inizia ad arredare</button><button class="btn ghost" id="ixAgain">Rivedi</button></div></div>` });
+  return sc;
+}
+function ixStart(i) { return INTRO.sc.slice(0, i).reduce((s, x) => s + x.dur, 0); }
+function openIntro() {
+  if (INTRO.on) return; if (typeof FLY !== 'undefined' && FLY.on) return;
+  cancelPlacing(); clearSelection(); hideInfo(); if (typeof musClose === 'function') musClose();
+  if (CAM.mode !== 'orbit') { CAM.mode = 'orbit'; $$('#viewSeg button').forEach(b => b.classList.toggle('on', b.dataset.view === 'orbit')); $('#walkhud').classList.remove('show'); $('#crosshair').style.display = 'none'; }
+  if (typeof GUIDA !== 'undefined' && GUIDA.on) { INTRO.guide = true; clearInterval(GUIDA.timer); }
+  if (MUS.audio && !MUS.audio.paused) MUS.audio.pause();
+  INTRO.snap = serialize(); INTRO.meta = JSON.stringify(S.meta); INTRO.sc = ixScenes();
+  INTRO.cam = { theta: CAM.theta, phi: CAM.phi, r: CAM.r, tx: CAM.target.x, ty: CAM.target.y, tz: CAM.target.z, fov: camera.fov, spin: 0 };
+  INTRO.goal = { phi: .62, r: 13.5, spin: .06, tx: 0, ty: .3, tz: 0, fov: 44 }; CAM.tween = null;
+  const el = INTRO.el = document.createElement('div'); el.id = 'intro'; el.className = 'cover';
+  el.innerHTML = `<div class="ix-vign"></div><i class="ix-bar t"></i><i class="ix-bar b"></i><div class="ix-flash"></div><div class="ix-card" id="ixCard"></div>
+    <div class="ix-cover"><div class="ix-logo"><svg viewBox="0 0 24 24"><path d="M3 9.5 12 4l9 5.5v9L12 23l-9-4.5z"/><path d="M3 9.5 12 15l9-5.5M12 15v8"/></svg></div>
+      <div class="ix-kick">Scuola Sacra Famiglia &middot; Andrea Cerioli</div><h1 class="ix-title">Setting <em>Aula</em></h1>
+      <p class="ix-lead">Un ambiente di apprendimento per ogni disciplina.<br>Lo progettate voi.</p>
+      <button class="btn primary ix-play" id="ixPlay">${IX_ICON.play}Guarda la presentazione</button><small>Circa un minuto, con musica &middot; frecce per andare avanti e indietro</small></div>
+    <div class="ix-ctl"><button class="iconbtn" id="ixMute" title="Musica accesa o spenta">${TAP.on ? IX_ICON.on : IX_ICON.off}</button><button class="btn small" id="ixSkip">Salta</button></div>
+    <div class="ix-prog"><div class="ix-acts"><span>L'idea</span><span>I setting</span><span>La consegna</span></div><div class="ix-track"><i id="ixBar"></i></div></div>`;
+  document.body.appendChild(el); document.body.classList.add('intro'); INTRO.on = true; INTRO.play = false; INTRO.t = 0; INTRO.i = -1;
+  $('#ixPlay', el).onclick = ixPlay; $('#ixSkip', el).onclick = closeIntro; $('#ixMute', el).onclick = tapToggle;
+  addEventListener('keydown', ixKey, true); setTimeout(() => $('#ixPlay', el) && $('#ixPlay', el).focus(), 50);
+}
+function ixPlay() { const el = INTRO.el; el.classList.remove('cover'); el.classList.add('playing');
+  loadSceneData(sceneAsToday()); S.meta.lastLayout = null; INTRO.play = true; INTRO.t = 0; INTRO.i = -1;
+  TAP.started = true; tapAudio().currentTime = 0; tapSync(); }
+function ixKey(e) { if (!INTRO.on) return; const k = e.key;
+  if (k === 'Escape') closeIntro(); else if (k === 'ArrowRight' && INTRO.play) ixJump(INTRO.i + 1); else if (k === 'ArrowLeft' && INTRO.play) ixJump(INTRO.i - 1);
+  else if ((k === 'Enter' || k === ' ') && !INTRO.play) ixPlay(); else return; e.preventDefault(); e.stopPropagation(); }
+function ixJump(i) { i = clamp(i, 0, INTRO.sc.length - 1); INTRO.t = ixStart(i) + .01; const a = tapAudio(); if (a.duration) a.currentTime = Math.min(INTRO.t, a.duration - 1); }
+function ixEnter(i) { const s = INTRO.sc[i], el = INTRO.el; INTRO.i = i; Object.assign(INTRO.goal, s.cam);
+  const card = $('#ixCard', el); card.className = 'ix-card s-' + s.id; card.innerHTML = s.html(); el.dataset.act = s.act; el.dataset.scene = s.id;
+  $$('.ix-acts span', el).forEach((x, k) => x.classList.toggle('on', k <= s.act));
+  // stacco con lampo: si torna all'aula com'e' oggi prima dell'idea e della consegna
+  const base = (s.act === 0 || s.id === 'consegna') && S.meta.lastLayout;
+  if (s.id === 'oggi' || s.id === 'consegna' || base) { const f = $('.ix-flash', el); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+    if (base) setTimeout(() => { if (INTRO.on && INTRO.i === i) { loadSceneData(sceneAsToday()); S.meta.lastLayout = null; drawSlide(S.lesson); } }, 260); }
+  if (s.set) { const p = s.set; applyLayout(p.layout, p.ex, { silent: true, preset: 'presentazione' });
+    drawSlide({ disc: p.d, aula: 'Aula di ' + DISC[p.d].n, title: p.name, topic: p.why.slice(0, 58) }); }
+  if (s.id === 'fine') { $('#ixGo', el).onclick = closeIntro; $('#ixAgain', el).onclick = () => { ixJump(0); tapAudio().currentTime = 0; }; $('#ixGo', el).focus(); } }
+function ixStep(dt) {
+  const c = INTRO.cam, g = INTRO.goal, k = 1 - Math.exp(-dt * 1.3);
+  if (INTRO.play) { const tot = ixStart(INTRO.sc.length - 1); INTRO.t = Math.min(INTRO.t + dt, tot + .001);
+    let i = 0, acc = 0; while (i < INTRO.sc.length - 1 && INTRO.t >= acc + INTRO.sc[i].dur) acc += INTRO.sc[i++].dur;
+    if (i !== INTRO.i) ixEnter(i); $('#ixBar').style.width = Math.min(100, INTRO.t / tot * 100) + '%';
+    const s = INTRO.sc[INTRO.i]; if (s.id === 'consegna') { const n = clamp(Math.floor((INTRO.t - acc - 3.6) / .32), 0, 14), b = $('#ixN'); if (b && b.textContent !== n + '/14') { b.textContent = n + '/14'; $$('.ix-boxes i', INTRO.el).forEach((x, j) => x.classList.toggle('on', j < n)); } } }
+  c.spin += (g.spin - c.spin) * k; c.theta += c.spin * dt; ['phi', 'r', 'tx', 'ty', 'tz', 'fov'].forEach(p => c[p] += (g[p] - c[p]) * k);
+  camera.position.set(c.tx + c.r * Math.sin(c.phi) * Math.sin(c.theta), c.ty + c.r * Math.cos(c.phi), c.tz + c.r * Math.sin(c.phi) * Math.cos(c.theta)); camera.up.set(0, 1, 0); camera.lookAt(c.tx, c.ty, c.tz);
+  if (Math.abs(camera.fov - c.fov) > .01) { camera.fov = c.fov; camera.updateProjectionMatrix(); }
+}
+function closeIntro() { if (!INTRO.on) return; INTRO.on = false; INTRO.play = false; removeEventListener('keydown', ixKey, true);
+  tapSync(); // la musica non si ferma: scende al volume del sottofondo dell'app
+  restore(INTRO.snap); const m = JSON.parse(INTRO.meta); Object.keys(S.meta).forEach(k => delete S.meta[k]); Object.assign(S.meta, m);
+  OBJ.forEach(e => { if (e.def.place !== 'wall') { e.item.y = baseHeightAt(e.item, e.item.x, e.item.z); applyTransform(e); } });
+  drawSlide(S.lesson); autosave(); if (typeof scheduleSafety === 'function') scheduleSafety();
+  INTRO.el.classList.add('out'); const el = INTRO.el; setTimeout(() => el.remove(), 450); document.body.classList.remove('intro');
+  CAM.theta = INTRO.cam.theta; camera.fov = 50; camera.updateProjectionMatrix(); CAM.phi = .92; CAM.r = 11.2; CAM.target.set(0, .4, .3); tweenCamera(camFromOrbit(), CAM.target.clone(), 1.1);
+  if (INTRO.guide && typeof tickGuide === 'function') { INTRO.guide = false; GUIDA.timer = setInterval(tickGuide, 250); }
+  try { if (/^#intro/.test(location.hash)) history.replaceState(null, '', location.pathname + location.search); } catch (e) {} }
+// la presentazione guida la telecamera dentro il ciclo di rendering, come il volo 3D
+{ const _st = stepFly; stepFly = function (dt) { if (INTRO.on) { ixStep(dt); return true; } return _st.apply(this, arguments); }; }
 
 /* =====================================================================
    Avvio, ciclo di rendering, camminata
@@ -11631,7 +12135,7 @@ async function boot() {
   $$('#storeTabs button').forEach(b => b.onclick = () => { STORE.tab = b.dataset.tab; renderStore(); });
   $$('#viewSeg button').forEach(b => b.onclick = () => setView(b.dataset.view));
   $('#btnTour').onclick = startTour; $('#tNext').onclick = () => goStop(TOUR.i + 1); $('#tPrev').onclick = () => goStop(TOUR.i - 1); $('#tEnd').onclick = endTour;
-  $('#btnGuide').onclick = () => { closeModal(); startGuide(0); }; $('#btnMusic').onclick = musPanel;
+  $('#btnGuide').onclick = () => { closeModal(); startGuide(0); }; $('#btnMusic').onclick = musPanel; $('#btnIntro').onclick = openIntro; $('#btnTappeto').onclick = tapToggle; tapUI();
   $('#btnPerc').onclick = boardModal; $('#btnFly').onclick = startFly; $('#btnArch').onclick = architectModal; $('#flySkip').onclick = () => endFly(true);
   $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo;
   $('#btnLight').onclick = () => { S.light = S.light === 'giorno' ? 'proiezione' : 'giorno'; setLightMode(S.light); commit('luci'); toast(S.light === 'giorno' ? 'Luci accese' : 'Luci soffuse per la proiezione', 'info'); };
@@ -11644,6 +12148,7 @@ async function boot() {
   loadBar(1, 'Pronto'); setTimeout(() => { $('#loader').style.opacity = 0; setTimeout(() => $('#loader').remove(), 400); }, 150);
   loop();
   if (!S.lesson.studentCode) setTimeout(() => lessonModal(true), 500);
+  if (/^#intro/.test(location.hash)) setTimeout(openIntro, 600); // index.html#intro: parte dalla presentazione (da proiettare)
   if (ripresa && ripresa.items && ripresa.items.length) setTimeout(() => offerResume(ripresa), 900);
   setTimeout(() => flushOutbox(true), 4000);
 }
