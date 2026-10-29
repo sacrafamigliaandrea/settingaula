@@ -8981,11 +8981,7 @@ function buildDoor(g, o) {
   g.add(mesh(gBox(.07, h + .07, .3), MAT.doorFrame, o.u0 - .035, (h + .07) / 2, -.1, false));
   g.add(mesh(gBox(.07, h + .07, .3), MAT.doorFrame, o.u1 + .035, (h + .07) / 2, -.1, false));
   g.add(mesh(gBox(w + .14, .07, .3), MAT.doorFrame, cu, h + .035, -.1, false));
-  // piccolo disimpegno con la porta sul lato
-  const vf = planeMesh(w, dz, MAT.floor); vf.rotation.x = -Math.PI / 2; vf.position.set(cu, .001, -dz / 2); g.add(vf);
-  const back = planeMesh(w, 2.6, MAT.paints.bianco); back.position.set(cu, 1.3, -dz); g.add(back);
-  const s1 = planeMesh(dz, 2.6, MAT.paints.bianco); s1.position.set(o.u0, 1.3, -dz / 2); s1.rotation.y = Math.PI / 2; g.add(s1);
-  const s2 = planeMesh(dz, 2.6, MAT.paints.bianco); s2.position.set(o.u1, 1.3, -dz / 2); s2.rotation.y = -Math.PI / 2; g.add(s2);
+  // anta aperta verso l'esterno (oltre la porta c'e' il corridoio, e20_corridoio.js)
   const leaf = mesh(gBox(.04, 2.1, .82), MAT.door, o.u1 - .03, 1.05, -dz / 2, false); g.add(leaf);
   g.add(mesh(gBox(.03, 2.16, .9), MAT.doorFrame, o.u1 - .012, 1.08, -dz / 2, false));
   g.add(mesh(gBox(.06, .02, .14), MAT.steel, o.u1 - .07, 1.02, -dz / 2 + .3, false));
@@ -9925,9 +9921,9 @@ function ridersOf(it) { // oggetti appoggiati sopra un mobile (si spostano con l
 
 /* ---------- undo / redo e salvataggio ---------- */
 const HIST = { stack: [], idx: -1, lock: false };
-function serialize() { return { v: APP_VERSION, items: S.items.map(i => Object.assign({}, i)), walls: WALL_IDS.reduce((o, id) => (o[id] = { paint: WALLS[id].paint, mural: WALLS[id].mural || null, proj: WALLS[id].proj || null }, o), {}), light: S.light, blinds: !!S.blinds, nStudents: S.nStudents, planner: !!S.planner }; }
+function serialize() { return { v: APP_VERSION, items: S.items.map(i => Object.assign({}, i)), walls: WALL_IDS.reduce((o, id) => (o[id] = { paint: WALLS[id].paint, mural: WALLS[id].mural || null, proj: WALLS[id].proj || null }, o), {}), light: S.light, blinds: !!S.blinds, nStudents: S.nStudents, planner: !!S.planner, armadietti: !!S.armadietti }; }
 function restore(st, keepSel) {
-  HIST.lock = true; clearAll(); S.planner = !!st.planner; // prima di costruire i banchi (e18_planner.js)
+  HIST.lock = true; clearAll(); S.planner = !!st.planner; S.armadietti = !!st.armadietti; // prima di costruire i banchi (e18_planner.js); armadietti: e20_corridoio.js
   (st.items || []).forEach(i => addItem(Object.assign({}, i)));
   WALL_IDS.forEach(id => { const w = (st.walls || {})[id] || {}; setWallPaint(id, w.paint || WALLS[id].paint); setWallMural(id, w.mural || null); if (typeof setWallProjection === 'function') setWallProjection(id, w.proj || null); });
   if (typeof setBlinds === 'function') setBlinds(!!st.blinds);
@@ -12400,6 +12396,190 @@ function bellBind(p) { const s = $('#mBell', p); if (!s) return; s.onchange = e 
 { const _br = buildRecord; buildRecord = function () { const r = _br.apply(this, arguments); r.campanella = bellChosen(); return r; }; }
 
 /* =====================================================================
+   Corridoio fuori dalla porta (ricostruzione fedele) e armadietti.
+   Misure dalla scansione RoomPlan Corridoio/room.usdz, aspetto dalle foto
+   IMG_0491-0504. Scansione -> qui (porta allineata alla porta dell'aula):
+   X = zs - 7,13 ; Z = -1,885 - xs. Corridoio largo 5,15 m (parete dell'aula
+   X = -4,96, parete delle finestre X = -10,11), alto 3,28 m; qui se ne mostra
+   un tratto di 21 m (Z da -9,2 alle scale, 11,8). La porta e' in fondo a una
+   nicchia di 1,43 x 0,81 m alta 2,3 m. Parete bianca con due listelli di legno
+   (0,97 e 2,15 m), zoccolino di gres grigio, disegni dei ragazzi tra i listelli,
+   targa della classe a sinistra della nicchia; dall'altra parte quattro
+   finestre (davanzale a 0,55 m) e un tratto ocra con una scrivania bianca e una
+   sedia blu; due gruppi di tavoli verdi con sedie di faggio lungo la parete
+   dell'aula; in fondo cinque gradini. Pavimento di piastrelle grigie 60x60,
+   controsoffitto a quadrotti con pannelli LED (si vede solo in Visita). Dall'altra
+   parte il tratto si chiude con una vetrata: oltre, l'atrio luminoso delle foto.
+   Pareti "a casa delle bambole" come nell'aula: si abbassano quelle che danno
+   le spalle a chi guarda. In Visita si esce dalla porta e ci si cammina dentro
+   (walkOk in walkStep), girando attorno a tavoli e scrivania.
+   Armadietti "all'americana": scelta del magazzino (Arredi > Corridoio), uno
+   per studente, 13 colonne da due sulla parete dell'aula accanto alla nicchia;
+   accendendoli il gruppo di tavoli li' davanti si sposta di 65 cm. Restano
+   oltre 3 m liberi (la via d'esodo deve restare larga almeno 1,20 m).
+   Stato in S.armadietti, salvato con la scena; nei dati: arredi e colonna armadietti.
+   ===================================================================== */
+const CORR = { XW: -10.11, XC: -4.96, XD: -4.15, NZ0: -1.165, NZ1: .265, NH: 2.3, ZA: -9.2, ZB: 11.8, ZW: 9.42, H: 3.28, ZS: 9.55,
+  FIN: [[-8.30, -5.47], [-1.69, 1.26], [1.98, 4.81], [5.255, 8.535]], OCRA: [-5.47, -1.69], G1: [-6.35, -4.6], G2: [-6.35, 3.0], LK: 3.0,
+  g: null, lato: null, latoStub: null, fin: null, finStub: null, fondo: null, fondoStub: null, inizio: null, inizioStub: null, atrio: null, ceil: null, fuori: null, lockers: null, tavoliB: null, targa: null, targaTxt: null, dz0: 0, dz1: 0 };
+const LOCK = { cols: 13, w: .38, d: .45, h: 1.84, tier: .87, base: .1, open: 8 };
+// piastrelle (pavimento e controsoffitto): n x n quadrotti per canvas, con piccole differenze di tono
+function corrTiles(base, varia, fuga, n) { const c = makeCanvas(512, 512), g = c.getContext('2d'), s = 512 / n;
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { g.fillStyle = shade(base, (Math.random() - .5) * varia); g.fillRect(i * s, j * s, s, s); }
+  for (let k = 0; k < 2600; k++) { g.fillStyle = `rgba(255,255,255,${Math.random() * .06})`; g.fillRect(Math.random() * 512, Math.random() * 512, 2, 2); }
+  g.strokeStyle = fuga; g.lineWidth = 3; for (let i = 0; i <= n; i++) { g.beginPath(); g.moveTo(i * s, 0); g.lineTo(i * s, 512); g.moveTo(0, i * s); g.lineTo(512, i * s); g.stroke(); }
+  return c; }
+// disegni dei ragazzi appesi tra i listelli: collage di forme a colori (o un ritratto a matita)
+function corrArte(seme, ritratto) { const c = makeCanvas(256, 320), g = c.getContext('2d'); let r = seme; const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280;
+  if (ritratto) { g.fillStyle = '#E8E6E1'; g.fillRect(0, 0, 256, 320); g.fillStyle = '#26272A'; g.beginPath(); g.ellipse(128, 150, 70, 95, 0, 0, 7); g.fill(); g.fillStyle = '#9A9894'; g.beginPath(); g.ellipse(118, 140, 40, 62, 0, 0, 7); g.fill(); g.fillStyle = '#26272A'; g.fillRect(96, 130, 20, 6); g.fillRect(132, 130, 20, 6); }
+  else { g.fillStyle = '#F2EBDD'; g.fillRect(0, 0, 256, 320); const pal = ['#C8553D', '#2B59C3', '#E0B12E', '#2E7D5B', '#7A3FA0', '#1A1712', '#D9822B', '#8FB9A8'];
+    for (let i = 0; i < 26; i++) { g.fillStyle = pal[(rnd() * pal.length) | 0]; g.globalAlpha = .55 + rnd() * .45; g.fillRect(rnd() * 230, rnd() * 300, 20 + rnd() * 90, 14 + rnd() * 80); } g.globalAlpha = 1; }
+  g.strokeStyle = '#1A1712'; g.lineWidth = 8; g.strokeRect(0, 0, 256, 320); return canvasTex(c); }
+function corrSedia(g, x, z, ry) { const s = new THREE.Group(), faggio = colorMat('#C99A62', .6), blu = colorMat('#1F4E9E', .4, .4);
+  box(s, .4, .03, .38, faggio, 0, .44, 0); const sc = mesh(gBox(.38, .2, .02), faggio, 0, .7, .2); sc.rotation.x = -.12; s.add(sc);
+  [[-.17, -.15], [.17, -.15], [-.17, .17], [.17, .17]].forEach(([a, b]) => cyl(s, .011, .011, .44, blu, a, 0, b, 8)); [-.17, .17].forEach(a => cyl(s, .011, .011, .38, blu, a, .44, .19, 8));
+  s.position.set(x, 0, z); s.rotation.y = ry; g.add(s); }
+// gruppo di quattro tavoli verdi (2,6 x 1,3 m) con sei sedie; asse lungo lungo Z
+function corrTavoli(x, z) { const g = new THREE.Group(), verde = colorMat('#6FA48E', .45), blu = colorMat('#1F4E9E', .4, .4);
+  [[-.325, -.65], [-.325, .65], [.325, -.65], [.325, .65]].forEach(([tx, tz]) => { box(g, .63, .03, 1.28, verde, tx, .7, tz); [[-.28, -.6], [.28, -.6], [-.28, .6], [.28, .6]].forEach(([a, b]) => cyl(g, .016, .016, .7, blu, tx + a, 0, tz + b, 8)); });
+  [-.85, 0, .85].forEach(dz => { corrSedia(g, -.97, dz, -Math.PI / 2); corrSedia(g, .97, dz, Math.PI / 2); }); // rivolte al tavolo
+  g.position.set(x, 0, z); return g; }
+// numeri delle targhette, disegnati una volta
+const _lockNum = {}; function lockNumTex(n) { if (_lockNum[n]) return _lockNum[n]; const c = makeCanvas(64, 32), g = c.getContext('2d'); g.fillStyle = '#F4F2EC'; g.fillRect(0, 0, 64, 32);
+  g.fillStyle = '#1A1712'; g.font = '700 22px "JetBrains Mono", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(String(n), 32, 17); return _lockNum[n] = canvasTex(c); }
+// una fila di armadietti, frontali verso +z, centrata in x; con apri = indice della colonna con l'armadietto alto aperto
+function lockerRow(cols, apri = -1, numeri = true) { const g = new THREE.Group(), L = LOCK, body = colorMat('#22324D', .5, .4), door = colorMat('#1F5FA8', .36, .45), vent = colorMat('#0D1524', .8), inside = colorMat('#2A2F37', .8);
+  const libri = ['#D9822B', '#2E7D5B', '#B5487A', '#2B59C3', '#E0B12E'];
+  for (let c = 0; c < cols; c++) { const x = (c - (cols - 1) / 2) * L.w;
+    box(g, L.w - .008, L.base, L.d - .02, vent, x, 0, -.01);                              // zoccolo
+    box(g, L.w - .008, L.h - L.base, L.d, body, x, L.base, 0);                          // corpo della colonna
+    for (let t = 0; t < 2; t++) { const y0 = L.base + .02 + t * (L.tier + .03), n = c * 2 + (1 - t) + 1;
+      if (c === apri && t === 1) {                                                      // armadietto aperto: libri e quaderni
+        box(g, L.w - .05, L.tier - .04, .01, inside, x, y0 + .02, L.d / 2 + .001);
+        const fondo = new THREE.Mesh(new THREE.PlaneGeometry(L.w - .06, L.tier - .06), inside); fondo.position.set(x, y0 + L.tier / 2, L.d / 2 + .008); g.add(fondo);
+        libri.forEach((col, i) => { const bw = .035 + (i % 2) * .01, bh = .22 + (i % 3) * .03; const b = mesh(gBox(bw, bh, .17), colorMat(col, .7), x - .13 + i * .052, y0 + .32 + bh / 2, L.d / 2 - .02); b.rotation.z = i === 4 ? -.12 : 0; g.add(b); });
+        box(g, L.w - .07, .012, L.d - .06, colorMat('#BFC3C8', .5, .3), x, y0 + .3, L.d / 2 - .1);   // ripiano
+        for (let q = 0; q < 4; q++) box(g, .21, .008, .15, colorMat(['#F4EFE4', '#3C8DC4', '#F4EFE4', '#E0B12E'][q], .8), x - .02, y0 + .06 + q * .009, L.d / 2 - .06); // quaderni
+        const piv = new THREE.Group(); piv.position.set(x - L.w / 2 + .02, y0 + .02, L.d / 2 + .012); piv.rotation.y = -1.95; g.add(piv);
+        box(piv, L.w - .05, L.tier - .04, .02, door, (L.w - .05) / 2, 0, 0);
+        continue; }
+      box(g, L.w - .05, L.tier - .04, .02, door, x, y0 + .02, L.d / 2);
+      for (let v = 0; v < 3; v++) box(g, .2, .012, .006, vent, x, y0 + L.tier - .14 - v * .028, L.d / 2 + .012);
+      box(g, .028, .1, .03, MAT.steel, x + L.w / 2 - .07, y0 + L.tier * .45, L.d / 2 + .02);
+      if (numeri) { const p = new THREE.Mesh(new THREE.PlaneGeometry(.07, .035), new THREE.MeshStandardMaterial({ map: lockNumTex(n), roughness: .6 })); p.position.set(x - L.w / 2 + .075, y0 + L.tier - .2, L.d / 2 + .0115); g.add(p); } } }
+  return g; }
+// parete con fori, zoccolino di gres e listelli di legno (in coordinate di parete: u lungo, v in alto, fronte +z)
+function corrMuro(par, x, z, ry, L, holes, rails = []) { const g = new THREE.Group(), C = CORR; g.position.set(x, 0, z); g.rotation.y = ry; par.add(g);
+  const w = new THREE.Mesh(new THREE.ShapeGeometry(holeShape(L, C.H, holes)), MAT.paints.bianco); w.receiveShadow = true; g.add(w);
+  const zoc = colorMat('#9A9995', .6), legno = colorMat('#D4A66C', .6);
+  segmentsOutside(L, holes, 0, .09).forEach(([a, b]) => g.add(mesh(gBox(b - a, .08, .012), zoc, (a + b) / 2, .04, .006, false)));
+  rails.forEach(y => segmentsOutside(L, holes, y - .03, y + .03).forEach(([a, b]) => g.add(mesh(gBox(b - a, .055, .022), legno, (a + b) / 2, y, .011, false))));
+  return g; }
+function corrTarga() { const t = CORR.targa, code = S.lesson.classCode || ''; if (!t || CORR.targaTxt === code) return; CORR.targaTxt = code;
+  const c = t.userData.c, g = c.getContext('2d'); g.fillStyle = '#F7F9FC'; g.fillRect(0, 0, 256, 160); g.fillStyle = '#3C8DC4'; g.fillRect(0, 0, 256, 34);
+  g.fillStyle = '#fff'; g.font = '700 22px "JetBrains Mono", monospace'; g.fillText('AULA', 14, 25); g.fillStyle = '#1A1712'; g.font = '800 86px "Bricolage Grotesque", Arial'; g.textAlign = 'center'; g.fillText(code || '--', 128, 128);
+  g.strokeStyle = '#9FB7CF'; g.lineWidth = 6; g.strokeRect(3, 3, 250, 154); t.material.map.needsUpdate = true; }
+function buildCorridor() { const C = CORR, root = new THREE.Group(); root.name = 'corridoio'; scene.add(root); C.g = root;
+  const W = C.XC - C.XW, L = C.ZB - C.ZA, cx = (C.XW + C.XC) / 2, cz = (C.ZA + C.ZB) / 2;
+  root.add(mesh(gBox(ROOM.x0 - C.XW + .2, .3, L + .4), MAT.slab, (C.XW - .2 + ROOM.x0) / 2, -.152, cz, false));   // basamento del plastico
+  const tf = canvasTex(corrTiles('#727375', .12, '#5B5C5E', 4), [W / 2.4, L / 2.4]);
+  const fl = planeMesh(W, L, std('#ffffff', { map: tf, roughness: .32, metalness: .05 })); fl.rotation.x = -Math.PI / 2; fl.position.set(cx, .001, cz); root.add(fl);
+  // ---- parete dell'aula, con la nicchia della porta
+  const lato = new THREE.Group(); root.add(lato); C.lato = lato;
+  corrMuro(lato, C.XC, cz, -Math.PI / 2, L, [{ u0: C.NZ0 - cz, u1: C.NZ1 - cz, v0: 0, v1: C.NH }], [.97, 2.15]);
+  lato.add(mesh(gBox(ROOM.x0 + .1 - C.XC, .03, L), MAT.cap, (C.XC + ROOM.x0 + .1) / 2, C.H + .015, cz, false));
+  const nw = C.XD - C.XC, nl = C.NZ1 - C.NZ0, nzc = (C.NZ0 + C.NZ1) / 2;
+  const nf = planeMesh(nw, nl, std('#ffffff', { map: tf, roughness: .32 })); nf.rotation.x = -Math.PI / 2; nf.position.set((C.XC + C.XD) / 2, .002, nzc); lato.add(nf);
+  const s1 = planeMesh(nw, C.NH, MAT.paints.bianco); s1.position.set((C.XC + C.XD) / 2, C.NH / 2, C.NZ0); lato.add(s1);
+  const s2 = planeMesh(nw, C.NH, MAT.paints.bianco); s2.position.set((C.XC + C.XD) / 2, C.NH / 2, C.NZ1); s2.rotation.y = Math.PI; lato.add(s2);
+  const so = planeMesh(nw, nl, MAT.paints.bianco); so.rotation.x = Math.PI / 2; so.position.set((C.XC + C.XD) / 2, C.NH, nzc); lato.add(so);
+  const dh = WALLS.left.holes.find(o => o.door), dz0 = -dh.u1, dz1 = -dh.u0; C.dz0 = dz0 + .2; C.dz1 = dz1 - .2;   // il foro della porta, in Z del mondo
+  const fondoN = new THREE.Mesh(new THREE.ShapeGeometry(holeShape(nl, C.NH, [{ u0: dz0 - nzc, u1: dz1 - nzc, v0: 0, v1: dh.v1 }])), MAT.paints.bianco);
+  fondoN.position.set(C.XD, 0, nzc); fondoN.rotation.y = -Math.PI / 2; lato.add(fondoN);
+  // disegni dei ragazzi tra i listelli e targa della classe a sinistra della nicchia
+  [[-2.35, .42, .56, 3, false], [-2.95, .4, .5, 0, true], [-3.75, .46, .6, 7, false], [-6.6, .5, .5, 11, false]].forEach(([z, w, h, seme, rit]) => {
+    const q = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: corrArte(seme * 97 + 13, rit), roughness: .8 })); q.position.set(C.XC - .012, 2.12 - h / 2, z); q.rotation.y = -Math.PI / 2; lato.add(q); });
+  const tc = makeCanvas(256, 160), tm = new THREE.MeshStandardMaterial({ map: canvasTex(tc), roughness: .5 }), tg = new THREE.Mesh(new THREE.PlaneGeometry(.26, .16), tm);
+  tg.userData.c = tc; tg.position.set(C.XC - .012, 1.5, C.NZ0 - .62); tg.rotation.y = -Math.PI / 2; lato.add(tg); C.targa = tg;
+  C.latoStub = new THREE.Group(); C.latoStub.visible = false; C.latoStub.add(mesh(gBox(ROOM.x0 - C.XC, .22, L), MAT.cap, (C.XC + ROOM.x0) / 2, .11, cz, false)); root.add(C.latoStub);
+  // ---- parete delle finestre, con il tratto ocra e la parete piena fino in fondo
+  const fin = new THREE.Group(); root.add(fin); C.fin = fin; const L2 = C.ZW - C.ZA, zw = (C.ZA + C.ZW) / 2;
+  corrMuro(fin, C.XW, zw, Math.PI / 2, L2, C.FIN.map(([a, b]) => ({ u0: zw - b, u1: zw - a, v0: .55, v1: 2.8, win: true })));
+  corrMuro(fin, C.XW, (C.ZW + C.ZB) / 2, Math.PI / 2, C.ZB - C.ZW, []);
+  const oc = planeMesh(C.OCRA[1] - C.OCRA[0], 3.0, colorMat('#B9811A', .85)); oc.position.set(C.XW + .004, .09 + 1.5, (C.OCRA[0] + C.OCRA[1]) / 2); oc.rotation.y = Math.PI / 2; fin.add(oc);
+  const ant = colorMat('#55595E', .45, .35), bianco = colorMat('#F1F0EC', .5);
+  C.FIN.forEach(([a, b]) => { const w = b - a, zc = (a + b) / 2, h = 2.25, y0 = .55, x = C.XW - .03;
+    fin.add(mesh(gBox(.08, .06, w), ant, x, y0 + .03, zc, false)); fin.add(mesh(gBox(.08, .06, w), ant, x, y0 + h - .03, zc, false));
+    [a + .03, b - .03, a + w / 3, a + 2 * w / 3].forEach(z => fin.add(mesh(gBox(.08, h, .06), ant, x, y0 + h / 2, z, false)));
+    fin.add(mesh(gBox(.07, .05, w), ant, x, y0 + h * .38, zc, false));
+    const gl = planeMesh(w, h, MAT.glass); gl.position.set(x, y0 + h / 2, zc); gl.rotation.y = Math.PI / 2; fin.add(gl);
+    fin.add(mesh(gBox(.26, .03, w + .06), bianco, C.XW + .1, y0 - .03, zc, false)); });
+  C.finStub = new THREE.Group(); C.finStub.visible = false; C.finStub.add(mesh(gBox(.2, .22, C.ZB - C.ZA), MAT.cap, C.XW - .1, .11, cz, false)); root.add(C.finStub);
+  // ---- fondo: cinque gradini, pianerottolo e parete con due porte
+  const fondo = new THREE.Group(); root.add(fondo); C.fondo = fondo; const gres = colorMat('#8C8D8F', .45);
+  for (let i = 0; i < 5; i++) box(root, W, .15 * (i + 1), .32, gres, cx, 0, 9.75 + i * .32 + .16);
+  box(root, W, .75, C.ZB - 11.35, gres, cx, 0, (11.35 + C.ZB) / 2);
+  corrMuro(fondo, cx, C.ZB, Math.PI, W, []);
+  [[-6.0, 1.0], [-8.7, 1.2]].forEach(([x, w]) => fondo.add(mesh(gBox(w, 2.1, .04), colorMat('#5C6066', .5, .2), x, .75 + 1.05, C.ZB - .02, false)));
+  fondo.add(mesh(gBox(1.1, .7, .02), colorMat('#F2EBDD', .8), -7.35, 2.2, C.ZB - .015, false));
+  C.fondoStub = new THREE.Group(); C.fondoStub.visible = false; C.fondoStub.add(mesh(gBox(W, .22, .2), MAT.cap, cx, .11, C.ZB + .1, false)); root.add(C.fondoStub);
+  // ---- inizio del tratto: parete con vetrata, oltre l'atrio luminoso (dipinto, si vede solo in Visita)
+  const ini = new THREE.Group(); root.add(ini); C.inizio = ini;
+  corrMuro(ini, cx, C.ZA, 0, W, [{ u0: -1.7, u1: 1.7, v0: 0, v1: 2.7 }]);
+  [-1.7, -.57, .57, 1.7].forEach(u => ini.add(mesh(gBox(.06, 2.7, .08), ant, cx + u, 1.35, C.ZA, false))); ini.add(mesh(gBox(3.46, .06, .08), ant, cx, 2.7, C.ZA, false));
+  const vt = planeMesh(3.4, 2.7, MAT.glass); vt.position.set(cx, 1.35, C.ZA); ini.add(vt);
+  const ac = makeCanvas(512, 256), ag = ac.getContext('2d'), gr = ag.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#FBF7EE'); gr.addColorStop(.55, '#F3EDE0'); gr.addColorStop(.56, '#B9B7B2'); gr.addColorStop(1, '#8F8E8B');
+  ag.fillStyle = gr; ag.fillRect(0, 0, 512, 256); ag.fillStyle = '#FFFFFF'; ag.fillRect(300, 30, 170, 100); ag.fillStyle = '#E9C46A'; ag.fillRect(40, 60, 90, 70);
+  [['#E0B12E', 90], ['#2B59C3', 170], ['#2E7D5B', 250], ['#D9822B', 330]].forEach(([c, x]) => { ag.fillStyle = c; ag.fillRect(x, 150, 36, 40); ag.fillStyle = '#9FC7B5'; ag.fillRect(x - 20, 140, 76, 8); });
+  ag.fillStyle = '#4F7A3A'; ag.beginPath(); ag.arc(450, 150, 30, 0, 7); ag.fill();
+  const at = new THREE.Mesh(new THREE.PlaneGeometry(W + 3, 3.4), new THREE.MeshBasicMaterial({ map: canvasTex(ac), toneMapped: false })); at.position.set(cx, 1.7, C.ZA - 3.5); at.visible = false; root.add(at); C.atrio = at;
+  C.inizioStub = new THREE.Group(); C.inizioStub.visible = false; C.inizioStub.add(mesh(gBox(W, .22, .2), MAT.cap, cx, .11, C.ZA - .1, false)); root.add(C.inizioStub);
+  // ---- arredi del corridoio: tavoli verdi, scrivania con sedia blu, cestini
+  root.add(corrTavoli(C.G1[0], C.G1[1])); C.tavoliB = corrTavoli(C.G2[0], C.G2[1]); root.add(C.tavoliB);
+  const sc = new THREE.Group(); box(sc, .6, .03, 1.2, bianco, 0, .72, 0); [-.58, .58].forEach(z => box(sc, .58, .72, .03, bianco, 0, 0, z)); box(sc, .02, .4, 1.14, bianco, -.27, .3, 0);
+  const blu = colorMat('#1F4FA0', .45); box(sc, .42, .04, .42, blu, .62, .44, 0); const sp = mesh(gBox(.04, .4, .42), blu, .84, .66, 0); sp.rotation.z = -.1; sc.add(sp);
+  [[.45, -.17], [.79, -.17], [.45, .17], [.79, .17]].forEach(([a, b]) => cyl(sc, .012, .012, .44, MAT.darkMetal, a, 0, b, 8));
+  sc.position.set(C.XW + .32, 0, -2.7); root.add(sc);
+  [1.42, 1.82].forEach(z => cyl(root, .19, .17, .65, colorMat('#1C1D20', .7), C.XW + .25, 0, z, 18));
+  // ---- controsoffitto con pannelli LED e paesaggio oltre le finestre (solo in Visita)
+  const ceil = new THREE.Group(); ceil.visible = false; root.add(ceil); C.ceil = ceil;
+  const cp = planeMesh(W + .82, L, std('#ffffff', { map: canvasTex(corrTiles('#F2F2EE', .03, '#CFCFC8', 4), [(W + .82) / 2.4, L / 2.4]), roughness: .9 })); cp.rotation.x = Math.PI / 2; cp.position.set(cx + .41, C.H, cz); ceil.add(cp);
+  const led = new THREE.MeshBasicMaterial({ color: '#FFFFFF' }); for (let z = C.ZA + 1.5; z < C.ZS; z += 3) { const p = new THREE.Mesh(new THREE.PlaneGeometry(.6, 1.2), led); p.rotation.x = Math.PI / 2; p.position.set(cx, C.H - .005, z); ceil.add(p); }
+  const fu = new THREE.Mesh(new THREE.PlaneGeometry(44, 14), MAT.outside); fu.position.set(-17, 3.2, cz); fu.rotation.y = Math.PI / 2; fu.visible = false; root.add(fu); C.fuori = fu;
+  // ---- armadietti sulla parete dell'aula, accanto alla nicchia (frontali verso il corridoio)
+  const lk = lockerRow(LOCK.cols, LOCK.open); lk.rotation.y = -Math.PI / 2; lk.position.set(C.XC - LOCK.d / 2 - .01, 0, C.LK); lk.visible = false; root.add(lk); C.lockers = lk;
+  corrTarga(); }
+{ const _b = buildRoom; buildRoom = function () { const r = _b.apply(this, arguments); buildCorridor(); return r; }; }
+// visibilita': come le pareti dell'aula ("casa delle bambole"); in Visita tutto in piedi, soffitto e paesaggio accesi
+{ const _uw = updateWallVisibility; updateWallVisibility = function (forceAll) { const walk = typeof CAM !== 'undefined' && CAM.mode === 'walk' && !CAM.tween;
+    _uw.call(this, forceAll || walk); const C = CORR; if (!C.g) return; const p = camera.position, plan = typeof CAM !== 'undefined' && CAM.mode === 'plan' && !CAM.tween, sez = !forceAll && !walk;
+    const vis = (g, st, via) => { g.visible = !via; st.visible = via; };
+    vis(C.lato, C.latoStub, sez && (plan || p.x > C.XC + .05)); vis(C.fin, C.finStub, sez && (plan || p.x < C.XW - .05)); vis(C.fondo, C.fondoStub, sez && (plan || p.z > C.ZB + .05)); vis(C.inizio, C.inizioStub, sez && (plan || p.z < C.ZA - .05)); C.atrio.visible = walk;
+    C.ceil.visible = walk && p.x < ROOM.x0; C.fuori.visible = walk; C.lockers.visible = !!S.armadietti; C.tavoliB.position.x = C.G2[0] - (S.armadietti ? .65 : 0); corrTarga(); }; }
+// Visita: aula, varco della porta con la nicchia, corridoio; si gira attorno a tavoli, scrivania e cestini
+function corrOstacoli() { const C = CORR, x2 = C.G2[0] - (S.armadietti ? .65 : 0), t = (x, z) => [x - 1.3, x + 1.3, z - 1.7, z + 1.7];
+  return [t(C.G1[0], C.G1[1]), t(x2, C.G2[1]), [C.XW, C.XW + 1.45, -3.55, -1.85], [C.XW, C.XW + .7, 1.0, 2.25]]; }
+function walkOk(x, z) { const C = CORR;
+  if (x >= ROOM.x0 + .25 && x <= ROOM.x1 - .25 && z >= ROOM.z0 + .25 && z <= ROOM.z1 - .25) return true;
+  if (z >= C.dz0 && z <= C.dz1 && x >= C.XC - .3 && x <= ROOM.x0 + .3) return true;
+  const lk = S.armadietti && z > C.LK - 2.7 && z < C.LK + 2.7 ? LOCK.d : 0;
+  if (x < C.XW + .3 || x > C.XC - .25 - lk || z < C.ZA + .2 || z > C.ZS) return false;
+  return !corrOstacoli().some(o => x > o[0] && x < o[1] && z > o[2] && z < o[3]); }
+// la carta del magazzino accende e spegne gli armadietti e porta la vista sul corridoio
+function armadiettiToggle() { S.armadietti = !S.armadietti; commit('armadietti'); renderStore();
+  if (!S.armadietti) { toast('Armadietti tolti dal corridoio', 'info'); return; }
+  if (CAM.mode !== 'orbit') setView('orbit'); CAM.theta = -1.42; CAM.phi = .95; CAM.r = 6.8; CAM.target.set(-5.4, 1, CORR.LK); tweenCamera(camFromOrbit(), CAM.target.clone(), 1.1);
+  toast('26 armadietti in corridoio, uno per studente, accanto alla porta. In Visita esci dalla porta per vederli da vicino', 'ok'); }
+CAT['armadietti'] = { id: 'armadietti', name: 'Armadietti in corridoio', cat: 'arredi', sub: 'Corridoio', place: 'floor', build: () => lockerRow(3, 1, false),
+  desc: 'Clicca: 26 armadietti di fronte alla porta, uno per studente, per libri e quaderni. Clicca di nuovo per toglierli.' };
+CATALOG.push(CAT['armadietti']);
+Object.assign(SCHEDE, { armadietti: { materiale: 'Lamiera d\'acciaio verniciata a polveri, prese d\'aria sulle ante, maniglia con lucchetto o combinazione.', tecnologia: 'Colonne da due armadietti sovrapposti, profonde 45 cm: libri e quaderni restano a scuola e lo zaino pesa meno.', cura: 'In corridoio devono restare almeno 1,20 m liberi: e\' la via di fuga.' } });
+{ const _pc = protoFromCard; protoFromCard = function (card) { if (card.dataset.type === 'armadietti') { armadiettiToggle(); return null; } return _pc.apply(this, arguments); }; }
+{ const _ch = cardHTML; cardHTML = function (c) { const h = _ch.apply(this, arguments); return c.id === 'armadietti' && S.armadietti ? h.replace('class="card"', 'class="card on-desk"').replace('<div class="nm">', '<span class="badge sui">IN CORRIDOIO</span><div class="nm">') : h; }; }
+{ const _br = buildRecord; buildRecord = function () { const r = _br.apply(this, arguments); r.armadietti = S.armadietti ? LOCK.cols * 2 : 0;
+    if (S.armadietti) r.oggetti.push({ tipo: 'armadietti', id: 'armadietti', nome: 'Armadietti in corridoio', categoria: 'arredi', posizione: 'corridoio', parete: '', x: '', z: '', rot: '', scala: '', colore: '', didascalia: '', motivazione: LOCK.cols * 2 + ' armadietti' }); return r; }; }
+
+/* =====================================================================
    Avvio, ciclo di rendering, camminata
    ===================================================================== */
 function loadBar(p, t) { $('#loadbar').style.width = Math.round(p * 100) + '%'; if (t) $('#loadtxt').textContent = t; }
@@ -12408,7 +12588,9 @@ function walkStep(dt) {
   if (CAM.mode !== 'walk' || CAM.tween || CAM.seated || TOUR.on) return; const k = CAM.keys; let f = 0, s = 0;
   if (k.KeyW || k.ArrowUp) f += 1; if (k.KeyS || k.ArrowDown) f -= 1; if (k.KeyA) s -= 1; if (k.KeyD) s += 1; if (k.ArrowLeft) CAM.yaw += dt * 1.6; if (k.ArrowRight) CAM.yaw -= dt * 1.6;
   if (!f && !s) return; const sp = (k.ShiftLeft || k.ShiftRight ? 2.6 : 1.5) * dt; const fx = -Math.sin(CAM.yaw), fz = -Math.cos(CAM.yaw);
-  CAM.pos.x = clamp(CAM.pos.x + (fx * f + -fz * s) * sp, ROOM.x0 + .25, ROOM.x1 - .25); CAM.pos.z = clamp(CAM.pos.z + (fz * f + fx * s) * sp, ROOM.z0 + .25, ROOM.z1 - .25); CAM.pos.y = CAM.eye;
+  // si cammina nell'aula, nel varco della porta e nel corridoio (walkOk, e20_corridoio.js); contro un bordo si scivola lungo l'altro asse
+  const nx = CAM.pos.x + (fx * f + -fz * s) * sp, nz = CAM.pos.z + (fz * f + fx * s) * sp;
+  if (walkOk(nx, nz)) { CAM.pos.x = nx; CAM.pos.z = nz; } else if (walkOk(nx, CAM.pos.z)) CAM.pos.x = nx; else if (walkOk(CAM.pos.x, nz)) CAM.pos.z = nz; CAM.pos.y = CAM.eye;
 }
 let _lastClock = -1;
 function loop() {
