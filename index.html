@@ -12082,27 +12082,37 @@ function musClose() { if (MUS.panel) MUS.panel.remove(); MUS.panel = null; remov
    quel brano si ferma. Il browser lascia partire l'audio solo dopo un gesto: parte al primo clic o tasto.
    Si silenzia dal pulsante con l'altoparlante nella barra in alto, dal pannello Musica o dalla
    presentazione; scelta e volume restano in questo browser (settingaula.tappeto). */
-const TAP = { a: null, on: true, APP: .16, INTRO: .6, started: false, ready: false, broken: false, timer: null };
+const TAP = { ctx: null, gain: null, buf: null, src: null, pos: 0, t0: 0, on: true, APP: .16, INTRO: .6, started: false, ready: false, loading: false, broken: false, timer: null };
 try { const t = JSON.parse(localStorage.getItem('settingaula.tappeto') || '{}'); if (t.on === false) TAP.on = false; if (typeof t.vol === 'number') TAP.APP = clamp(t.vol, 0, .5); } catch (e) {}
 const tapSave = () => { try { localStorage.setItem('settingaula.tappeto', JSON.stringify({ on: TAP.on, vol: TAP.APP })); } catch (e) {} };
 const IC_VOL_ON = '<svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
 const IC_VOL_OFF = '<svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="m17 9 5 6M22 9l-5 6"/></svg>';
-// Il file si scarica TUTTO con fetch e l'audio suona dalla memoria (blob:). Con src = 'intro.mp3' Safari
-// lo scarica a pezzi (streaming) e la rotellina di caricamento della pagina gira senza fermarsi.
-// Se fetch non e' possibile (pagina aperta da file://) si torna allo streaming.
-function tapAudio() { if (TAP.a) return TAP.a; const a = TAP.a = new Audio(); a.loop = true; a.preload = 'auto'; a.volume = 0;
-  a.addEventListener('error', () => { if (a.getAttribute('src')) { TAP.broken = true; tapUI(); } });
-  const go = src => { a.src = src; TAP.ready = true; tapSync(); };
-  fetch('intro.mp3').then(r => { if (!r.ok) throw new Error(r.status); return r.blob(); }).then(b => go(URL.createObjectURL(b)))
-    .catch(e => { if (location.protocol === 'file:') go('intro.mp3'); else { TAP.broken = true; tapUI(); } });
-  return a; }
+// Niente elemento <audio>: il file si scarica una volta (fetch), si decodifica (decodeAudioData) e suona con Web Audio,
+// come la campanella e il floor piano. Un <audio> legge il file a blocchi anche da blob: (richieste 206 a ogni giro del
+// loop) e Safari tiene la pagina "in caricamento" con la rotellina che gira. Contesto a 22,05 kHz: meno memoria.
+// Aprendo index.html dal disco (file://) fetch non funziona: niente sottofondo.
+function tapCtx() { if (TAP.ctx) return TAP.ctx; const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+  try { TAP.ctx = new AC({ sampleRate: 22050 }); } catch (e) { TAP.ctx = new AC(); }
+  TAP.gain = TAP.ctx.createGain(); TAP.gain.gain.value = 0; TAP.gain.connect(TAP.ctx.destination); return TAP.ctx; }
+function tapLoad() { if (TAP.loading || TAP.buf || TAP.broken) return; const ac = tapCtx(); if (!ac) { TAP.broken = true; tapUI(); return; } TAP.loading = true;
+  fetch('intro.mp3').then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+    .then(ab => new Promise((ok, ko) => ac.decodeAudioData(ab, ok, ko)))
+    .then(b => { TAP.buf = b; TAP.ready = true; TAP.loading = false; tapSync(); })
+    .catch(() => { TAP.broken = true; TAP.loading = false; tapUI(); if (MUS.panel) musUI(); }); }
+const tapPos = () => TAP.src ? (TAP.ctx.currentTime - TAP.t0) % TAP.buf.duration : TAP.pos;
+function tapStart() { if (TAP.src || !TAP.buf) return; const ac = TAP.ctx, s = TAP.src = ac.createBufferSource(); s.buffer = TAP.buf; s.loop = true; s.connect(TAP.gain);
+  const off = (TAP.pos || 0) % TAP.buf.duration; s.start(0, off); TAP.t0 = ac.currentTime - off; }
+function tapStop() { if (!TAP.src) return; TAP.pos = tapPos(); try { TAP.src.stop(); } catch (e) {} TAP.src.disconnect(); TAP.src = null; }
+// riporta il brano a un punto (secondi): la presentazione lo fa ripartire dall'inizio o dalla scena scelta
+function tapSeek(t) { const was = !!TAP.src; tapStop(); TAP.pos = Math.max(0, t || 0); if (was) tapStart(); }
 function tapWant() { if (!TAP.on || !TAP.started || TAP.broken || (MUS.audio && !MUS.audio.paused)) return 0;
   return typeof INTRO !== 'undefined' && INTRO.on && INTRO.play ? TAP.INTRO : TAP.APP; }
-// porta il volume a quello voluto in ~1 s (dissolvenza), poi mette in pausa se il volume voluto e' zero
-function tapSync() { const a = tapAudio(), v = tapWant(); clearInterval(TAP.timer);
-  if (v > 0 && a.paused && TAP.ready) a.play().catch(() => {});
-  TAP.timer = setInterval(() => { const d = v - a.volume; if (Math.abs(d) <= .025) { a.volume = v; clearInterval(TAP.timer); if (!v) a.pause(); } else a.volume = clamp(a.volume + Math.sign(d) * .025, 0, 1); }, 40);
-  tapUI(); }
+// porta il volume a quello voluto in ~1 s (dissolvenza), poi ferma la riproduzione se il volume voluto e' zero
+function tapSync() { const v = tapWant(); clearTimeout(TAP.timer); tapUI();
+  if (v > 0) tapLoad(); const ac = TAP.ctx; if (!ac || !TAP.buf) return;
+  if (v > 0) { if (ac.state === 'suspended') ac.resume(); tapStart(); }
+  const g = TAP.gain.gain, now = ac.currentTime; g.cancelScheduledValues(now); g.setValueAtTime(g.value, now); g.linearRampToValueAtTime(v, now + .9);
+  if (!v) TAP.timer = setTimeout(() => { if (!tapWant()) tapStop(); }, 1000); }
 function tapToggle() { TAP.on = !TAP.on; TAP.started = true; tapSave(); tapSync(); if (MUS.panel) musUI(); }
 function tapUI() { const b = $('#btnTappeto'); if (b) { b.innerHTML = TAP.on ? IC_VOL_ON : IC_VOL_OFF; b.classList.toggle('off', !TAP.on); b.title = TAP.on ? 'Musica di sottofondo accesa: clicca per silenziarla' : 'Musica di sottofondo spenta: clicca per accenderla'; b.setAttribute('aria-pressed', TAP.on ? 'true' : 'false'); }
   const m = $('#ixMute'); if (m && typeof IX_ICON !== 'undefined') m.innerHTML = TAP.on ? IX_ICON.on : IX_ICON.off; }
@@ -12116,7 +12126,7 @@ addEventListener('pointerdown', tapFirst, true); addEventListener('keydown', tap
    allestimento all'altro (applyLayout) e lo schermo della classe mostra la
    disciplina. Tre atti: l'idea (ogni disciplina ha il suo ambiente di
    apprendimento), la carrellata dei setting, la consegna (arredare le 14
-   aule). Circa 75 s, sul tappeto musicale intro.mp3 (TAP in e15_musica.js),
+   aule). Circa 75 s, sul tappeto musicale intro.mp3 (TAP in e15_musica.js, Web Audio),
    che riparte dall'inizio e poi continua piano sotto l'app.
    Parte da sola a ogni avvio della pagina (la copertina aspetta un clic) e
    si riapre dal pulsante con lo schermo nella barra in alto. Esc o "Salta" chiudono; le frecce
@@ -12190,16 +12200,16 @@ function openIntro() {
     <div class="ix-prog"><div class="ix-acts"><span>L'idea</span><span>I setting</span><span>La consegna</span></div><div class="ix-track"><i id="ixBar"></i></div></div>`;
   document.body.appendChild(el); document.body.classList.add('intro'); INTRO.on = true; INTRO.play = false; INTRO.t = 0; INTRO.i = -1;
   $('#ixPlay', el).onclick = ixPlay; $('#ixSkip', el).onclick = closeIntro; $('#ixMute', el).onclick = tapToggle;
-  if (TAP.on) tapAudio(); // comincia a scaricare la musica mentre la copertina aspetta il clic
+  if (TAP.on) tapLoad(); // comincia a scaricare la musica mentre la copertina aspetta il clic
   addEventListener('keydown', ixKey, true); setTimeout(() => $('#ixPlay', el) && $('#ixPlay', el).focus(), 50);
 }
 function ixPlay() { const el = INTRO.el; el.classList.remove('cover'); el.classList.add('playing');
   loadSceneData(sceneAsToday()); S.meta.lastLayout = null; INTRO.play = true; INTRO.t = 0; INTRO.i = -1;
-  TAP.started = true; tapAudio().currentTime = 0; tapSync(); }
+  TAP.started = true; tapSeek(0); tapSync(); }
 function ixKey(e) { if (!INTRO.on) return; const k = e.key;
   if (k === 'Escape') closeIntro(); else if (k === 'ArrowRight' && INTRO.play) ixJump(INTRO.i + 1); else if (k === 'ArrowLeft' && INTRO.play) ixJump(INTRO.i - 1);
   else if ((k === 'Enter' || k === ' ') && !INTRO.play) ixPlay(); else return; e.preventDefault(); e.stopPropagation(); }
-function ixJump(i) { i = clamp(i, 0, INTRO.sc.length - 1); INTRO.t = ixStart(i) + .01; const a = tapAudio(); if (a.duration) a.currentTime = Math.min(INTRO.t, a.duration - 1); }
+function ixJump(i) { i = clamp(i, 0, INTRO.sc.length - 1); INTRO.t = ixStart(i) + .01; tapSeek(INTRO.t); }
 function ixEnter(i) { const s = INTRO.sc[i], el = INTRO.el; INTRO.i = i; Object.assign(INTRO.goal, s.cam);
   const card = $('#ixCard', el); card.className = 'ix-card s-' + s.id; card.innerHTML = s.html(); el.dataset.act = s.act; el.dataset.scene = s.id;
   $$('.ix-acts span', el).forEach((x, k) => x.classList.toggle('on', k <= s.act));
@@ -12209,7 +12219,7 @@ function ixEnter(i) { const s = INTRO.sc[i], el = INTRO.el; INTRO.i = i; Object.
     if (base) setTimeout(() => { if (INTRO.on && INTRO.i === i) { loadSceneData(sceneAsToday()); S.meta.lastLayout = null; drawSlide(S.lesson); } }, 260); }
   if (s.set) { const p = s.set; applyLayout(p.layout, p.ex, { silent: true, preset: 'presentazione' });
     drawSlide({ disc: p.d, aula: 'Aula di ' + DISC[p.d].n, title: p.name, topic: p.why.slice(0, 58) }); }
-  if (s.id === 'fine') { $('#ixGo', el).onclick = closeIntro; $('#ixAgain', el).onclick = () => { ixJump(0); tapAudio().currentTime = 0; }; $('#ixGo', el).focus(); } }
+  if (s.id === 'fine') { $('#ixGo', el).onclick = closeIntro; $('#ixAgain', el).onclick = () => { ixJump(0); tapSeek(0); }; $('#ixGo', el).focus(); } }
 function ixStep(dt) {
   const c = INTRO.cam, g = INTRO.goal, k = 1 - Math.exp(-dt * 1.3);
   if (INTRO.play) { const tot = ixStart(INTRO.sc.length - 1); INTRO.t = Math.min(INTRO.t + dt, tot + .001);
