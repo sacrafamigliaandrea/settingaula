@@ -10754,11 +10754,13 @@ async function postRecord(rec) { if (!CFG.endpoint) throw new Error('nessun endp
 async function sendConsegna() {
   const rec = buildRecord(); const arch = getArchive(); arch.push({ id: rec.sessione + '-' + Date.now(), rec: Object.assign({}, rec, { scena: undefined }), scene: rec.scena }); try { localStorage.setItem('settingaula.archive', JSON.stringify(arch.slice(-200))); } catch (e) {}
   let ok = false; try { await postRecord(rec); ok = true; } catch (e) { const ob = getOutbox(); ob.push(rec); try { localStorage.setItem('settingaula.outbox', JSON.stringify(ob.slice(-100))); } catch (x) {} }
-  closeModal();
+  closeModal(); const approvata = typeof aulaRec === 'function' && aulaRec(S.lesson.disc).status === 'approvata';
   openModal(`<header><h2>${ok ? 'Consegna inviata' : 'Consegna salvata'}</h2><p>${ok ? 'Grazie! Il tuo allestimento e le tue risposte sono arrivati allo studio "La scuola che vorrei".' : 'Il tuo lavoro e\' salvato su questo computer: verra\' inviato appena il docente attiva la raccolta dati.'}</p></header>
     <div class="mb"><div class="${ok ? 'okline' : 'warnline'}">${ok ? ICON.check : ICON.info}<span>Puoi anche scaricare la scheda PDF da mostrare in classe.</span></div></div>
-    <footer><button class="btn" id="kPdf">${ICON.pen}Scheda PDF</button><button class="btn primary" id="kOk">Torna all'aula</button></footer>`, 'narrow');
+    <footer><button class="btn" id="kPdf">${ICON.pen}Scheda PDF</button>${approvata ? `<button class="btn" id="kOk">Torna all'aula</button><button class="btn primary" id="kNext">Prepara un'altra aula</button>` : `<button class="btn primary" id="kOk">Torna all'aula</button>`}</footer>`, 'narrow');
   $('#kOk').onclick = closeModal; $('#kPdf').onclick = () => { closeModal(); exportPDF(); };
+  // aula approvata dall'architetto: si passa alla prossima scegliendola dalla bacheca delle 14 aule
+  const nx = $('#kNext'); if (nx) nx.onclick = () => { closeModal(); boardModal(true); };
 }
 async function flushOutbox(silent) { const ob = getOutbox(); if (!ob.length || !CFG.endpoint) return 0; let sent = 0; const rest = [];
   for (const r of ob) { try { await postRecord(r); sent++; } catch (e) { rest.push(r); } } localStorage.setItem('settingaula.outbox', JSON.stringify(rest)); if (!silent && sent) toast(`${sent} consegne in coda inviate`, 'ok'); return sent; }
@@ -11422,13 +11424,14 @@ function architectModal() {
 
 /* ---------- bacheca "Le mie aule" ---------- */
 const ST_COL = { 'da allestire': ['#EAE4D8', '#4A443A'], 'in lavorazione': ['#FFF4C7', '#4A443A'], 'da rivedere': ['#FCF0D9', '#6E4A0C'], 'approvata': ['#E3F2E8', '#155D39'] };
-function boardModal() { percSaveCurrent(); percLoad(); const A = PERC.data.aule, n = Object.values(A).filter(a => a.status === 'approvata').length;
+// scelta = true: si arriva da "Prepara un'altra aula" (dopo la consegna di un'aula approvata)
+function boardModal(scelta) { scelta = scelta === true; percSaveCurrent(); percLoad(); const A = PERC.data.aule, n = Object.values(A).filter(a => a.status === 'approvata').length;
   const card = d => { const r = A[d] || { status: 'da allestire' }, D = DISC[d], cur = d === S.lesson.disc, [bg, fg] = ST_COL[r.status] || ST_COL['da allestire'];
     return `<button class="layoutcard" data-go="${d}" style="display:block;padding:0;overflow:hidden;${cur ? 'border-color:var(--ink);box-shadow:3px 3px 0 var(--acc)' : ''}">
       <div style="height:78px;background:${r.thumb ? `url(${r.thumb}) center/cover` : D.c};position:relative"><span style="position:absolute;left:8px;top:8px;background:${D.c};color:#fff;font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px">${D.s}</span></div>
       <div style="padding:8px 10px"><b style="font-size:13.5px">${esc(r.aula || D.n)}</b><span style="display:inline-block;margin-top:5px;background:${bg};color:${fg};font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;text-transform:uppercase">${r.status}${r.modificataDopo ? ' (modificata)' : ''}</span>
       ${r.tentativi ? `<span class="tiny muted" style="display:block;margin-top:3px">verifiche: ${r.tentativi}</span>` : ''}</div></button>`; };
-  openModal(`<header><h2>Le mie aule</h2><p>Arreda e fai approvare dall'architetto le aule di tutte le 14 discipline. Il percorso e\' solo tuo: nessuna classifica.</p></header>
+  openModal(`<header><h2>${scelta ? 'Prepara un\'altra aula' : 'Le mie aule'}</h2><p>${scelta ? 'Scegli la disciplina della prossima aula. Una nuova riparte dall\'aula com\'e\' oggi; quelle gia\' iniziate si riaprono come le hai lasciate.' : 'Arreda e fai approvare dall\'architetto le aule di tutte le 14 discipline. Il percorso e\' solo tuo: nessuna classifica.'}</p></header>
     <div class="mb"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px"><div style="flex:1;height:10px;border-radius:9px;background:var(--line-2);overflow:hidden"><i style="display:block;height:100%;width:${n / 14 * 100}%;background:var(--ok)"></i></div><b style="font-family:var(--mono)">${n}/14 approvate</b></div>
     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px">${Object.keys(DISC).map(card).join('')}</div>
     ${n === 14 ? '<div class="okline" style="margin-top:14px">' + ICON.check + '<span>Tutte le aule sono approvate: e\' il momento del debrief finale.</span></div>' : ''}</div>
