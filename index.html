@@ -442,6 +442,13 @@ h1.ix-title em{font-style:normal;color:var(--hi)}
 .cr-tab tr.zero td{color:var(--ink-3)}
 .cr-nota{font-size:12px;color:var(--ink-3);margin:10px 0 0}
 @media (max-width:900px){.cr-wrap{grid-template-columns:1fr}.cr-nav{flex-direction:row;overflow:auto;border-right:0;border-bottom:1.5px solid var(--ink)}.cr-grid{grid-template-columns:1fr}.cr-kpi{grid-template-columns:repeat(2,1fr)}}
+/* planner sui banchi (e18) e campanella (e19) */
+.card.on-desk{outline:3px solid var(--ok);outline-offset:-3px}
+.card .badge.sui{background:var(--ok);color:#fff}
+#musicPanel .mbell{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1.5px solid var(--line);flex-wrap:wrap}
+#musicPanel .mbell span{flex:1 1 150px;font-size:12px;color:var(--ink-2);line-height:1.25}
+#musicPanel .mbell span b{display:block;font-size:13px;color:var(--ink)}
+#musicPanel .mbell select{font-size:13px;padding:5px 6px;border:1.5px solid var(--ink);border-radius:8px;background:var(--card);max-width:170px}
 </style>
 </head>
 <body>
@@ -9918,9 +9925,9 @@ function ridersOf(it) { // oggetti appoggiati sopra un mobile (si spostano con l
 
 /* ---------- undo / redo e salvataggio ---------- */
 const HIST = { stack: [], idx: -1, lock: false };
-function serialize() { return { v: APP_VERSION, items: S.items.map(i => Object.assign({}, i)), walls: WALL_IDS.reduce((o, id) => (o[id] = { paint: WALLS[id].paint, mural: WALLS[id].mural || null, proj: WALLS[id].proj || null }, o), {}), light: S.light, blinds: !!S.blinds, nStudents: S.nStudents }; }
+function serialize() { return { v: APP_VERSION, items: S.items.map(i => Object.assign({}, i)), walls: WALL_IDS.reduce((o, id) => (o[id] = { paint: WALLS[id].paint, mural: WALLS[id].mural || null, proj: WALLS[id].proj || null }, o), {}), light: S.light, blinds: !!S.blinds, nStudents: S.nStudents, planner: !!S.planner }; }
 function restore(st, keepSel) {
-  HIST.lock = true; clearAll();
+  HIST.lock = true; clearAll(); S.planner = !!st.planner; // prima di costruire i banchi (e18_planner.js)
   (st.items || []).forEach(i => addItem(Object.assign({}, i)));
   WALL_IDS.forEach(id => { const w = (st.walls || {})[id] || {}; setWallPaint(id, w.paint || WALLS[id].paint); setWallMural(id, w.mural || null); if (typeof setWallProjection === 'function') setWallProjection(id, w.proj || null); });
   if (typeof setBlinds === 'function') setBlinds(!!st.blinds);
@@ -10614,7 +10621,7 @@ function lessonModal(first) {
     <div class="row"><div class="field"><label>Titolo della tua lezione</label><input id="ttl" maxlength="70" placeholder="Es. Dante e il viaggio nell'aldila'" value="${esc(L.title || '')}"></div>
     <div class="field"><label>Dai un nome alla tua aula</label><input id="aulaName" list="aulaList" maxlength="40" placeholder="Es. Aula Steve Jobs" value="${esc(L.aula || '')}"><datalist id="aulaList"></datalist><span class="tiny muted">Dedicala a un personaggio della disciplina, oppure inventa un nome.</span></div></div>
     <div class="row"><div class="field"><label>Codice classe</label><input id="ccode" maxlength="10" placeholder="Es. 2B" autocapitalize="characters" value="${esc(L.classCode || '')}"><span class="tiny muted">Numero e lettera della tua classe.</span></div>
-    <div class="field"><label>Il tuo codice studente</label><input id="scode" maxlength="12" placeholder="Es. 2B-07" value="${esc(L.studentCode || '')}"><span class="tiny muted">Usa il codice dato dal docente, non il tuo nome.</span></div></div>
+</div>
     ${first ? `<div class="field"><label>Da dove parti?</label><div class="segline" id="startSeg"><button data-s="oggi" class="on">L'aula com'e' oggi</button><button data-s="vuota">Aula vuota</button><button data-s="consigliata">Una disposizione consigliata</button><button data-s="acerio">Setting Acerio</button></div></div>` : ''}</div>
     <footer><span class="left">I dati raccolti sono anonimi e servono allo studio "La scuola che vorrei".</span>${first ? '' : '<button class="btn" id="mCancel">Annulla</button>'}<button class="btn primary" id="mOk">${first ? 'Entra nell\'aula' : 'Salva'}</button></footer>`, 'wide');
   let disc = L.disc, cls = L.classe || 3, start = 'oggi';
@@ -10631,11 +10638,13 @@ function lessonModal(first) {
     const title = $('#ttl').value.trim() || (topic ? topic : 'Lezione di ' + DISC[disc].n);
     const cc = $('#ccode').value.replace(/[\s.ªº°-]/g, '').toUpperCase(); $('#ccode').value = cc; // "2 b", "2ªB" -> "2B"
     if (!/^[1-3][A-Z]$/.test(cc)) { $('#ccode').focus(); $('#ccode').style.borderColor = '#B7791F'; toast('Scrivi il codice della tua classe: numero e lettera, per esempio 2B', 'warn'); return; }
-    if (!$('#scode').value.trim()) { $('#scode').focus(); $('#scode').style.borderColor = '#B7791F'; toast('Inserisci il tuo codice studente (non il nome)', 'warn'); return; }
     CFG.classCode = cc; saveCfg();
-    const newCode = $('#scode').value.trim().toUpperCase(); if (S.lesson.studentCode && newCode !== S.lesson.studentCode) { S.meta.session = uid() + uid(); S.meta.startedAt = Date.now(); Object.keys(S.meta.actions).forEach(k => S.meta.actions[k] = 0); S.meta.layouts = []; S.meta.likert = {}; S.meta.whyLayout = S.meta.whyWhat = S.meta.change = ''; }
+    // il codice studente non si chiede piu': lo genera l'app a caso (classe + 4 caratteri), non identifica nessuno e serve
+    // solo al foglio per contare un'aula per studente e disciplina (Code.gs rifiuta le consegne senza codice)
+    const newCode = S.lesson.studentCode && S.lesson.studentCode.startsWith(cc + '-') ? S.lesson.studentCode : cc + '-' + (uid() + uid()).slice(0, 4).toUpperCase();
+    if (S.lesson.studentCode && newCode !== S.lesson.studentCode) { S.meta.session = uid() + uid(); S.meta.startedAt = Date.now(); Object.keys(S.meta.actions).forEach(k => S.meta.actions[k] = 0); S.meta.layouts = []; S.meta.likert = {}; S.meta.whyLayout = S.meta.whyWhat = S.meta.change = ''; }
     let aula = $('#aulaName').value.trim(); if (aula && !/^aula\b/i.test(aula)) aula = 'Aula ' + aula; if (!aula) aula = 'Aula di ' + DISC[disc].n;
-    setLesson({ aula, disc, classe: cls, topicId: tp ? tp.id : '', topic, title, activity: $('#actSel').value, classCode: cc, studentCode: $('#scode').value.trim().toUpperCase() });
+    setLesson({ aula, disc, classe: cls, topicId: tp ? tp.id : '', topic, title, activity: $('#actSel').value, classCode: cc, studentCode: newCode });
     closeModal();
     if (first) { S.meta.start = start; S.meta.startedAt = Date.now(); if (start === 'vuota') { clearAll(); commit('vuota'); } if (start === 'acerio') setTimeout(() => applyLayout('acerio', {}, { preset: 'Setting Acerio' }), 300);
       if (start === 'consigliata') { const p = (PRESETS[disc] || [])[0]; if (p) setTimeout(() => applyLayout(p.layout, p.ex || {}, { preset: p.name }), 300); STORE.tab = 'setting'; renderStore(); }
@@ -10670,7 +10679,7 @@ function savesModal() { const a = getSaves();
   $$('[data-open]', bg).forEach(b => b.onclick = () => { const s = a.find(x => x.id === b.dataset.open); if (s.avatar) S.avatar = s.avatar; setLesson(s.lesson); restore(s.scene); commit('apri'); closeModal(); toast('Allestimento aperto', 'ok'); });
   $$('[data-del]', bg).forEach(b => b.onclick = () => { if (!confirm('Eliminare questo allestimento?')) return; setSaves(a.filter(x => x.id !== b.dataset.del)); savesModal(); }); }
 function download(name, data, type) { const b = new Blob([data], { type }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
-function fileStem() { return ('settingaula-' + (S.lesson.studentCode || 'studente') + '-' + (S.lesson.title || 'lezione')).toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 60); }
+function fileStem() { return ('settingaula-' + (S.lesson.classCode || 'classe') + '-' + (S.lesson.title || 'lezione')).toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 60); }
 function exportJSON() { const imgs = {}; S.items.forEach(i => { if (i.type === 'custom' && USERIMG[i.img]) imgs[i.img] = USERIMG[i.img]; }); download(fileStem() + '.json', JSON.stringify({ app: 'SettingAula', lesson: S.lesson, scene: serialize(), avatar: S.avatar, images: imgs }, null, 1), 'application/json'); }
 function importJSON(file) { const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); if (d.images) Object.assign(USERIMG, d.images); if (d.avatar) S.avatar = d.avatar; if (d.lesson) setLesson(d.lesson); restore(d.scene || d.record?.scene); commit('importa'); toast('File aperto', 'ok'); } catch (e) { toast('File non valido', 'warn'); } }; r.readAsText(file); }
 function snapshotPNG() { renderer.render(scene, camera); download(fileStem() + '.png', dataURLtoBlob(renderer.domElement.toDataURL('image/png')), 'image/png'); }
@@ -10694,7 +10703,7 @@ function consegnaModal() {
     <div class="field"><label>Quanto sei d'accordo? (1 = per niente, 5 = moltissimo)</label><div class="likert"><span></span>${[1, 2, 3, 4, 5].map(n => `<span class="h">${n}</span>`).join('')}
       ${LIKERT.map(([k, t]) => `<span>${t}</span>${[1, 2, 3, 4, 5].map(n => `<label><input type="radio" name="lk_${k}" value="${n}" ${(S.meta.likert || {})[k] == n ? 'checked' : ''}><span>${n}</span></label>`).join('')}`).join('')}</div></div>
     <div class="field"><label>Nella tua aula vera, cosa cambieresti per primo?</label><input id="cChange" maxlength="200" value="${esc(S.meta.change || '')}"></div></div>
-    <footer><span class="left">Codice ${esc(S.lesson.studentCode)} · classe ${esc(S.lesson.classCode)} · nessun dato personale</span><button class="btn" id="cCancel">Torna all'aula</button><button class="btn primary" id="cSend">${ICON.check}Consegna</button></footer>`, 'wide');
+    <footer><span class="left">Classe ${esc(S.lesson.classCode)} · nessun dato personale</span><button class="btn" id="cCancel">Torna all'aula</button><button class="btn primary" id="cSend">${ICON.check}Consegna</button></footer>`, 'wide');
   $('#cCancel').onclick = () => { saveConsegnaDraft(); closeModal(); };
   $('#cSend').onclick = () => { saveConsegnaDraft(); const lk = S.meta.likert; if (LIKERT.some(([k]) => !lk[k])) { toast('Rispondi a tutte le domande da 1 a 5', 'warn'); return; } if ($('#cSafe') && (S.meta.safetyWhy || '').trim().length < 10) { toast('Rifletti sulla sicurezza: scrivi almeno una frase', 'warn'); $('#cSafe').focus(); return; }
     if ((S.meta.whyLayout || '').length < 10) { toast('Spiega in almeno una frase perche\' hai disposto cosi\' l\'aula', 'warn'); $('#cWhy').focus(); return; } sendConsegna(); };
@@ -10746,7 +10755,7 @@ async function exportPDF() {
   doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.text('Scuola Sacra Famiglia - Orzinuovi (BS)', 12, 19); doc.text(new Date().toLocaleDateString('it-IT'), 198, 19, { align: 'right' });
   doc.setTextColor(26, 23, 18); doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(doc.splitTextToSize((L.aula ? L.aula + ' - ' : '') + (L.title || 'Lezione'), 186), 12, 37);
   doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...rgb(d.c)); doc.text(`${d.n} - classe ${L.classe}a${L.topic ? ' - ' + L.topic : ''}`, 12, 43);
-  doc.setTextColor(90); const mt = (METODI.find(m => m.id === S.meta.metodologia) || {}).n; doc.text(`Studente ${L.studentCode || '-'} - Classe ${L.classCode || '-'} - Attivita': ${L.activity || '-'}${mt ? ' - Metodologia: ' + mt : ''}`, 12, 49);
+  doc.setTextColor(90); const mt = (METODI.find(m => m.id === S.meta.metodologia) || {}).n; doc.text(`Classe ${L.classCode || '-'} - Attivita': ${L.activity || '-'}${mt ? ' - Metodologia: ' + mt : ''}`, 12, 49);
   const iw = 120, ih = iw * ar; doc.addImage(shot, 'JPEG', 12, 54, iw, ih); doc.addImage(plan, 'JPEG', 136, 54, 62, 62 * ar);
   let y = 54 + Math.max(ih, 62 * ar) + 8; doc.setTextColor(26, 34, 51); doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.text('Analisi automatica', 12, y); y += 6; doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
   [['Disposizione rilevata', a.layout], ['Posti a sedere', a.seats], ['Banchi / gruppi', `${a.desks} / ${a.groups}`], ['Studenti rivolti verso uno schermo o lavagna', Math.round(a.sightToBoard * 100) + '%'], ['Pavimento libero', Math.round(a.freeFloor * 100) + '%'], ['Strumenti tecnologici', a.tech], ['Immagini alle pareti (coerenti con la disciplina)', `${a.wallImages} (${a.coherentImages})`], ['Cattedra', a.teacherPos], ['Spazi INDIRE 1+4', (() => { const R = spaziIndire(); return R.n + '/5: ' + R.list.filter(x => x.ok).map(x => INDIRE.find(i => i.id === x.id).n).join(', '); })()]].forEach(([k, v]) => { doc.text(k, 14, y); doc.text(String(v), 120, y); y += 5; });
@@ -12014,6 +12023,7 @@ function musPanelHTML() { const d = S.lesson.disc, ch = musChosen(), a = MUS.aud
     <button class="btn small ${ch === t.id ? 'ok' : ''}" data-mc="${t.id}" title="La musica che si sente entrando nella tua aula">${ch === t.id ? 'Scelta' : 'Scegli'}</button></div>`; };
   return `<div class="mhead"><b>Musica d'ambiente</b><span>${esc(DISC[d].n)}: scegli la musica della tua aula</span></div>
     <div class="mtap"><button class="iconbtn" id="mTap" title="${TAP.on ? 'Spegni' : 'Accendi'} la musica di sottofondo">${TAP.on ? IC_VOL_ON : IC_VOL_OFF}</button><span><b>Sottofondo dell'app</b>${TAP.broken ? 'File intro.mp3 non trovato' : TAP.on ? 'Acceso: si abbassa da solo quando ascolti un brano' : 'Spento'}</span><input type="range" id="mTapVol" min="0" max=".5" step=".02" value="${TAP.APP}" title="Volume del sottofondo" aria-label="Volume del sottofondo" ${TAP.on ? '' : 'disabled'}></div>
+    ${typeof bellRowHTML === 'function' ? bellRowHTML() : ''}
     <div class="mlist">${musList(d).map(row).join('')}<div class="msub">Per studiare e concentrarsi</div>${musList('studio').map(row).join('')}</div>
     <div class="mctl"><button class="iconbtn" id="mToggle" title="${playing ? 'Pausa' : 'Ascolta'}">${playing ? IC_PAUSE : IC_PLAY}</button><button class="iconbtn" id="mNext" title="Brano successivo">${IC_NEXT}</button>
       <input type="range" id="mVol" min="0" max="1" step="0.05" value="${MUS.vol}" title="Volume" aria-label="Volume"><label class="tiny"><input type="checkbox" id="mAuto" ${MUS.auto ? 'checked' : ''}> uno dopo l'altro</label></div>
@@ -12024,6 +12034,7 @@ function musUI() { const b = $('#btnMusic'), a = MUS.audio; if (b) b.classList.t
   $$('[data-mc]', p).forEach(x => x.onclick = () => musChoose(x.dataset.mc));
   $('#mToggle').onclick = musToggle; $('#mNext').onclick = musNext; $('#mAuto').onchange = e => { MUS.auto = e.target.checked; };
   $('#mVol').oninput = e => { MUS.vol = +e.target.value; musAudio().volume = MUS.vol; };
+  if (typeof bellBind === 'function') bellBind(p);
   $('#mTap').onclick = tapToggle; $('#mTapVol').oninput = e => { TAP.APP = +e.target.value; tapSave(); tapSync(); }; }
 function musPanel() { if (MUS.panel) { musClose(); return; } const p = MUS.panel = document.createElement('div'); p.id = 'musicPanel'; document.body.appendChild(p); musUI();
   const r = $('#btnMusic').getBoundingClientRect(); p.style.top = r.bottom + 8 + 'px'; p.style.left = clamp(r.right - p.offsetWidth, 8, innerWidth - p.offsetWidth - 8) + 'px';
@@ -12031,7 +12042,8 @@ function musPanel() { if (MUS.panel) { musClose(); return; } const p = MUS.panel
 function musOutside(e) { if (MUS.panel && !MUS.panel.contains(e.target) && !e.target.closest('#btnMusic')) musClose(); }
 function musClose() { if (MUS.panel) MUS.panel.remove(); MUS.panel = null; removeEventListener('pointerdown', musOutside, true); }
 // il volo 3D parte con la musica scelta per l'aula (se non sta gia' suonando altro) e la ferma alla fine
-{ const _sf = startFly; startFly = function () { const id = musChosen(); if (id && (!MUS.audio || MUS.audio.paused)) { MUS.fly = true; musPlay(id); } return _sf.apply(this, arguments); }; }
+// la musica parte dopo la campanella d'inizio (e19_campanella.js)
+{ const _sf = startFly; startFly = function () { const id = musChosen(); if (id && (!MUS.audio || MUS.audio.paused)) { MUS.fly = true; setTimeout(() => { if (FLY.on && MUS.fly) musPlay(id); }, 2600); } return _sf.apply(this, arguments); }; }
 { const _ef = endFly; endFly = function () { if (MUS.fly && MUS.audio) { MUS.fly = false; MUS.audio.pause(); } return _ef.apply(this, arguments); }; }
 
 /* ---------- tappeto musicale: intro.mp3, il file accanto a index.html (va pubblicato insieme) ----------
@@ -12227,6 +12239,7 @@ function crDisciplina(k, rows) { const R = rows.filter(r => crDisc(r.disciplina)
   const tent = crAvg(R, 'architettoTentativi'), t = crAvg(R, 'durataSec');
   const lk = LIKERT.map(([kk, txt]) => [txt, crAvg(R, 'lk_' + kk)]).filter(x => x[1] != null);
   const mus = crTop(R, r => [r.musica], 3).map(([id, v]) => [(typeof musFind === 'function' && musFind(id) || {}).titolo || id, v]);
+  const bel = crTop(R, r => [r.campanella], 3).map(([id, v]) => [(typeof BELLS !== 'undefined' && BELLS[id] || {}).n || id, v]);
   const sic = crTop(R, r => crSplit(r.sicurezzaDaRivedere).map(c => CR_NORME[c] || c)), lim = crTop(R, r => crSplit(r.sicurezzaAlLimite).map(c => CR_NORME[c] || c));
   return head + `<div class="cr-kpi"><div><b>${n}</b><span>aule consegnate</span></div><div><b>${crPct(R.filter(crOk).length, n)}</b><span>approvate dall'architetto</span></div><div><b>${tent ? tent.toFixed(1) : '-'}</b><span>verifiche in media</span></div><div><b>${t ? Math.round(t / 60) : '-'}</b><span>minuti in media</span></div></div>
     <div class="cr-grid">
@@ -12235,7 +12248,7 @@ function crDisciplina(k, rows) { const R = rows.filter(r => crDisc(r.disciplina)
       <section><h4>Arredi <small>aule che li contengono</small></h4>${crBars(crTop(R, r => crSplit(r.elencoArredi)), n, col)}</section>
       <section><h4>Tecnologie</h4>${crBars(crTop(R, r => crSplit(r.elencoTecnologie)), n, col)}</section>
       <section><h4>Gigantografie</h4>${crBars(crTop(R, r => crSplit(r.elencoGigantografie)), n, col)}</section>
-      <section><h4>Metodologia e musica</h4>${crBars(crTop(R, r => [r.metodologia], 3), n, col)}${mus.length ? `<h4 class="cr-sub">Musica scelta</h4>${crBars(mus, n, col)}` : ''}</section>
+      <section><h4>Metodologia, musica e campanella</h4>${crBars(crTop(R, r => [r.metodologia], 3), n, col)}${mus.length ? `<h4 class="cr-sub">Musica scelta</h4>${crBars(mus, n, col)}` : ''}${bel.length ? `<h4 class="cr-sub">Campanella</h4>${crBars(bel, n, col)}` : ''}</section>
       <section class="cr-full"><h4>Sicurezza <small>norme da rivedere all'ultima verifica</small></h4>${crBars(sic, n, '#B7791F')}${lim.length ? `<h4 class="cr-sub">Accettate al limite</h4>${crBars(lim, n, '#FFD23F')}` : ''}</section>
     </div>`; }
 function crusRender() { const rows = crRows(), v = CRUS.vista, cnt = k => rows.filter(r => crDisc(r.disciplina) === k).length;
@@ -12260,6 +12273,131 @@ async function crusLoad() { const b = $('#crRefresh'); if (b) { b.disabled = tru
     if (!d.ok) { crusMsg(CR_ERR[d.error] || 'Il foglio ha risposto con un errore: ' + d.error); return; } CRUS.dati = d; crusRender(); }
   catch (e) { if (CRUS.dati) { crusRender(); toast('Nessuna risposta dal foglio: restano i dati di prima', 'warn'); } else crusMsg('Nessuna risposta dal foglio: controlla la connessione e riprova.'); } }
 function crusOpen() { if (CRUS.dati) crusRender(); else crusLoad(); }
+
+/* =====================================================================
+   Planner settimanale (strumenti didattici). Non si posa a mano: la
+   carta nel magazzino (Tecnologia > Strumenti didattici) lo accende o lo
+   spegne per tutta l'aula, e da quel momento c'e' un planner aperto su
+   ogni banco degli studenti (uno sul banco singolo, due sul biposto), in
+   qualunque disposizione. Dove i banchi non sono previsti (cerchio di
+   sole sedie, platea...) non compare; torna appena ci sono di nuovo.
+   Lo stato e' S.planner, salvato con la scena (serialize/restore), quindi
+   segue annulla/ripeti. Nei dati della ricerca va tra le tecnologie
+   ("Planner settimanale") e nella colonna planner (numero di banchi).
+   ===================================================================== */
+const PLANNER_DESKS = { banco: [0], 'banco-doppio': [-.33, .33] };
+const PLANNER = { mat: null, cover: null };
+// la pagina doppia del planner, disegnata una volta sola su canvas
+function plannerTex() { const W = 1024, H = 716, c = makeCanvas(W, H), g = c.getContext('2d');
+  g.fillStyle = '#FBF8F1'; g.fillRect(0, 0, W, H); g.fillStyle = 'rgba(26,23,18,.10)'; g.fillRect(W / 2 - 3, 0, 6, H);
+  const giorni = [['Lunedi\'', 'Martedi\'', 'Mercoledi\''], ['Giovedi\'', 'Venerdi\'', 'Sabato']];
+  const imp = [[['MAT', 'esercizi pag. 54'], ['ITA', 'leggere cap. 3'], ['SCI', 'lab: microscopio']], [['ING', 'verifica unit 4'], ['STO', 'linea del tempo'], ['MOT', 'scarpe da ginnastica']]];
+  [0, 1].forEach(p => { const x0 = p * W / 2 + 34, w = W / 2 - 68;
+    g.fillStyle = '#1A1712'; g.font = '800 34px "Bricolage Grotesque", Arial'; g.fillText(p ? 'Da ricordare' : 'La mia settimana', x0, 62);
+    giorni[p].forEach((d, i) => { const y = 100 + i * 196; g.strokeStyle = 'rgba(26,23,18,.18)'; g.lineWidth = 2; g.strokeRect(x0, y, w, 176);
+      g.fillStyle = '#4A443A'; g.font = '700 24px "Instrument Sans", Arial'; g.fillText(d, x0 + 14, y + 34);
+      for (let l = 1; l < 4; l++) { g.beginPath(); g.moveTo(x0 + 14, y + 42 + l * 34); g.lineTo(x0 + w - 14, y + 42 + l * 34); g.stroke(); }
+      const [ds, txt] = imp[p][i], col = (Object.values(DISC).find(v => v.s === ds) || {}).c || '#FF5A1F';
+      g.fillStyle = col; g.fillRect(x0 + 14, y + 52, 62, 30); g.fillStyle = '#fff'; g.font = '700 18px "JetBrains Mono", monospace'; g.fillText(ds, x0 + 22, y + 74);
+      g.fillStyle = '#1A1712'; g.font = 'italic 500 24px "Instrument Sans", Arial'; g.fillText(txt, x0 + 88, y + 75); }); });
+  return canvasTex(c); }
+function plannerMats() { if (!PLANNER.mat) { PLANNER.mat = new THREE.MeshStandardMaterial({ map: plannerTex(), roughness: .85 }); PLANNER.cover = colorMat('#1B4380', .6); } return PLANNER; }
+// planner aperto (30 x 21 cm) appoggiato a y; si legge dal lato +z, dove siede lo studente
+function addPlanner(g, x, y, z, ry = 0) { const M = plannerMats(), p = new THREE.Group();
+  box(p, .31, .006, .218, M.cover, 0, 0, 0); box(p, .296, .008, .204, colorMat('#F4EFE4', .9), 0, .006, 0);
+  const pg = new THREE.Mesh(new THREE.PlaneGeometry(.296, .204), M.mat); pg.rotation.x = -Math.PI / 2; pg.position.y = .0145; p.add(pg);
+  box(p, .006, .016, .21, colorMat('#C9C2B4', .5), 0, 0, 0); // dorso
+  p.position.set(x, y, z); p.rotation.y = ry; p.traverse(o => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = true; } }); g.add(p); return p; }
+// i banchi degli studenti si costruiscono con il planner sopra quando S.planner e' acceso (non nelle anteprime del magazzino)
+Object.keys(PLANNER_DESKS).forEach(t => { const def = CAT[t], b0 = def.build;
+  def.build = function (o, item) { const g = b0.apply(this, arguments); if (S.planner && item && item.uid) { const h = item.uid.charCodeAt(0) + item.uid.charCodeAt(1);
+      PLANNER_DESKS[t].forEach((x, i) => addPlanner(g, x, def.surface, .09, ((h + i * 7) % 9 - 4) * .02)); } return g; }; });
+const plannerDesks = () => S.items.reduce((n, i) => n + (PLANNER_DESKS[i.type] || []).length, 0);
+function plannerToggle() { S.planner = !S.planner; restore(serialize(), true); commit('planner'); renderStore(); const n = plannerDesks();
+  toast(!S.planner ? 'Planner tolto dai banchi' : n ? `Un planner settimanale su ${n === 1 ? 'il banco' : 'ognuno dei ' + n + ' posti al banco'}` : 'Planner acceso: comparira\' sui banchi degli studenti appena ci saranno', S.planner ? 'ok' : 'info'); }
+CAT['planner'] = { id: 'planner', name: 'Planner settimanale', cat: 'tecno', sub: 'Strumenti didattici', place: 'surface', build: () => { const g = new THREE.Group(); addPlanner(g, 0, 0, 0); return g; },
+  desc: 'Clicca: un planner settimanale aperto su ogni banco degli studenti, in qualunque disposizione. Clicca di nuovo per toglierlo.' };
+CATALOG.push(CAT['planner']);
+Object.assign(SCHEDE, { planner: { materiale: 'Carta riciclata e copertina in cartoncino; settimana su due pagine.', tecnologia: 'Strumento per organizzarsi: compiti, verifiche e materiale da portare, giorno per giorno.', cura: 'Si compila insieme il lunedi\', si controlla ogni giorno.' } });
+// la carta del planner non arma il posizionamento: accende o spegne il planner su tutti i banchi
+{ const _pc = protoFromCard; protoFromCard = function (card) { if (card.dataset.type === 'planner') { plannerToggle(); return null; } return _pc.apply(this, arguments); }; }
+{ const _ch = cardHTML; cardHTML = function (c) { const h = _ch.apply(this, arguments); return c.id === 'planner' && S.planner ? h.replace('class="card"', 'class="card on-desk"').replace('<div class="nm">', '<span class="badge sui">SUI BANCHI</span><div class="nm">') : h; }; }
+// dati della ricerca: tra le tecnologie, con il numero di posti al banco che lo hanno
+{ const _br = buildRecord; buildRecord = function () { const r = _br.apply(this, arguments), n = S.planner ? plannerDesks() : 0; r.planner = n;
+    if (n) r.oggetti.push({ tipo: 'planner', id: 'planner', nome: 'Planner settimanale', categoria: 'tecno', posizione: 'banchi', parete: '', x: '', z: '', rot: '', scala: '', colore: '', didascalia: '', motivazione: n + ' posti al banco' }); return r; }; }
+
+/* =====================================================================
+   Campanella dell'aula: segnala l'inizio e la fine della lezione, cioe'
+   del volo 3D (la lezione nell'aula appena allestita). Ogni disciplina ha
+   la sua campanella a tema (Big Ben per Inglese, chitarra per Spagnolo,
+   fischietto per Scienze motorie...), che si cambia nel pannello Musica
+   con prova di inizio e fine. Inizio = motivo che sale, fine = che scende.
+   Suoni sintetizzati con Web Audio (nessun file), sullo stesso mixer del
+   floor piano (FP.master, e13). La scelta va nei dati: colonna campanella.
+   ===================================================================== */
+const BELLS = {
+  scuola: { n: 'Campanella della scuola', d: 'lo squillo dei corridoi' }, bigben: { n: 'Big Ben', d: 'i rintocchi di Westminster' },
+  carillon: { n: 'Carillon', d: 'come in una scatola musicale' }, fanfara: { n: 'Fanfara', d: 'trombe da corte' },
+  gong: { n: 'Gong', d: 'vibra a lungo, come in Oriente' }, marimba: { n: 'Marimba', d: 'note di legno in scala' },
+  spazio: { n: 'Segnale spaziale', d: 'come su una stazione orbitante' }, chitarra: { n: 'Chitarra spagnola', d: 'un rasgueado' },
+  ottobit: { n: 'Videogioco 8 bit', d: 'i suoni dei vecchi videogiochi' }, arpa: { n: 'Arpa', d: 'un glissando' },
+  fischietto: { n: 'Fischietto', d: 'come in palestra' }, campane: { n: 'Campane', d: 'dal campanile' },
+  ingranaggi: { n: 'Ingranaggi', d: 'un meccanismo a orologeria' }, pianoforte: { n: 'Pianoforte', d: 'un accordo e una cadenza' } };
+const BELL_DISC = { ita: 'carillon', sto: 'fanfara', geo: 'gong', mat: 'marimba', sci: 'spazio', ing: 'bigben', spa: 'chitarra', inf: 'ottobit', tec: 'ingranaggi', art: 'arpa', mus: 'pianoforte', mot: 'fischietto', rel: 'campane', civ: 'scuola' };
+const bellChosen = (d = S.lesson.disc) => { const id = (S.meta.campanella || {})[d]; return BELLS[id] ? id : BELL_DISC[d] || 'scuola'; };
+const bMidi = m => 440 * Math.pow(2, (m - 69) / 12);
+function bOsc(ac, out, f, t, rel, o = {}) { const os = ac.createOscillator(), g = ac.createGain(); os.type = o.type || 'sine'; os.frequency.setValueAtTime(f, t); if (o.f2) os.frequency.exponentialRampToValueAtTime(o.f2, t + (o.slide || rel));
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(o.vol || .25, t + (o.att || .005)); g.gain.exponentialRampToValueAtTime(.0005, t + rel); os.connect(g); g.connect(out); os.start(t); os.stop(t + rel + .05); return os; }
+// campana: parziali inarmoniche (hum, fondamentale, terza minore, quinta, ottava...) che si spengono a velocita' diverse
+function bBell(ac, out, f, t, dur = 2.6, vol = .2) { [[.5, .55], [1, 1], [1.19, .5], [1.5, .35], [2, .45], [2.51, .2], [3, .16], [4.2, .1]].forEach(([r, a], i) => bOsc(ac, out, f * r, t, dur / (1 + i * .35), { vol: vol * a, att: .003 })); }
+function bNoise(ac, out, t, dur, f, vol) { const n = ac.createBuffer(1, Math.max(1, Math.round(ac.sampleRate * dur)), ac.sampleRate), d = n.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  const s = ac.createBufferSource(), bp = ac.createBiquadFilter(), g = ac.createGain(); s.buffer = n; bp.type = 'bandpass'; bp.frequency.value = f; bp.Q.value = 4; g.gain.value = vol; s.connect(bp); bp.connect(g); g.connect(out); s.start(t); }
+// corda pizzicata (Karplus-Strong) calcolata una volta in un buffer
+function bPluck(ac, out, f, t, dur = 1.6, vol = .35) { const sr = ac.sampleRate, N = Math.max(2, Math.round(sr / f)), L = Math.round(sr * dur), b = ac.createBuffer(1, L, sr), y = b.getChannelData(0);
+  for (let i = 0; i < L; i++) y[i] = i < N ? Math.random() * 2 - 1 : .4985 * (y[i - N] + y[i - N + 1]);
+  const s = ac.createBufferSource(), g = ac.createGain(); s.buffer = b; g.gain.value = vol; s.connect(g); g.connect(out); s.start(t); }
+const BELL_SYNTH = {
+  scuola(ac, out, t, k) { (k === 'inizio' ? [[0, 1.5]] : [[0, .55], [.8, .55]]).forEach(([d0, len]) => { const o = ac.createOscillator(), bp = ac.createBiquadFilter(), am = ac.createGain(), env = ac.createGain(), lfo = ac.createOscillator(), dep = ac.createGain();
+      o.type = 'square'; o.frequency.value = 1850; bp.type = 'bandpass'; bp.frequency.value = 2100; bp.Q.value = 2.5; am.gain.value = .5; lfo.type = 'square'; lfo.frequency.value = 24; dep.gain.value = .5; lfo.connect(dep); dep.connect(am.gain);
+      env.gain.setValueAtTime(0, t + d0); env.gain.linearRampToValueAtTime(.18, t + d0 + .02); env.gain.setValueAtTime(.18, t + d0 + len - .05); env.gain.linearRampToValueAtTime(0, t + d0 + len);
+      o.connect(bp); bp.connect(am); am.connect(env); env.connect(out); [o, lfo].forEach(x => { x.start(t + d0); x.stop(t + d0 + len + .05); }); }); return k === 'inizio' ? 1.6 : 1.5; },
+  bigben(ac, out, t, k) { const seq = k === 'inizio' ? [68, 66, 64, 59] : [64, 68, 66, 59]; seq.forEach((m, i) => bBell(ac, out, bMidi(m), t + i * .62, 2.6, .17)); if (k === 'fine') bBell(ac, out, bMidi(52), t + 2.9, 3.4, .22); return k === 'inizio' ? 3 : 4.4; },
+  carillon(ac, out, t, k) { const seq = k === 'inizio' ? [84, 88, 91, 96, 91, 96] : [96, 91, 88, 84, 79, 84]; seq.forEach((m, i) => { const f = bMidi(m), t0 = t + i * (k === 'inizio' ? .17 : .24); bOsc(ac, out, f, t0, 1.1, { vol: .16 }); bOsc(ac, out, f * 2.99, t0, .35, { vol: .05 }); bOsc(ac, out, f * 5.4, t0, .15, { vol: .02 }); }); return 2; },
+  fanfara(ac, out, t, k) { const seq = k === 'inizio' ? [[67, .14], [67, .14], [67, .14], [72, .9]] : [[72, .3], [67, .3], [64, .3], [60, 1.1]]; let tt = t;
+    seq.forEach(([m, d]) => { [0, 7].forEach(iv => { const o = ac.createOscillator(), lp = ac.createBiquadFilter(), g = ac.createGain(); o.type = 'sawtooth'; o.frequency.value = bMidi(m + iv);
+      lp.type = 'lowpass'; lp.frequency.setValueAtTime(600, tt); lp.frequency.linearRampToValueAtTime(2600, tt + .06); lp.frequency.exponentialRampToValueAtTime(1200, tt + d);
+      g.gain.setValueAtTime(0, tt); g.gain.linearRampToValueAtTime(iv ? .05 : .11, tt + .03); g.gain.setValueAtTime(iv ? .05 : .11, tt + d * .8); g.gain.linearRampToValueAtTime(0, tt + d); o.connect(lp); lp.connect(g); g.connect(out); o.start(tt); o.stop(tt + d + .05); }); tt += d + .03; }); return tt - t + .2; },
+  gong(ac, out, t, k) { const hit = (t0, v) => { [[1, 1], [1.48, .6], [2.03, .45], [2.63, .3], [3.17, .22], [4.3, .12]].forEach(([r, a], i) => bOsc(ac, out, 98 * r, t0, 4.2 / (1 + i * .25), { vol: v * a, att: .06 + i * .02 })); bNoise(ac, out, t0, .08, 300, .15 * v / .2); };
+    hit(t, .2); if (k === 'fine') hit(t + 1.6, .12); return k === 'inizio' ? 3.5 : 4.8; },
+  marimba(ac, out, t, k) { const seq = k === 'inizio' ? [72, 74, 76, 79, 84] : [84, 79, 76, 74, 72]; seq.forEach((m, i) => { const f = bMidi(m), t0 = t + i * .16 + (i === 4 ? .08 : 0); bOsc(ac, out, f, t0, i === 4 ? 1.1 : .55, { vol: .22 }); bOsc(ac, out, f * 4, t0, .12, { vol: .06 }); bOsc(ac, out, f * 10, t0, .04, { vol: .02 }); }); return 1.9; },
+  spazio(ac, out, t, k) { const dl = ac.createDelay(), fb = ac.createGain(), wet = ac.createGain(); dl.delayTime.value = .22; fb.gain.value = .45; wet.gain.value = .6; dl.connect(fb); fb.connect(dl); dl.connect(wet); wet.connect(out);
+    const sweeps = k === 'inizio' ? [[440, 1320, 0], [660, 1760, .5]] : [[1320, 440, 0], [880, 330, .5]];
+    sweeps.forEach(([a, b, d0]) => { [out, dl].forEach(dst => bOsc(ac, dst, a, t + d0, .7, { vol: .12, att: .02, f2: b, slide: .45 })); }); return 2.6; },
+  chitarra(ac, out, t, k) { const ch = [40, 47, 52, 56, 59, 64], strum = (t0, down) => (down ? ch : ch.slice().reverse()).forEach((m, i) => bPluck(ac, out, bMidi(m), t0 + i * .022, 1.8, .16));
+    strum(t, true); strum(t + .32, false); strum(t + .58, true); if (k === 'fine') { strum(t + 1.1, true); bPluck(ac, out, bMidi(40), t + 1.6, 2.4, .35); } return k === 'inizio' ? 2.3 : 3.6; },
+  ottobit(ac, out, t, k) { const seq = k === 'inizio' ? [72, 76, 79, 84, 88] : [88, 84, 79, 76, 72]; seq.forEach((m, i) => bOsc(ac, out, bMidi(m), t + i * .085, i === 4 ? .45 : .08, { type: 'square', vol: .07, att: .002, f2: k === 'fine' && i === 4 ? bMidi(m) * .5 : 0 })); return 1; },
+  arpa(ac, out, t, k) { const sc = [60, 62, 64, 65, 67, 69, 71, 72, 74, 76, 77, 79, 81, 83, 84], seq = k === 'inizio' ? sc : sc.slice().reverse(); seq.forEach((m, i) => bPluck(ac, out, bMidi(m), t + i * .055, 1.6, .2)); return 2.3; },
+  fischietto(ac, out, t, k) { const tw = (t0, len) => { const o = ac.createOscillator(), lfo = ac.createOscillator(), dep = ac.createGain(), g = ac.createGain(); o.frequency.value = 2900; lfo.frequency.value = 30; dep.gain.value = 140; lfo.connect(dep); dep.connect(o.frequency);
+      g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.1, t0 + .02); g.gain.setValueAtTime(.1, t0 + len - .04); g.gain.linearRampToValueAtTime(0, t0 + len); o.connect(g); g.connect(out); [o, lfo].forEach(x => { x.start(t0); x.stop(t0 + len + .05); }); bNoise(ac, out, t0, len, 2900, .05); };
+    if (k === 'inizio') tw(t, .9); else { tw(t, .18); tw(t + .3, .18); tw(t + .6, 1); } return 1.7; },
+  campane(ac, out, t, k) { const seq = k === 'inizio' ? [64, 61, 59, 57] : [57, 59, 61, 64, 57, 52]; seq.forEach((m, i) => bBell(ac, out, bMidi(m), t + i * .55, 3, .16)); return seq.length * .55 + 2; },
+  ingranaggi(ac, out, t, k) { const n = 8; for (let i = 0; i < n; i++) { const d = k === 'inizio' ? i * .09 : i * (.08 + i * .015); bNoise(ac, out, t + d, .025, i % 2 ? 3200 : 2200, .5); }
+    const end = k === 'inizio' ? n * .09 : n * .08 + n * n * .015 / 2; bBell(ac, out, bMidi(k === 'inizio' ? 88 : 81), t + end + .05, 1.6, .12); return end + 1.6; },
+  pianoforte(ac, out, t, k) { if (typeof playNote !== 'function') return 0; const seq = k === 'inizio' ? [[60, 0], [64, .14], [67, .28], [72, .42], [60, .7], [64, .7], [67, .7], [72, .7]] : [[67, 0], [71, 0], [74, 0], [77, 0], [60, .7], [64, .7], [67, .7], [72, .7]];
+    seq.forEach(([m, d]) => setTimeout(() => playNote(m), d * 1000)); return 2.4; } };
+// suona la campanella scelta (o quella indicata); restituisce la durata in secondi
+function campanella(kind = 'inizio', id = bellChosen()) { const ac = typeof audio === 'function' && audio(); if (!ac || !FP.master) return 0; const f = BELL_SYNTH[id] || BELL_SYNTH.scuola;
+  try { return f(ac, FP.master, ac.currentTime + .05, kind); } catch (e) { return 0; } }
+function bellChoose(id) { S.meta.campanella = Object.assign({}, S.meta.campanella, { [S.lesson.disc]: id }); autosave(); campanella('inizio', id); if (MUS.panel) musUI(); }
+function bellRowHTML() { const ch = bellChosen();
+  return `<div class="mbell"><span><b>Campanella dell'aula</b>Suona all'inizio e alla fine della lezione (volo 3D)</span>
+    <select id="mBell" aria-label="Campanella">${Object.entries(BELLS).map(([k, b]) => `<option value="${k}" ${k === ch ? 'selected' : ''}>${esc(b.n)}${k === BELL_DISC[S.lesson.disc] ? ' (a tema)' : ''}</option>`).join('')}</select>
+    <button class="btn small" id="mBellA" title="Ascolta la campanella di inizio">Inizio</button><button class="btn small" id="mBellB" title="Ascolta la campanella di fine">Fine</button></div>`; }
+function bellBind(p) { const s = $('#mBell', p); if (!s) return; s.onchange = e => bellChoose(e.target.value); $('#mBellA', p).onclick = () => campanella('inizio'); $('#mBellB', p).onclick = () => campanella('fine'); }
+// la lezione nell'aula (volo 3D) comincia e finisce con la campanella
+{ const _sf = startFly; startFly = function () { campanella('inizio'); return _sf.apply(this, arguments); }; }
+{ const _ef = endFly; endFly = function () { campanella('fine'); return _ef.apply(this, arguments); }; }
+{ const _br = buildRecord; buildRecord = function () { const r = _br.apply(this, arguments); r.campanella = bellChosen(); return r; }; }
 
 /* =====================================================================
    Avvio, ciclo di rendering, camminata
