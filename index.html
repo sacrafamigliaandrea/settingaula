@@ -9925,9 +9925,9 @@ function wallItemDims(it) { const s = sizeOf(it); return { hw: s.w * (it.s || 1)
 function clampItem(it) {
   const def = defOf(it);
   if (def.place === 'wall') { const W = WALLS[it.wall], d = wallItemDims(it); it.u = clamp(it.u || 0, -W.len / 2 + d.hw + .02, W.len / 2 - d.hw - .02); it.vv = clamp(it.vv, .05 - d.bot, ROOM.H - .03 - d.top); return; }
-  const h = halfExt(it), s = sizeOf(it), c = toWorld({ x: 0, z: 0, ry: it.ry }, s.cx, s.cz);
-  it.x = clamp(it.x, ROOM.x0 + h.hx - c.x + .01, ROOM.x1 - h.hx - c.x - .01);
-  it.z = clamp(it.z, ROOM.z0 + h.hz - c.z + .01, ROOM.z1 - h.hz - c.z - .01);
+  const h = halfExt(it), s = sizeOf(it), c = toWorld({ x: 0, z: 0, ry: it.ry }, s.cx, s.cz), Z = zonaLimiti(it); // aula o corridoio (e20_corridoio.js)
+  it.x = clamp(it.x, Z.x0 + h.hx - c.x + .01, Z.x1 - h.hx - c.x - .01);
+  it.z = clamp(it.z, Z.z0 + h.hz - c.z + .01, Z.z1 - h.hz - c.z - .01);
 }
 // quota d'appoggio: piani dei mobili per gli oggetti da tavolo, pedane/tappeti per quelli a pavimento
 function baseHeightAt(it, x, z, exclude) {
@@ -10034,7 +10034,7 @@ function onDown(ev) {
       if (!SEL.has(hit.uid)) { SEL.clear(); SEL.add(hit.uid); refreshSelection(); }
       startDrag(e, hit.point); return;
     }
-    PTR.wallClick = wh && wh.wall;
+    PTR.wallClick = wh && !WALLS[wh.wall].corr && wh.wall; // le pareti del corridoio non si tinteggiano
   }
   PTR.mode = (ev.button === 2 || ev.shiftKey || (CAM.mode === 'plan' && ev.button === 0)) ? 'pan' : 'orbit';
   PTR.o0 = { theta: CAM.theta, phi: CAM.phi, target: CAM.target.clone() };
@@ -10055,7 +10055,7 @@ function onMove(ev) {
   if (PTR.mode === 'look') { CAM.yaw = PTR.look0.yaw - dx * .004; CAM.pitch = clamp(PTR.look0.pitch - dy * .004, -1.2, 1.2); if (CAM.seated) { /* resta seduto ma puo' guardarsi intorno */ } return; }
   if (PTR.mode === 'orbit') { CAM.theta = PTR.o0.theta - dx * .006; CAM.phi = clamp(PTR.o0.phi - dy * .005, .05, 1.45); $('#stage').classList.add('grab'); return; }
   if (PTR.mode === 'pan') { const k = CAM.r * .0016; const c = Math.cos(CAM.theta), s = Math.sin(CAM.theta);
-    CAM.target.x = clamp(PTR.o0.target.x - (dx * c + (CAM.mode === 'plan' ? dy : dy) * s) * k, -6, 6); CAM.target.z = clamp(PTR.o0.target.z - (-dx * s + dy * c) * k, -5, 5); $('#stage').classList.add('grab'); return; }
+    CAM.target.x = clamp(PTR.o0.target.x - (dx * c + (CAM.mode === 'plan' ? dy : dy) * s) * k, -11, 6); CAM.target.z = clamp(PTR.o0.target.z - (-dx * s + dy * c) * k, -10, 12); /* fino al corridoio */ $('#stage').classList.add('grab'); return; }
   if (PTR.mode === 'drag') dragMove(ev);
 }
 function dragMove(ev) {
@@ -10255,9 +10255,9 @@ function applyLayout(id, ex = {}, opts = {}) {
   if (S.meta.lastLayout === 'immersiva' && id !== 'immersiva') { S.light = 'giorno'; setLightMode(S.light); if (typeof clearProjections === 'function') clearProjections(); }
   const managed = new Set(LAYOUT_TYPES.concat(targets.map(t => t.type).filter(t => ['tavolo-rotondo', 'pedana', 'leggio-oratore', 'leggio-musica', 'cavalletto', 'sgabello', 'materassino', 'pianoforte', 'banco-doppio'].includes(t))));
   // gli oggetti tecnologici appoggiati ai banchi gestiti vengono riposizionati dal layout se previsti, altrimenti restano dove sono
-  const pool = {}; OBJ.forEach(e => { if (e.def.place !== 'surface' && (managed.has(e.item.type) || e.item.byLayout)) (pool[e.item.type] = pool[e.item.type] || []).push(e); });
+  const pool = {}; OBJ.forEach(e => { if (e.def.place !== 'surface' && zonaDi(e.item) === 'aula' && (managed.has(e.item.type) || e.item.byLayout)) (pool[e.item.type] = pool[e.item.type] || []).push(e); });
   const onDeskTargets = targets.filter(t => t.onDesk), floorTargets = targets.filter(t => !t.onDesk);
-  const stayRiders = []; OBJ.forEach(e => { if (e.def.place === 'surface') { const under = Array.from(OBJ.values()).find(o => (managed.has(o.item.type) || o.item.byLayout) && (o.def.surface) && insideFootprint(o.item, e.item.x, e.item.z)); if (under) { e._ride = { desk: under.item, off: toLocal(under.item, e.item.x, e.item.z), dry: (e.item.ry || 0) - (under.item.ry || 0) }; stayRiders.push(e); } } });
+  const stayRiders = []; OBJ.forEach(e => { if (e.def.place === 'surface' && zonaDi(e.item) === 'aula') { const under = Array.from(OBJ.values()).find(o => (managed.has(o.item.type) || o.item.byLayout) && (o.def.surface) && insideFootprint(o.item, e.item.x, e.item.z)); if (under) { e._ride = { desk: under.item, off: toLocal(under.item, e.item.x, e.item.z), dry: (e.item.ry || 0) - (under.item.ry || 0) }; stayRiders.push(e); } } });
   let delayI = 0;
   floorTargets.forEach(t => { const arr = pool[t.type] || []; let best = -1, bd = 1e9; arr.forEach((e, i) => { const d = (e.item.x - t.x) ** 2 + (e.item.z - t.z) ** 2; if (d < bd) { bd = d; best = i; } });
     const tmp = { type: t.type, x: t.x, z: t.z, ry: t.ry }; clampItem(tmp); const to = { x: tmp.x, z: tmp.z, ry: t.ry, y: 0 };
@@ -10480,7 +10480,7 @@ function renderLayoutStore(tools, body) {
   $$('[data-preset]', body).forEach(b => b.onclick = () => { const p = recs[+b.dataset.preset]; applyLayout(p.layout, p.ex || {}, { preset: p.name }); });
   bindMetodi(body); bindAcerio(body); bindPosti(body);
   $('#resetToday').onclick = () => { loadSceneData(sceneAsToday()); commit('reset'); toast('Aula riportata com\'e\' oggi', 'ok'); };
-  $('#resetEmpty').onclick = () => { clearAll(); WALL_IDS.forEach(id => setWallMural(id, null)); commit('reset'); refreshUI(); toast('Aula svuotata: tutto e\' in magazzino', 'ok'); };
+  $('#resetEmpty').onclick = () => { svuotaAula(); WALL_IDS.forEach(id => setWallMural(id, null)); commit('reset'); refreshUI(); toast('Aula svuotata: tutto e\' in magazzino', 'ok'); };
 }
 function drawLayoutPreviews() { $$('canvas[data-lp]').forEach(c => { const g = c.getContext('2d'), W = c.width, H = c.height, k = Math.min(W / (ROOM.W + .4), H / (ROOM.D + .4)); g.clearRect(0, 0, W, H);
   g.fillStyle = '#F1ECE2'; g.fillRect(0, 0, W, H); const ox = W / 2, oz = H / 2; g.fillStyle = '#FFFDF8'; g.strokeStyle = '#1A1712'; g.lineWidth = 2; g.fillRect(ox - ROOM.W / 2 * k, oz - ROOM.D / 2 * k, ROOM.W * k, ROOM.D * k); g.strokeRect(ox - ROOM.W / 2 * k, oz - ROOM.D / 2 * k, ROOM.W * k, ROOM.D * k);
@@ -10527,7 +10527,7 @@ function protoFromCard(card) {
 const MURAL = { id: null, hl: null };
 function armMural(id, card) { cancelPlacing(); MURAL.id = id; $$('.card.armed').forEach(c => c.classList.remove('armed')); card.classList.add('armed'); $('#stage').classList.add('place'); toast('Clicca la parete da decorare (Esc per annullare)', 'info');
   const el = renderer.domElement; const once = ev => { if (ev.button !== 0) return; setNDC(ev); const w = pickWall(); el.removeEventListener('pointerdown', once, true); $('#stage').classList.remove('place'); card.classList.remove('armed');
-    ev.stopPropagation(); PTR.down = false; if (w && MURAL.id) { setWallMural(w.wall, MURAL.id); S.meta.actions.mural++; commit('sfondo'); toast('Sfondo applicato: ' + WALLS[w.wall].name, 'ok'); selectWall(w.wall); } MURAL.id = null; };
+    ev.stopPropagation(); PTR.down = false; if (w && MURAL.id && !WALLS[w.wall].corr) { setWallMural(w.wall, MURAL.id); S.meta.actions.mural++; commit('sfondo'); toast('Sfondo applicato: ' + WALLS[w.wall].name, 'ok'); selectWall(w.wall); } MURAL.id = null; };
   el.addEventListener('pointerdown', once, true); }
 
 /* ---------- barra della selezione e ispettore ---------- */
@@ -10668,7 +10668,7 @@ function lessonModal(first) {
     let aula = $('#aulaName').value.trim(); if (aula && !/^aula\b/i.test(aula)) aula = 'Aula ' + aula; if (!aula) aula = 'Aula di ' + DISC[disc].n;
     setLesson({ aula, disc, classe: cls, topicId: tp ? tp.id : '', topic, title, activity: $('#actSel').value, classCode: cc, studentCode: newCode });
     closeModal();
-    if (first) { S.meta.start = start; S.meta.startedAt = Date.now(); if (start === 'vuota') { clearAll(); commit('vuota'); } if (start === 'acerio') setTimeout(() => applyLayout('acerio', {}, { preset: 'Setting Acerio' }), 300);
+    if (first) { S.meta.start = start; S.meta.startedAt = Date.now(); if (start === 'vuota') { svuotaAula(); commit('vuota'); } if (start === 'acerio') setTimeout(() => applyLayout('acerio', {}, { preset: 'Setting Acerio' }), 300);
       if (start === 'consigliata') { const p = (PRESETS[disc] || [])[0]; if (p) setTimeout(() => applyLayout(p.layout, p.ex || {}, { preset: p.name }), 300); STORE.tab = 'setting'; renderStore(); }
       toast('Buon lavoro! Arredi e tecnologie sono nel magazzino a sinistra.', 'ok'); } };
 }
@@ -10743,7 +10743,7 @@ function buildRecord() {
     partenza: S.meta.start, durataSec: Math.round((now - S.meta.startedAt) / 1000), azioni: S.meta.actions, disposizioniUsate: S.meta.layouts.map(l => l.id + (l.preset ? '(' + l.preset + ')' : '')).join(' > '), ultimaDisposizioneApplicata: S.meta.lastLayout || '',
     viste: S.meta.views, analisi: a, pareti: WALL_IDS.reduce((o, id) => (o[id] = { colore: WALLS[id].paint, sfondo: WALLS[id].mural || '' }, o), {}), luci: S.light,
     motivazioneDisposizione: S.meta.whyLayout, motivazioneScelte: S.meta.whyWhat, cambierei: S.meta.change, likert: S.meta.likert,
-    studenteTipo: { nome: S.avatar.nome, superpotere: S.avatar.superpotere, casata: (S.avatar.cfg || {}).casa || '', skills: S.avatar.skills, interessi: S.avatar.interessi || [], discPreferite: S.avatar.discPreferite || [], discDifficili: S.avatar.discDifficili || [], partecipazione: S.avatar.partecipazione || {}, ruolo: S.avatar.ruolo || '', stile: S.avatar.stile, bisogni: S.avatar.bisogni, seduta: S.avatar.seduta, nellAula: !!avatarItem() },
+    studenteTipo: { nome: S.avatar.nome, superpotere: S.avatar.superpotere, casata: (S.avatar.cfg || {}).casa || '', aspetto: (c => ({ genere: c.genere || '', capelli: c.capelli || '', coloreCapelli: c.coloreCapelli || '', casata: c.casa || '' }))(S.avatar.cfg || {}), skills: S.avatar.skills, interessi: S.avatar.interessi || [], discPreferite: S.avatar.discPreferite || [], discDifficili: S.avatar.discDifficili || [], partecipazione: S.avatar.partecipazione || {}, ruolo: S.avatar.ruolo || '', stile: S.avatar.stile, bisogni: S.avatar.bisogni, seduta: S.avatar.seduta, nellAula: !!avatarItem() },
     oggetti: objects, scena: stripNames(serialize()) };
 }
 function getOutbox() { try { return JSON.parse(localStorage.getItem('settingaula.outbox') || '[]'); } catch (e) { return []; } }
@@ -10882,6 +10882,8 @@ function renderStudentStore(tools, body) {
     ${inScene ? `<button class="btn small ghost" id="avRemove" style="margin-bottom:6px">Togli dall'aula</button>` : ''}
     <div class="field"><label>Come si chiama? (nome inventato)</label><input id="avName" maxlength="24" value="${esc(A.nome)}" placeholder="Es. Leo, Mia, Sam..."></div>
     <div class="field"><label>Il suo superpotere a scuola</label><input id="avPower" maxlength="70" value="${esc(A.superpotere)}" placeholder="Es. trova sempre un modo nuovo di risolvere i problemi"></div>
+    <div class="avsec"><b>Il suo aspetto</b><div class="chips">${[['ragazzo', 'Ragazzo'], ['ragazza', 'Ragazza']].map(([k, n]) => `<button class="chip ${cfg.genere === k ? 'on' : ''}" data-gen="${k}">${n}</button>`).join('')}</div>
+      <div class="field" style="margin:10px 0 0"><label>Colore dei capelli</label><div class="chips">${AVATAR.OPTIONS.coloreCapelli.map(c => `<button class="chip ${cfg.coloreCapelli === c.id ? 'on' : ''}" data-hc="${c.id}"><i style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;background:${c.c}"></i>${esc(c.n)}</button>`).join('')}</div></div></div>
     <div class="avsec"><b>La sua casata</b><div class="chips">${AVATAR.OPTIONS.casa.map(c => `<button class="chip ${cfg.casa === c.id ? 'on' : ''}" data-casa="${c.id}"><i style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;background:${c.c}"></i>${esc(c.n)}</button>`).join('')}</div>
       <p class="tiny muted" style="margin:8px 0 0">Indossa la felpa della sua casata, con lo stemma sul petto. Clicca di nuovo per toglierla.</p></div>
     <div class="avsec"><b>Le sue skills</b><canvas class="radar" id="avRadar" width="460" height="400"></canvas>
@@ -10905,6 +10907,9 @@ function renderStudentStore(tools, body) {
   $$('[data-stile]', body).forEach(b => b.onclick = () => toggleIn(A.stile, b.dataset.stile, b)); $$('[data-int]', body).forEach(b => b.onclick = () => toggleIn(A.interessi, b.dataset.int, b));
   $$('[data-dpref]', body).forEach(b => b.onclick = () => toggleIn(A.discPreferite, b.dataset.dpref, b)); $$('[data-ddiff]', body).forEach(b => b.onclick = () => toggleIn(A.discDifficili, b.dataset.ddiff, b)); $$('[data-bis]', body).forEach(b => b.onclick = () => toggleIn(A.bisogni, b.dataset.bis, b));
   $$('[data-seat]', body).forEach(b => b.onclick = () => { A.seduta = A.seduta === b.dataset.seat ? '' : b.dataset.seat; $$('[data-seat]', body).forEach(x => x.classList.toggle('on', x.dataset.seat === A.seduta)); changed(false); });
+  // ragazzo o ragazza: cambia il taglio (corti o lunghi); il colore dei capelli resta quello scelto
+  $$('[data-gen]', body).forEach(b => b.onclick = () => { cfg.genere = b.dataset.gen; cfg.capelli = cfg.genere === 'ragazza' ? 'lunghi' : 'corti'; $$('[data-gen]', body).forEach(x => x.classList.toggle('on', x.dataset.gen === cfg.genere)); changed(true); });
+  $$('[data-hc]', body).forEach(b => b.onclick = () => { cfg.coloreCapelli = b.dataset.hc; $$('[data-hc]', body).forEach(x => x.classList.toggle('on', x.dataset.hc === cfg.coloreCapelli)); changed(true); });
   $$('[data-casa]', body).forEach(b => b.onclick = () => { cfg.casa = cfg.casa === b.dataset.casa ? '' : b.dataset.casa; $$('[data-casa]', body).forEach(x => x.classList.toggle('on', x.dataset.casa === cfg.casa)); changed(true); });
   $('#avName').oninput = e => { A.nome = e.target.value; $('#avTag').textContent = A.nome || 'Studente tipo'; changed(false); };
   $('#avPower').oninput = e => { A.superpotere = e.target.value; changed(false); };
@@ -12241,7 +12246,7 @@ function closeIntro() { if (!INTRO.on) return; INTRO.on = false; INTRO.play = fa
    Il cruscotto non mostra ne' fa cambiare l'indirizzo dello script.
    ===================================================================== */
 const CRUS = { dati: null, vista: 'panoramica', classe: '', anno: '' };
-const CR_NORME = { affollamento: 'Affollamento', superficie: 'Spazio per studente', porta: 'Porta sgombra', esodo: 'Percorso da 90 cm', posti: 'Ogni posto raggiungibile', carrozzina: 'Spazio per una carrozzina', fissaggio: 'Arredi alti contro il muro', luce: 'Finestre libere', vr: 'Area dei visori', differenziata: 'Raccolta differenziata' };
+const CR_NORME = { affollamento: 'Affollamento', superficie: 'Spazio per studente', porta: 'Porta sgombra', esodo: 'Percorso da 90 cm', posti: 'Ogni posto raggiungibile', carrozzina: 'Spazio per una carrozzina', fissaggio: 'Arredi alti contro il muro', luce: 'Finestre libere', vr: 'Area dei visori', differenziata: 'Raccolta differenziata', corridoio: 'Corridoio: via di fuga' };
 const CR_ERR = { 'consegna non valida': 'Lo script pubblicato e\' ancora alla versione 3: incolla Code.gs versione 4 e pubblica una nuova versione.' };
 const crSplit = s => String(s || '').split(' | ').map(x => x.trim()).filter(Boolean);
 const crDisc = nome => Object.keys(DISC).find(k => DISC[k].n === nome);
@@ -12274,6 +12279,7 @@ function crDisciplina(k, rows) { const R = rows.filter(r => crDisc(r.disciplina)
       <section><h4>Tecnologie</h4>${crBars(crTop(R, r => crSplit(r.elencoTecnologie)), n, col)}</section>
       <section><h4>Gigantografie</h4>${crBars(crTop(R, r => crSplit(r.elencoGigantografie)), n, col)}</section>
       <section><h4>Metodologia, musica e campanella</h4>${crBars(crTop(R, r => [r.metodologia], 3), n, col)}${mus.length ? `<h4 class="cr-sub">Musica scelta</h4>${crBars(mus, n, col)}` : ''}${bel.length ? `<h4 class="cr-sub">Campanella</h4>${crBars(bel, n, col)}` : ''}</section>
+      <section><h4>Corridoio <small>aule che li hanno messi</small></h4>${crBars(crTop(R, r => crSplit(r.elencoCorridoio)), n, col)}</section>
       <section class="cr-full"><h4>Sicurezza <small>norme da rivedere all'ultima verifica</small></h4>${crBars(sic, n, '#B7791F')}${lim.length ? `<h4 class="cr-sub">Accettate al limite</h4>${crBars(lim, n, '#FFD23F')}` : ''}</section>
     </div>`; }
 function crusRender() { const rows = crRows(), v = CRUS.vista, cnt = k => rows.filter(r => crDisc(r.disciplina) === k).length;
@@ -12448,6 +12454,12 @@ function bellBind(p) { const s = $('#mBell', p); if (!s) return; s.onchange = e 
    accendendoli il gruppo di tavoli li' davanti si sposta di 65 cm. Restano
    oltre 3 m liberi (la via d'esodo deve restare larga almeno 1,20 m).
    Stato in S.armadietti, salvato con la scena; nei dati: arredi e colonna armadietti.
+   Il corridoio si arreda come l'aula (zone: zonaDi/zonaLimiti). Tavoli verdi, sedie
+   di faggio, scrivania, sedia blu e cestini sono oggetti veri del magazzino, gia' al
+   loro posto nell'aula com'e' oggi (sceneAsToday). Le due pareti lunghe accolgono
+   poster e gigantografie (non si tinteggiano). Disposizioni, "Aula vuota", analisi e
+   verifica dell'aula riguardano solo l'aula (soloAula); per il corridoio l'architetto
+   controlla la via di fuga: 120 cm liberi per tutta la lunghezza e davanti alla porta.
    ===================================================================== */
 const CORR = { XW: -10.11, XC: -4.96, XD: -4.15, NZ0: -1.165, NZ1: .265, NH: 2.3, ZA: -9.2, ZB: 11.8, ZW: 9.42, H: 3.28, ZS: 9.55,
   FIN: [[-8.30, -5.47], [-1.69, 1.26], [1.98, 4.81], [5.255, 8.535]], OCRA: [-5.47, -1.69], G1: [-6.35, -4.6], G2: [-6.35, 3.0], LK: 3.0,
@@ -12469,11 +12481,6 @@ function corrSedia(g, x, z, ry) { const s = new THREE.Group(), faggio = colorMat
   box(s, .4, .03, .38, faggio, 0, .44, 0); const sc = mesh(gBox(.38, .2, .02), faggio, 0, .7, .2); sc.rotation.x = -.12; s.add(sc);
   [[-.17, -.15], [.17, -.15], [-.17, .17], [.17, .17]].forEach(([a, b]) => cyl(s, .011, .011, .44, blu, a, 0, b, 8)); [-.17, .17].forEach(a => cyl(s, .011, .011, .38, blu, a, .44, .19, 8));
   s.position.set(x, 0, z); s.rotation.y = ry; g.add(s); }
-// gruppo di quattro tavoli verdi (2,6 x 1,3 m) con sei sedie; asse lungo lungo Z
-function corrTavoli(x, z) { const g = new THREE.Group(), verde = colorMat('#6FA48E', .45), blu = colorMat('#1F4E9E', .4, .4);
-  [[-.325, -.65], [-.325, .65], [.325, -.65], [.325, .65]].forEach(([tx, tz]) => { box(g, .63, .03, 1.28, verde, tx, .7, tz); [[-.28, -.6], [.28, -.6], [-.28, .6], [.28, .6]].forEach(([a, b]) => cyl(g, .016, .016, .7, blu, tx + a, 0, tz + b, 8)); });
-  [-.85, 0, .85].forEach(dz => { corrSedia(g, -.97, dz, -Math.PI / 2); corrSedia(g, .97, dz, Math.PI / 2); }); // rivolte al tavolo
-  g.position.set(x, 0, z); return g; }
 // numeri delle targhette, disegnati una volta
 const _lockNum = {}; function lockNumTex(n) { if (_lockNum[n]) return _lockNum[n]; const c = makeCanvas(64, 32), g = c.getContext('2d'); g.fillStyle = '#F4F2EC'; g.fillRect(0, 0, 64, 32);
   g.fillStyle = '#1A1712'; g.font = '700 22px "JetBrains Mono", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(String(n), 32, 17); return _lockNum[n] = canvasTex(c); }
@@ -12500,7 +12507,7 @@ function lockerRow(cols, apri = -1, numeri = true) { const g = new THREE.Group()
   return g; }
 // parete con fori, zoccolino di gres e listelli di legno (in coordinate di parete: u lungo, v in alto, fronte +z)
 function corrMuro(par, x, z, ry, L, holes, rails = []) { const g = new THREE.Group(), C = CORR; g.position.set(x, 0, z); g.rotation.y = ry; par.add(g);
-  const w = new THREE.Mesh(new THREE.ShapeGeometry(holeShape(L, C.H, holes)), MAT.paints.bianco); w.receiveShadow = true; g.add(w);
+  const w = new THREE.Mesh(new THREE.ShapeGeometry(holeShape(L, C.H, holes)), MAT.paints.bianco); w.receiveShadow = true; g.add(w); g.userData.muro = w;
   const zoc = colorMat('#9A9995', .6), legno = colorMat('#D4A66C', .6);
   segmentsOutside(L, holes, 0, .09).forEach(([a, b]) => g.add(mesh(gBox(b - a, .08, .012), zoc, (a + b) / 2, .04, .006, false)));
   rails.forEach(y => segmentsOutside(L, holes, y - .03, y + .03).forEach(([a, b]) => g.add(mesh(gBox(b - a, .055, .022), legno, (a + b) / 2, y, .011, false))));
@@ -12516,7 +12523,7 @@ function buildCorridor() { const C = CORR, root = new THREE.Group(); root.name =
   const fl = planeMesh(W, L, std('#ffffff', { map: tf, roughness: .32, metalness: .05 })); fl.rotation.x = -Math.PI / 2; fl.position.set(cx, .001, cz); root.add(fl);
   // ---- parete dell'aula, con la nicchia della porta
   const lato = new THREE.Group(); root.add(lato); C.lato = lato;
-  corrMuro(lato, C.XC, cz, -Math.PI / 2, L, [{ u0: C.NZ0 - cz, u1: C.NZ1 - cz, v0: 0, v1: C.NH }], [.97, 2.15]);
+  const hl = [{ u0: C.NZ0 - cz, u1: C.NZ1 - cz, v0: 0, v1: C.NH }]; corrParete('corrAula', 'Corridoio, parete dell\'aula', corrMuro(lato, C.XC, cz, -Math.PI / 2, L, hl, [.97, 2.15]), C.XC, cz, -Math.PI / 2, L, hl);
   lato.add(mesh(gBox(ROOM.x0 + .1 - C.XC, .03, L), MAT.cap, (C.XC + ROOM.x0 + .1) / 2, C.H + .015, cz, false));
   const nw = C.XD - C.XC, nl = C.NZ1 - C.NZ0, nzc = (C.NZ0 + C.NZ1) / 2;
   const nf = planeMesh(nw, nl, std('#ffffff', { map: tf, roughness: .32 })); nf.rotation.x = -Math.PI / 2; nf.position.set((C.XC + C.XD) / 2, .002, nzc); lato.add(nf);
@@ -12534,7 +12541,7 @@ function buildCorridor() { const C = CORR, root = new THREE.Group(); root.name =
   C.latoStub = new THREE.Group(); C.latoStub.visible = false; C.latoStub.add(mesh(gBox(ROOM.x0 - C.XC, .22, L), MAT.cap, (C.XC + ROOM.x0) / 2, .11, cz, false)); root.add(C.latoStub);
   // ---- parete delle finestre, con il tratto ocra e la parete piena fino in fondo
   const fin = new THREE.Group(); root.add(fin); C.fin = fin; const L2 = C.ZW - C.ZA, zw = (C.ZA + C.ZW) / 2;
-  corrMuro(fin, C.XW, zw, Math.PI / 2, L2, C.FIN.map(([a, b]) => ({ u0: zw - b, u1: zw - a, v0: .55, v1: 2.8, win: true })));
+  const hf = C.FIN.map(([a, b]) => ({ u0: zw - b, u1: zw - a, v0: .55, v1: 2.8, win: true })); corrParete('corrFinestre', 'Corridoio, parete delle finestre', corrMuro(fin, C.XW, zw, Math.PI / 2, L2, hf), C.XW, zw, Math.PI / 2, L2, hf);
   corrMuro(fin, C.XW, (C.ZW + C.ZB) / 2, Math.PI / 2, C.ZB - C.ZW, []);
   const oc = planeMesh(C.OCRA[1] - C.OCRA[0], 3.0, colorMat('#B9811A', .85)); oc.position.set(C.XW + .004, .09 + 1.5, (C.OCRA[0] + C.OCRA[1]) / 2); oc.rotation.y = Math.PI / 2; fin.add(oc);
   const ant = colorMat('#55595E', .45, .35), bianco = colorMat('#F1F0EC', .5);
@@ -12564,13 +12571,6 @@ function buildCorridor() { const C = CORR, root = new THREE.Group(); root.name =
   ag.fillStyle = '#4F7A3A'; ag.beginPath(); ag.arc(450, 150, 30, 0, 7); ag.fill();
   const at = new THREE.Mesh(new THREE.PlaneGeometry(W + 3, 3.4), new THREE.MeshBasicMaterial({ map: canvasTex(ac), toneMapped: false })); at.position.set(cx, 1.7, C.ZA - 3.5); at.visible = false; root.add(at); C.atrio = at;
   C.inizioStub = new THREE.Group(); C.inizioStub.visible = false; C.inizioStub.add(mesh(gBox(W, .22, .2), MAT.cap, cx, .11, C.ZA - .1, false)); root.add(C.inizioStub);
-  // ---- arredi del corridoio: tavoli verdi, scrivania con sedia blu, cestini
-  root.add(corrTavoli(C.G1[0], C.G1[1])); C.tavoliB = corrTavoli(C.G2[0], C.G2[1]); root.add(C.tavoliB);
-  const sc = new THREE.Group(); box(sc, .6, .03, 1.2, bianco, 0, .72, 0); [-.58, .58].forEach(z => box(sc, .58, .72, .03, bianco, 0, 0, z)); box(sc, .02, .4, 1.14, bianco, -.27, .3, 0);
-  const blu = colorMat('#1F4FA0', .45); box(sc, .42, .04, .42, blu, .62, .44, 0); const sp = mesh(gBox(.04, .4, .42), blu, .84, .66, 0); sp.rotation.z = -.1; sc.add(sp);
-  [[.45, -.17], [.79, -.17], [.45, .17], [.79, .17]].forEach(([a, b]) => cyl(sc, .012, .012, .44, MAT.darkMetal, a, 0, b, 8));
-  sc.position.set(C.XW + .32, 0, -2.7); root.add(sc);
-  [1.42, 1.82].forEach(z => cyl(root, .19, .17, .65, colorMat('#1C1D20', .7), C.XW + .25, 0, z, 18));
   // ---- controsoffitto con pannelli LED e paesaggio oltre le finestre (solo in Visita)
   const ceil = new THREE.Group(); ceil.visible = false; root.add(ceil); C.ceil = ceil;
   const cp = planeMesh(W + .82, L, std('#ffffff', { map: canvasTex(corrTiles('#F2F2EE', .03, '#CFCFC8', 4), [(W + .82) / 2.4, L / 2.4]), roughness: .9 })); cp.rotation.x = Math.PI / 2; cp.position.set(cx + .41, C.H, cz); ceil.add(cp);
@@ -12585,18 +12585,16 @@ function buildCorridor() { const C = CORR, root = new THREE.Group(); root.name =
     _uw.call(this, forceAll || walk); const C = CORR; if (!C.g) return; const p = camera.position, plan = typeof CAM !== 'undefined' && CAM.mode === 'plan' && !CAM.tween, sez = !forceAll && !walk;
     const vis = (g, st, via) => { g.visible = !via; st.visible = via; };
     vis(C.lato, C.latoStub, sez); // il muro tra corridoio e aula sta in piedi solo in Visita: nella vista 3D e nella presentazione non copre l'aula vis(C.fin, C.finStub, sez && (plan || p.x < C.XW - .05)); vis(C.fondo, C.fondoStub, sez && (plan || p.z > C.ZB + .05)); vis(C.inizio, C.inizioStub, sez && (plan || p.z < C.ZA - .05)); C.atrio.visible = walk;
-    C.ceil.visible = walk && p.x < ROOM.x0; C.fuori.visible = walk; C.lockers.visible = !!S.armadietti; C.tavoliB.position.x = C.G2[0] - (S.armadietti ? .65 : 0); corrTarga(); }; }
-// Visita: aula, varco della porta con la nicchia, corridoio; si gira attorno a tavoli, scrivania e cestini
-function corrOstacoli() { const C = CORR, x2 = C.G2[0] - (S.armadietti ? .65 : 0), t = (x, z) => [x - 1.3, x + 1.3, z - 1.7, z + 1.7];
-  return [t(C.G1[0], C.G1[1]), t(x2, C.G2[1]), [C.XW, C.XW + 1.45, -3.55, -1.85], [C.XW, C.XW + .7, 1.0, 2.25]]; }
+    C.ceil.visible = walk && p.x < ROOM.x0; C.fuori.visible = walk; C.lockers.visible = !!S.armadietti; corrTarga();
+    ROOMG.walls.corrAula.hidden = !C.lato.visible; ROOMG.walls.corrFinestre.hidden = !C.fin.visible; }; }
+// Visita: aula, varco della porta con la nicchia, corridoio (gli arredi non fanno da ostacolo, come in aula; gli armadietti si')
 function walkOk(x, z) { const C = CORR;
   if (x >= ROOM.x0 + .25 && x <= ROOM.x1 - .25 && z >= ROOM.z0 + .25 && z <= ROOM.z1 - .25) return true;
   if (z >= C.dz0 && z <= C.dz1 && x >= C.XC - .3 && x <= ROOM.x0 + .3) return true;
   const lk = S.armadietti && z > C.LK - 2.7 && z < C.LK + 2.7 ? LOCK.d : 0;
-  if (x < C.XW + .3 || x > C.XC - .25 - lk || z < C.ZA + .2 || z > C.ZS) return false;
-  return !corrOstacoli().some(o => x > o[0] && x < o[1] && z > o[2] && z < o[3]); }
+  return x >= C.XW + .3 && x <= C.XC - .25 - lk && z >= C.ZA + .2 && z <= C.ZS; }
 // la carta del magazzino accende e spegne gli armadietti e porta la vista sul corridoio
-function armadiettiToggle() { S.armadietti = !S.armadietti; commit('armadietti'); renderStore();
+function armadiettiToggle() { S.armadietti = !S.armadietti; if (S.armadietti) corrLiberaArmadietti(); commit('armadietti'); renderStore();
   if (!S.armadietti) { toast('Armadietti tolti dal corridoio', 'info'); return; }
   if (CAM.mode !== 'orbit') setView('orbit'); CAM.theta = -1.42; CAM.phi = .95; CAM.r = 6.8; CAM.target.set(-5.4, 1, CORR.LK); tweenCamera(camFromOrbit(), CAM.target.clone(), 1.1);
   toast('26 armadietti in corridoio, uno per studente, accanto alla porta. In Visita esci dalla porta per vederli da vicino', 'ok'); }
@@ -12608,6 +12606,68 @@ Object.assign(SCHEDE, { armadietti: { materiale: 'Lamiera d\'acciaio verniciata 
 { const _ch = cardHTML; cardHTML = function (c) { const h = _ch.apply(this, arguments); return c.id === 'armadietti' && S.armadietti ? h.replace('class="card"', 'class="card on-desk"').replace('<div class="nm">', '<span class="badge sui">IN CORRIDOIO</span><div class="nm">') : h; }; }
 { const _br = buildRecord; buildRecord = function () { const r = _br.apply(this, arguments); r.armadietti = S.armadietti ? LOCK.cols * 2 : 0;
     if (S.armadietti) r.oggetti.push({ tipo: 'armadietti', id: 'armadietti', nome: 'Armadietti in corridoio', categoria: 'arredi', posizione: 'corridoio', parete: '', x: '', z: '', rot: '', scala: '', colore: '', didascalia: '', motivazione: LOCK.cols * 2 + ' armadietti' }); return r; }; }
+
+/* ---------- arredare il corridoio ---------- */
+// zona di un oggetto: a terra decide il centro (oltre meta' muro e' corridoio), a parete la parete
+function zonaDi(it) { const d = defOf(it); if (!d) return 'aula'; if (d.place === 'wall') return WALLS[it.wall] && WALLS[it.wall].corr ? 'corridoio' : 'aula';
+  return it.x < (ROOM.x0 + CORR.XC) / 2 ? 'corridoio' : 'aula'; }
+function zonaLimiti(it) { return zonaDi(it) === 'corridoio' ? { x0: CORR.XW, x1: CORR.XC, z0: CORR.ZA, z1: CORR.ZS } : { x0: ROOM.x0, x1: ROOM.x1, z0: ROOM.z0, z1: ROOM.z1 }; }
+// le due pareti lunghe del corridoio accolgono poster e gigantografie come quelle dell'aula (fuori da WALL_IDS: niente tinta ne' sfondi)
+function corrParete(id, nome, g, x, z, ry, L, holes) { const w = g.userData.muro; w.userData.wall = id; ROOMG.wallPick.push(w);
+  WALLS[id] = { name: nome, len: L, ry, pos: [x, 0, z], holes, paint: 'bianco', corr: true };
+  const items = new THREE.Group(); g.add(items); ROOMG.wallItems[id] = items; ROOMG.walls[id] = { group: g, full: g, def: WALLS[id], top: null, stub: new THREE.Group(), hidden: false }; }
+// "Aula vuota" svuota l'aula, non il corridoio
+function svuotaAula() { S.items.filter(i => zonaDi(i) === 'aula').map(i => i.uid).forEach(removeItem); }
+// analisi, spazi INDIRE e verifica dell'aula guardano solo l'aula; la verifica aggiunge la via di fuga del corridoio
+function soloAula(fn, ctx, args) { const all = S.items; S.items = all.filter(i => zonaDi(i) === 'aula'); try { return fn.apply(ctx, args); } finally { S.items = all; } }
+{ const _a = analyzeScene; analyzeScene = function () { return soloAula(_a, this, arguments); }; }
+{ const _s = spaziIndire; spaziIndire = function () { return soloAula(_s, this, arguments); }; }
+{ const _r = runSafety; runSafety = function () { const L = soloAula(_r, this, arguments), c = corrVerifica(); L.checks = L.checks.filter(x => x.id !== 'corridoio').concat(c);
+    const norme = L.checks.filter(x => x.tipo === 'norma'); L.approved = norme.every(x => x.ok || x.tol); L.riserva = L.approved && norme.some(x => x.tol); L.corridoio = c; return L; }; }
+// via di fuga: griglia da 5 cm del corridoio; per ogni fila il tratto libero piu' largo, il minimo lungo tutto il corridoio; davanti alla nicchia 1,20 m liberi
+function corrVerifica() { const C = CORR, cell = .05, nx = Math.round((C.XC - C.XW) / cell), nz = Math.round((C.ZS - C.ZA) / cell), occ = new Uint8Array(nx * nz);
+  const segna = (x0, x1, z0, z1, test) => { for (let j = Math.max(0, Math.floor((z0 - C.ZA) / cell)); j < Math.min(nz, Math.ceil((z1 - C.ZA) / cell)); j++) for (let i = Math.max(0, Math.floor((x0 - C.XW) / cell)); i < Math.min(nx, Math.ceil((x1 - C.XW) / cell)); i++) if (!test || test(C.XW + (i + .5) * cell, C.ZA + (j + .5) * cell)) occ[j * nx + i] = 1; };
+  S.items.forEach(it => { const d = defOf(it); if (!d || d.place !== 'floor' || d.platform || zonaDi(it) !== 'corridoio' || NOT_OBSTACLE.includes(it.type)) return; const h = halfExt(it);
+    segna(it.x - h.hx - .1, it.x + h.hx + .1, it.z - h.hz - .1, it.z + h.hz + .1, (x, z) => insideFootprint(it, x, z)); });
+  if (S.armadietti) segna(C.XC - LOCK.d - .02, C.XC, C.LK - LOCK.cols * LOCK.w / 2, C.LK + LOCK.cols * LOCK.w / 2);
+  let min = 99; for (let j = 0; j < nz; j++) { let run = 0, best = 0; for (let i = 0; i < nx; i++) { run = occ[j * nx + i] ? 0 : run + 1; if (run > best) best = run; } min = Math.min(min, best * cell); }
+  let porta = 0; for (let j = Math.floor((C.NZ0 - C.ZA) / cell); j < Math.ceil((C.NZ1 - C.ZA) / cell); j++) for (let i = Math.floor((C.XC - 1.2 - C.XW) / cell); i < nx; i++) porta |= occ[j * nx + i];
+  const cm = Math.round(min * 100), ok = min >= 1.2 && !porta;
+  return { id: 'corridoio', tipo: 'norma', t: 'Corridoio: via di fuga da 120 cm', ok, cm, porta: !!porta,
+    det: ok ? `Nel corridoio restano almeno ${cm} cm liberi per tutta la lunghezza e davanti alla porta dell'aula c'e' spazio.`
+      : [porta ? 'Davanti alla porta dell\'aula servono 120 cm liberi: sposta gli arredi davanti alla nicchia.' : '', min < 1.2 ? `Nel punto piu' stretto del corridoio restano ${cm} cm: per scappare ne servono almeno 120.` : ''].filter(Boolean).join(' ') }; }
+// accendendo gli armadietti, gli arredi che li coprirebbero scivolano verso il centro del corridoio (tutti dello stesso tratto)
+function corrLiberaArmadietti() { const C = CORR, lim = C.XC - LOCK.d - .03, za = C.LK - LOCK.cols * LOCK.w / 2 - .3, zb = C.LK + LOCK.cols * LOCK.w / 2 + .3;
+  const dentro = S.items.filter(i => { const d = defOf(i); return d && d.place === 'floor' && zonaDi(i) === 'corridoio' && i.z > za && i.z < zb; }); let dx = 0;
+  dentro.forEach(i => { const h = halfExt(i); dx = Math.max(dx, i.x + h.hx - lim); });
+  if (dx > 0) { dentro.forEach(i => { const e = OBJ.get(i.uid); i.x -= dx; clampItem(i); if (e) applyTransform(e); }); S.items.filter(i => defOf(i) && defOf(i).place === 'surface' && zonaDi(i) === 'corridoio' && i.z > za && i.z < zb).forEach(i => { i.x -= dx; const e = OBJ.get(i.uid); if (e) applyTransform(e); }); } }
+// arredi del corridoio vero, come oggetti del magazzino
+function bTavoloVerde() { const g = new THREE.Group(), blu = colorMat('#1F4E9E', .4, .4); box(g, 1.28, .03, .63, colorMat('#6FA48E', .45), 0, .7, 0); [[-.6, -.28], [.6, -.28], [-.6, .28], [.6, .28]].forEach(([a, b]) => cyl(g, .016, .016, .7, blu, a, 0, b, 8)); return g; }
+function bScrivaniaBianca() { const g = new THREE.Group(), b = colorMat('#F1F0EC', .5); box(g, 1.2, .03, .6, b, 0, .72, 0); [-.58, .58].forEach(x => box(g, .03, .72, .58, b, x, 0, 0)); box(g, 1.14, .4, .02, b, 0, .3, -.27); return g; }
+function bSediaBlu() { const g = new THREE.Group(), blu = colorMat('#1F4FA0', .45); box(g, .42, .04, .42, blu, 0, .44, 0); const sp = mesh(gBox(.42, .4, .04), blu, 0, .66, .21); sp.rotation.x = -.1; g.add(sp);
+  [[-.17, -.17], [.17, -.17], [-.17, .17], [.17, .17]].forEach(([a, b]) => cyl(g, .012, .012, .44, MAT.darkMetal, a, 0, b, 8)); return g; }
+const ARREDI_CORR = [
+  { id: 'tavolo-verde', name: 'Tavolo verde', kind: 'desk', surface: .73, build: bTavoloVerde, desc: 'Il tavolo da lavoro del corridoio: piano verde, gambe blu. Si uniscono a gruppi.' },
+  { id: 'sedia-faggio', name: 'Sedia di faggio', kind: 'chair', seat: 1.12, build: () => { const g = new THREE.Group(); corrSedia(g, 0, 0, 0); return g; }, desc: 'Sedia con seduta e schienale in faggio e telaio blu, come quelle del corridoio.' },
+  { id: 'scrivania-bianca', name: 'Scrivania bianca', kind: 'desk', surface: .75, build: bScrivaniaBianca, desc: 'Scrivania con pannelli laterali, per studiare da soli.' },
+  { id: 'sedia-blu', name: 'Sedia blu', kind: 'chair', seat: 1.12, build: bSediaBlu, desc: 'Sedia in plastica blu, come quella della scrivania del corridoio.' },
+  { id: 'cestino', name: 'Cestino', build: g => { const gr = new THREE.Group(); cyl(gr, .19, .17, .65, colorMat('#1C1D20', .7), 0, 0, 0, 18); return gr; }, desc: 'Cestino nero per i rifiuti, come quelli tra le finestre.' }];
+ARREDI_CORR.forEach(a => { CAT[a.id] = Object.assign({ cat: 'arredi', sub: 'Corridoio', place: 'floor', faces: 'user' }, a); CATALOG.push(CAT[a.id]); });
+DESK_TYPES.push('tavolo-verde', 'scrivania-bianca'); SEAT_TYPES.push('sedia-faggio', 'sedia-blu');
+SEAT_STARS['sedia-faggio'] = SEAT_STARS['sedia'].slice(); SEAT_STARS['sedia-blu'] = SEAT_STARS['sedia'].slice(); CAT['sedia-faggio'].stars = SEAT_STARS['sedia-faggio']; CAT['sedia-blu'].stars = SEAT_STARS['sedia-blu'];
+Object.assign(PREVIEW_SIZE, { 'tavolo-verde': [1.3, .65], 'scrivania-bianca': [1.2, .6], 'sedia-faggio': [.4, .38], 'sedia-blu': [.42, .42], cestino: [.38, .38] });
+// il corridoio com'e' oggi (dalle foto): due gruppi di quattro tavoli verdi con sei sedie, scrivania con sedia blu davanti al tratto senape, due cestini
+function arrediCorridoio() { const C = CORR, o = [];
+  [C.G1, C.G2].forEach(([gx, gz]) => { [[-.325, -.65], [-.325, .65], [.325, -.65], [.325, .65]].forEach(([tx, tz]) => o.push({ type: 'tavolo-verde', x: gx + tx, z: gz + tz, ry: Math.PI / 2, y: 0 }));
+    [-.85, 0, .85].forEach(dz => { o.push({ type: 'sedia-faggio', x: gx - .97, z: gz + dz, ry: -Math.PI / 2, y: 0 }); o.push({ type: 'sedia-faggio', x: gx + .97, z: gz + dz, ry: Math.PI / 2, y: 0 }); }); });
+  o.push({ type: 'scrivania-bianca', x: C.XW + .32, z: -2.7, ry: Math.PI / 2, y: 0 }, { type: 'sedia-blu', x: C.XW + .94, z: -2.7, ry: Math.PI / 2, y: 0 });
+  [1.42, 1.82].forEach(z => o.push({ type: 'cestino', x: C.XW + .25, z, ry: 0, y: 0 }));
+  return o; }
+{ const _s = sceneAsToday; sceneAsToday = function () { const st = _s.apply(this, arguments); st.items = st.items.concat(arrediCorridoio()); return st; }; }
+// dati: ogni oggetto con la sua zona; quanti oggetti nel corridoio e il passaggio piu' stretto
+{ const _br = buildRecord; buildRecord = function () { const r = _br.apply(this, arguments), n = S.items.length;
+    r.oggetti.forEach((o, i) => { o.zona = i < n ? zonaDi(S.items[i]) : (o.tipo === 'armadietti' ? 'corridoio' : 'aula'); });
+    r.corridoioOggetti = r.oggetti.filter(o => o.zona === 'corridoio').length; const L = SAFE.last && SAFE.last.corridoio; r.corridoioPassaggio = L ? L.cm : ''; return r; }; }
 
 /* =====================================================================
    Avvio, ciclo di rendering, camminata
