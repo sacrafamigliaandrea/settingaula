@@ -6914,6 +6914,16 @@ window.GIGANTI = [
       { id: 'in-piedi', n: 'In piedi' },
       { id: 'seduto', n: 'Seduto' },
       { id: 'saluta', n: 'Saluta' }
+    ],
+    // cosa sta facendo: vale in piedi e seduto (braccia, testa e un oggetto); con le stampelle in piedi solo il visore
+    attivita: [
+      { id: 'nessuna', n: 'Niente di speciale' },
+      { id: 'legge', n: 'Legge un libro' },
+      { id: 'scrive', n: 'Scrive sul quaderno' },
+      { id: 'tablet', n: 'Usa il tablet' },
+      { id: 'visore', n: 'Indossa il visore' },
+      { id: 'spiega', n: 'Spiega' },
+      { id: 'mano', n: 'Alza la mano' }
     ]
   };
 
@@ -6924,7 +6934,7 @@ window.GIGANTI = [
     pelle: 'avorio', capelli: 'corti', coloreCapelli: 'castano',
     maglia: 'felpa', coloreMaglia: 'senape',
     pantaloni: 'jeans', colorePantaloni: 'denim', coloreScarpe: 'bianco',
-    accessori: [], ausilio: 'nessuno', posa: 'in-piedi', casa: ''
+    accessori: [], ausilio: 'nessuno', posa: 'in-piedi', attivita: 'nessuna', casa: ''
   };
 
   /* ---------------- utilita' colore ---------------- */
@@ -7667,7 +7677,7 @@ window.GIGANTI = [
       maglia: ok(OPTIONS.maglia, cfg.maglia, DEFAULT.maglia), coloreMaglia: ok(OPTIONS.colori, cfg.coloreMaglia, DEFAULT.coloreMaglia),
       pantaloni: ok(OPTIONS.pantaloni, cfg.pantaloni, DEFAULT.pantaloni), colorePantaloni: ok(OPTIONS.colori, cfg.colorePantaloni, DEFAULT.colorePantaloni),
       coloreScarpe: ok(OPTIONS.colori, cfg.coloreScarpe, DEFAULT.coloreScarpe),
-      accessori: accs, ausilio: ok(OPTIONS.ausilio, cfg.ausilio, DEFAULT.ausilio), posa: ok(OPTIONS.posa, cfg.posa, DEFAULT.posa),
+      accessori: accs, ausilio: ok(OPTIONS.ausilio, cfg.ausilio, DEFAULT.ausilio), posa: ok(OPTIONS.posa, cfg.posa, DEFAULT.posa), attivita: ok(OPTIONS.attivita, cfg.attivita, DEFAULT.attivita),
       casa: OPTIONS.casa.some(o => o.id === cfg.casa) ? cfg.casa : ''
     };
   }
@@ -7679,6 +7689,14 @@ window.GIGANTI = [
     if (kind === 'wave') return { sh: [0, -PI / 2, -2.2], el: [-0.78, 0, 0], wr: [-0.22, 0, 0] };
     if (kind === 'lap') return { sh: [-0.34, -s * 0.5, s * 0.05], el: [-0.98, 0, 0], wr: [-0.3, 0, 0] };
     if (kind === 'crutch') return { sh: [-0.16, 0, s * 0.14], el: [-0.62, 0, 0], wr: [0.78, 0, 0] };
+    // attivita': s = -1 braccio destro, s = 1 sinistro
+    if (kind === 'regge') return { sh: [-0.42, -s * 0.34, s * 0.02], el: [-1.5, 0, 0], wr: [-0.12, 0, 0] };          // libro o tablet davanti al petto
+    if (kind === 'tiene') return { sh: [-0.62, -s * 0.5, s * 0.02], el: [-1.12, 0, 0], wr: [-0.1, 0, 0] };            // regge il quaderno
+    if (kind === 'penna') return { sh: [-0.6, -s * 0.22, s * 0.05], el: [-1.12, 0, 0], wr: [-0.5, 0, 0] };            // scrive
+    if (kind === 'controller') return { sh: [-0.85, -s * 0.18, s * 0.12], el: [-0.78, 0, 0], wr: [0.05, 0, 0] };
+    if (kind === 'gesto') return { sh: [-0.5, s * 0.9, s * 0.95], el: [-1.25, 0, 0], wr: [0.25, 0, 0] };               // braccio aperto, palmo verso la classe
+    if (kind === 'gesto2') return { sh: [-0.3, -s * 0.45, s * 0.16], el: [-1.2, 0, 0], wr: [-0.1, 0, 0] };
+    if (kind === 'su') return { sh: [0, -PI / 2, s * 2.88], el: [-0.22, 0, 0], wr: [0, 0, 0] };                      // alza la mano
     return { sh: [-0.02, 0, s * 0.085], el: [-0.2, 0, 0], wr: [0.05, 0, 0] };
   }
 
@@ -7690,7 +7708,9 @@ window.GIGANTI = [
     const shirtC = CASA ? CASA.c : pick(OPTIONS.colori, cfg.coloreMaglia).c, pantsC = pick(OPTIONS.colori, cfg.colorePantaloni).c, shoeC = pick(OPTIONS.colori, cfg.coloreScarpe).c;
     const style = cfg.capelli, shirt = CASA ? 'felpa' : cfg.maglia, pants = cfg.pantaloni, P = PANTS[pants];
     const wheel = cfg.ausilio === 'sedia-a-rotelle', crutch = cfg.ausilio === 'stampelle';
-    const seated = wheel || cfg.posa === 'seduto', wave = cfg.posa === 'saluta' && !crutch;
+    const seated = wheel || cfg.posa === 'seduto';
+    const att = crutch && !seated ? (cfg.attivita === 'visore' ? 'visore' : 'nessuna') : cfg.attivita, wave = cfg.posa === 'saluta' && !crutch && att === 'nessuna';
+    const ATT_ARMS = { legge: ['regge', 'regge'], tablet: ['regge', 'regge'], scrive: ['penna', 'tiene'], visore: ['controller', 'controller'], spiega: ['gesto', 'gesto2'], mano: ['su', null] };
     const avoid = [shirtC, pantsC];
 
     /* materiali */
@@ -7717,6 +7737,10 @@ window.GIGANTI = [
     /* testa */
     const head = G(hips, HEAD_C);
     if (wave) head.rotation.set(0.02, -0.06, 0.07);
+    else if (att === 'legge' || att === 'tablet') head.rotation.set(0.34, 0, 0);
+    else if (att === 'scrive') head.rotation.set(0.46, 0.06, 0);
+    else if (att === 'spiega') head.rotation.set(-0.02, -0.18, 0.04);
+    else if (att === 'mano') head.rotation.set(-0.06, 0, -0.05);
     M(headGeo(), mSkin, head);
     M(eyesGeo(), mEye, head); const gl = M(glintGeo(), mGlint, head); gl.castShadow = false;
     M(browsGeo(style === 'velo' ? 0.002 : 0), mBrow, head); M(mouthGeo(), mMouth, head).castShadow = false; M(cheeksGeo(), mCheek, head).castShadow = false;
@@ -7740,7 +7764,8 @@ window.GIGANTI = [
     /* braccia */
     const longS = !!LONG[shirt], arms = {};
     [-1, 1].forEach(s => {
-      const kind = crutch ? (seated ? 'lap' : 'crutch') : (wave && s === -1) ? 'wave' : seated ? 'lap' : 'stand';
+      const ak = !(crutch && !seated) && ATT_ARMS[att] && ATT_ARMS[att][s < 0 ? 0 : 1];
+      const kind = ak || (crutch ? (seated ? 'lap' : 'crutch') : (wave && s === -1) ? 'wave' : seated ? 'lap' : 'stand');
       const pa = poseArms(kind, s);
       const sh = G(hips, [s * SHO_X, SHO_Y, 0]); sh.rotation.set(pa.sh[0], pa.sh[1], pa.sh[2], 'ZXY');
       M(sleeveUpperGeo(shirt), mShirt, sh);
@@ -7753,6 +7778,22 @@ window.GIGANTI = [
       if (has('smartwatch') && s === 1) { const w = watchGeo(longS ? 0.047 : 0.034); M(w.body, dark, el, [0, -FORE + (longS ? 0.05 : 0.036), 0]); const sc = M(w.screen, mat('#0E2A33', 0.2, 0, { emissive: '#3FC6C9', emissiveIntensity: 0.55 }), el, [0, -FORE + (longS ? 0.05 : 0.036), 0]); sc.castShadow = false; }
       arms[s] = { sh, el, wr };
     });
+
+    /* attivita': l'oggetto tra le mani (o sulla testa), messo dove le mani arrivano davvero */
+    if (att !== 'nessuna') {
+      root.updateMatrixWorld(true);
+      const hand = s => arms[s].wr.localToWorld(new THREE.Vector3(0, -0.075, 0.012)), mid = hand(-1).add(hand(1)).multiplyScalar(0.5).toArray();
+      const B = (w, h, d) => new THREE.BoxGeometry(w, h, d), mPage = mat('#FBF8F1', 0.8), mDark = mat('#26282D', 0.4, 0.2), mWhite = mat('#F2F1EC', 0.45);
+      if (att === 'legge') { const b = G(root, mid, [0.64, 0, 0]), mc = mat(accent(1, avoid), 0.7); // libro aperto a V verso chi legge
+        [-1, 1].forEach(k => { const h = G(b, [0, 0, 0], [0, k * 0.3, 0]); M(B(0.15, 0.21, 0.008), mPage, h, [k * 0.075, 0, 0]); M(B(0.154, 0.214, 0.004), mc, h, [k * 0.075, 0, 0.006]); }); }
+      if (att === 'tablet') { const t = G(root, mid, [0.7, 0, 0]); M(B(0.25, 0.175, 0.009), mDark, t);
+        M(new THREE.PlaneGeometry(0.23, 0.155), mat('#1C3A57', 0.3, 0, { emissive: '#3E8FD0', emissiveIntensity: 0.6 }), t, [0, 0, -0.0052], [0, PI, 0]).castShadow = false; }
+      if (att === 'scrive') { const q = G(root, [mid[0] + 0.04, mid[1] - 0.03, mid[2]], [-0.3, 0, 0]); M(B(0.21, 0.006, 0.15), mPage, q); M(B(0.212, 0.003, 0.152), mat(accent(2, avoid), 0.7), q, [0, -0.004, 0]);
+        M(new THREE.CylinderGeometry(0.005, 0.005, 0.14, 8), mat('#2B59C3', 0.4), arms[-1].wr, [0, -0.075, 0.03], [0.9, 0, 0]); }
+      if (att === 'visore') { const v = G(head, [0, -0.005, 0.125]); M(B(0.2, 0.1, 0.09), mDark, v); M(B(0.19, 0.088, 0.012), mWhite, v, [0, 0, 0.048]);
+        M(new THREE.TorusGeometry(0.122, 0.009, 6, 28), mDark, head, [0, 0, 0.01], [PI / 2, 0, 0]);
+        if (!(crutch && !seated)) [-1, 1].forEach(s => { M(new THREE.CylinderGeometry(0.018, 0.022, 0.1, 10), mDark, arms[s].wr, [0, -0.075, 0.02], [0.5, 0, 0]); M(new THREE.TorusGeometry(0.034, 0.006, 6, 18), mWhite, arms[s].wr, [0, -0.035, 0.045], [1.2, 0, 0]); }); }
+    }
 
     /* gambe */
     const bare = !!(P.short || P.skirt), sock = bare;
@@ -9954,7 +9995,7 @@ function restore(st, keepSel) {
   WALL_IDS.forEach(id => { const w = (st.walls || {})[id] || {}; setWallPaint(id, w.paint || WALLS[id].paint); setWallMural(id, w.mural || null); if (typeof setWallProjection === 'function') setWallProjection(id, w.proj || null); });
   if (typeof setBlinds === 'function') setBlinds(!!st.blinds);
   if (st.light) { S.light = st.light; setLightMode(S.light); } if (st.nStudents) S.nStudents = st.nStudents;
-  HIST.lock = false; if (!keepSel) SEL.clear(); refreshUI(); if (typeof refreshNameLabels === 'function') refreshNameLabels();
+  HIST.lock = false; if (!keepSel) SEL.clear(); refreshUI();
 }
 function commit(label) {
   if (HIST.lock) return; const snap = JSON.stringify(serialize());
@@ -9992,9 +10033,9 @@ function setView(mode) {
   updateHint();
 }
 function fitPlanRadius() { const st = $('#stage'), ar = st.clientWidth / Math.max(1, st.clientHeight); const vf = THREE.MathUtils.degToRad(30); const needH = (ROOM.D + 1.2) / 2 / Math.tan(vf / 2), needW = (ROOM.W + 2.6) / 2 / (Math.tan(vf / 2) * ar); return Math.max(needH, needW) + .3; }
-function sitOn(it) {
-  const def = defOf(it); const fwd = { x: -Math.sin(it.ry || 0), z: -Math.cos(it.ry || 0) };
-  CAM.seated = it.uid; CAM.pos.set(it.x + fwd.x * .05, (it.y || 0) + (def.seat || 1.12), it.z + fwd.z * .05); CAM.yaw = it.ry || 0; CAM.pitch = -.05;
+function sitOn(it, pt) { // pt: punto cliccato (sui gradoni sceglie il cuscino, e23_gradoni.js)
+  const fwd = { x: -Math.sin(it.ry || 0), z: -Math.cos(it.ry || 0) }, P = sedutaPunto(it, pt);
+  CAM.seated = it.uid; CAM.pos.set(P.x + fwd.x * .05, P.y + .65, P.z + fwd.z * .05); CAM.yaw = it.ry || 0; CAM.pitch = -.05;
   const look = CAM.pos.clone().add(new THREE.Vector3(fwd.x, -.05, fwd.z));
   tweenCamera(CAM.pos.clone(), look, .7); toast('Sei seduto: questo e\' il punto di vista di uno studente. Premi W per alzarti.', 'info');
 }
@@ -10078,7 +10119,7 @@ function onUp(ev) {
   if (PTR.mode === 'drag') { if (PTR.drag.changed) { S.meta.actions.move++; commit('sposta'); } refreshSelection(); return; }
   if (!PTR.moved && ev.target === renderer.domElement) {
     setNDC(ev);
-    if (CAM.mode === 'walk') { const h = pickItem(); if (h) { const e = OBJ.get(h.uid); if (e.item.type === 'floor-piano' && typeof playPianoAt === 'function' && playPianoAt(e.item, h.point)) return; if (SEAT_TYPES.includes(e.item.type)) sitOn(e.item); else showInfo(e.item); } else hideInfo(); return; }
+    if (CAM.mode === 'walk') { const h = pickItem(); if (h) { const e = OBJ.get(h.uid); if (e.item.type === 'floor-piano' && typeof playPianoAt === 'function' && playPianoAt(e.item, h.point)) return; if (SEAT_TYPES.includes(e.item.type)) sitOn(e.item, h.point); else showInfo(e.item); } else hideInfo(); return; }
     if (PTR.mode === 'orbit' || PTR.mode === 'pan') { if (PTR.wallClick) selectWall(PTR.wallClick); else clearSelection(); }
   }
   PTR.mode = null;
@@ -10470,7 +10511,7 @@ function renderLayoutStore(tools, body) {
   const L = S.lesson, recs = PRESETS[L.disc] || [];
   tools.innerHTML = `<div style="width:100%"><div class="field" style="margin:0"><label>Numero di studenti</label><div class="range"><input type="range" id="nStud" min="8" max="26" value="${S.nStudents}"><b id="nStudV">${S.nStudents}</b></div></div></div>`;
   $('#nStud').oninput = e => { S.nStudents = +e.target.value; $('#nStudV').textContent = S.nStudents; drawLayoutPreviews(); };
-  body.innerHTML = `${acerioHeroHTML()}${postiHTML()}<h3>Consigliati per ${esc(DISC[L.disc].n)}</h3>${recs.map((p, i) => `<button class="layoutcard" data-preset="${i}"><canvas data-lp="${p.layout}" width="192" height="148"></canvas><div><b>${esc(p.name)}${(LAYOUTS[p.layout] || {}).sfida ? '<em style="font-style:normal;display:inline-block;margin-left:6px;background:var(--hi-soft);color:var(--ink);font-family:var(--mono);font-size:9.5px;padding:1px 6px;border-radius:4px" title="Con la tolleranza passa al limite: la sfida e\' renderla sicura per intero">SFIDA: AL LIMITE</em>' : ''}</b><span>${esc(p.why)}</span></div></button>`).join('')}
+  body.innerHTML = `${acerioHeroHTML()}<h3>Consigliati per ${esc(DISC[L.disc].n)}</h3>${recs.map((p, i) => `<button class="layoutcard" data-preset="${i}"><canvas data-lp="${p.layout}" width="192" height="148"></canvas><div><b>${esc(p.name)}${(LAYOUTS[p.layout] || {}).sfida ? '<em style="font-style:normal;display:inline-block;margin-left:6px;background:var(--hi-soft);color:var(--ink);font-family:var(--mono);font-size:9.5px;padding:1px 6px;border-radius:4px" title="Con la tolleranza passa al limite: la sfida e\' renderla sicura per intero">SFIDA: AL LIMITE</em>' : ''}</b><span>${esc(p.why)}</span></div></button>`).join('')}
     ${metodiHTML()}${verificheHTML()}
     <h3>Tutte le disposizioni</h3>${Object.entries(LAYOUTS).map(([k, l]) => `<button class="layoutcard" data-layout="${k}"><canvas data-lp="${k}" width="192" height="148"></canvas><div><b>${esc(l.name)}${(LAYOUTS[k] || {}).sfida ? '<em style="font-style:normal;display:inline-block;margin-left:6px;background:var(--hi-soft);color:var(--ink);font-family:var(--mono);font-size:9.5px;padding:1px 6px;border-radius:4px" title="Con la tolleranza passa al limite: la sfida e\' renderla sicura per intero">SFIDA: AL LIMITE</em>' : ''}</b><span>${esc(l.desc)}</span></div></button>`).join('')}
     <h3>Riparti da</h3><div class="row"><button class="btn small" id="resetToday">Aula com'e' oggi</button><button class="btn small" id="resetEmpty">Aula vuota</button></div>
@@ -10478,7 +10519,7 @@ function renderLayoutStore(tools, body) {
   drawLayoutPreviews();
   $$('[data-layout]', body).forEach(b => b.onclick = () => applyLayout(b.dataset.layout));
   $$('[data-preset]', body).forEach(b => b.onclick = () => { const p = recs[+b.dataset.preset]; applyLayout(p.layout, p.ex || {}, { preset: p.name }); });
-  bindMetodi(body); bindAcerio(body); bindPosti(body);
+  bindMetodi(body); bindAcerio(body);
   $('#resetToday').onclick = () => { loadSceneData(sceneAsToday()); commit('reset'); toast('Aula riportata com\'e\' oggi', 'ok'); };
   $('#resetEmpty').onclick = () => { svuotaAula(); WALL_IDS.forEach(id => setWallMural(id, null)); commit('reset'); refreshUI(); toast('Aula svuotata: tutto e\' in magazzino', 'ok'); };
 }
@@ -10577,7 +10618,6 @@ function renderInspector() {
     ${def.place === 'wall' ? `<div class="field"><label>Dimensione</label><div class="range"><input type="range" id="scl" min="40" max="220" value="${Math.round((it.s || 1) * 100)}"><b>${Math.round((it.s || 1) * 100)}%</b></div></div>` : ''}
     ${(it.type === 'giant' || it.type === 'custom') ? `${missing ? `<div class="warnline">${ICON.alert}<span>Manca la motivazione: spiega perche\' hai scelto questa immagine.</span></div>` : ''}
       <div class="field"><label>Didascalia (stampata sotto l'immagine)</label><input id="capIn" maxlength="90" placeholder="Es. Il poeta che ci accompagna nell'aldila'" value="${esc(it.cap || '')}"></div>` : ''}
-    ${seatNameHTML(it)}
     <div class="field"><label>${isImg ? 'Perche\' l\'hai scelta per questa lezione?' : 'Perche\' lo hai scelto? (facoltativo)'}</label><textarea id="whyIn" placeholder="${isImg ? 'Collega l\'immagine all\'argomento e a cio\' che vuoi far capire ai compagni.' : 'A cosa serve nella tua lezione?'}">${esc(it.why || '')}</textarea></div>
     ${extra}<button class="btn small" id="delOne">${ICON.del}Riporta in magazzino</button></div>`;
   box.classList.add('show');
@@ -10587,7 +10627,7 @@ function renderInspector() {
   const bn = $('#bnText'); if (bn) { bn.oninput = () => { it.text = bn.value; e.group.userData.redraw && e.group.userData.redraw(); }; bn.onchange = () => commit('testo'); }
   const cap = $('#capIn'); if (cap) { cap.oninput = () => { it.cap = cap.value; e.group.userData.redraw && e.group.userData.redraw(it.cap); }; cap.onchange = () => commit('didascalia'); }
   const wi = $('#whyIn'); wi.oninput = () => { it.why = wi.value; }; wi.onchange = () => { commit('motivazione'); renderInspector(); };
-  $('#delOne').onclick = deleteSel; bindSeatName(it); if (it.type === 'floor-piano') bindPianoInspector(it);
+  $('#delOne').onclick = deleteSel; if (it.type === 'floor-piano') bindPianoInspector(it);
 }
 
 /* ---------- informazioni in modalita' visita ---------- */
@@ -10743,7 +10783,7 @@ function buildRecord() {
     partenza: S.meta.start, durataSec: Math.round((now - S.meta.startedAt) / 1000), azioni: S.meta.actions, disposizioniUsate: S.meta.layouts.map(l => l.id + (l.preset ? '(' + l.preset + ')' : '')).join(' > '), ultimaDisposizioneApplicata: S.meta.lastLayout || '',
     viste: S.meta.views, analisi: a, pareti: WALL_IDS.reduce((o, id) => (o[id] = { colore: WALLS[id].paint, sfondo: WALLS[id].mural || '' }, o), {}), luci: S.light,
     motivazioneDisposizione: S.meta.whyLayout, motivazioneScelte: S.meta.whyWhat, cambierei: S.meta.change, likert: S.meta.likert,
-    studenteTipo: { nome: S.avatar.nome, superpotere: S.avatar.superpotere, casata: (S.avatar.cfg || {}).casa || '', aspetto: (c => ({ genere: c.genere || '', capelli: c.capelli || '', coloreCapelli: c.coloreCapelli || '', casata: c.casa || '' }))(S.avatar.cfg || {}), skills: S.avatar.skills, interessi: S.avatar.interessi || [], discPreferite: S.avatar.discPreferite || [], discDifficili: S.avatar.discDifficili || [], partecipazione: S.avatar.partecipazione || {}, ruolo: S.avatar.ruolo || '', stile: S.avatar.stile, bisogni: S.avatar.bisogni, seduta: S.avatar.seduta, nellAula: !!avatarItem() },
+    studenteTipo: { nome: S.avatar.nome, superpotere: S.avatar.superpotere, casata: (S.avatar.cfg || {}).casa || '', aspetto: (c => ({ genere: c.genere || '', capelli: c.capelli || '', coloreCapelli: c.coloreCapelli || '', casata: c.casa || '', attivita: c.attivita || 'nessuna' }))(S.avatar.cfg || {}), skills: S.avatar.skills, interessi: S.avatar.interessi || [], discPreferite: S.avatar.discPreferite || [], discDifficili: S.avatar.discDifficili || [], partecipazione: S.avatar.partecipazione || {}, ruolo: S.avatar.ruolo || '', stile: S.avatar.stile, bisogni: S.avatar.bisogni, seduta: S.avatar.seduta, nellAula: !!avatarItem() },
     oggetti: objects, scena: stripNames(serialize()) };
 }
 function getOutbox() { try { return JSON.parse(localStorage.getItem('settingaula.outbox') || '[]'); } catch (e) { return []; } }
@@ -10888,6 +10928,8 @@ function renderStudentStore(tools, body) {
       <div class="field" style="margin:10px 0 0"><label>Colore dei capelli</label><div class="chips">${AVATAR.OPTIONS.coloreCapelli.map(c => `<button class="chip ${cfg.coloreCapelli === c.id ? 'on' : ''}" data-hc="${c.id}"><i style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;background:${c.c}"></i>${esc(c.n)}</button>`).join('')}</div></div></div>
     <div class="avsec"><b>La sua casata</b><div class="chips">${AVATAR.OPTIONS.casa.map(c => `<button class="chip ${cfg.casa === c.id ? 'on' : ''}" data-casa="${c.id}"><i style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;background:${c.c}"></i>${esc(c.n)}</button>`).join('')}</div>
       <p class="tiny muted" style="margin:8px 0 0">Indossa la felpa della sua casata, con lo stemma sul petto. Clicca di nuovo per toglierla.</p></div>
+    <div class="avsec"><b>Cosa sta facendo</b><div class="chips">${AVATAR.OPTIONS.attivita.map(a => `<button class="chip ${(cfg.attivita || 'nessuna') === a.id ? 'on' : ''}" data-att="${a.id}">${esc(a.n)}</button>`).join('')}</div>
+      <p class="tiny muted" style="margin:8px 0 0">Vale in piedi e seduto: mettilo nell'aula o fallo sedere, anche sui gradoni.</p></div>
     <div class="avsec"><b>Le sue skills</b><canvas class="radar" id="avRadar" width="460" height="400"></canvas>
       ${SKILLS.map(([k, n]) => `<div class="skill"><span>${n}</span><input type="range" min="1" max="5" value="${A.skills[k]}" data-sk="${k}"><output>${A.skills[k]}</output></div>`).join('')}</div>
     <div class="avsec"><b>I suoi interessi</b><div class="chips">${INTERESSI.map(s => `<button class="chip ${A.interessi.includes(s) ? 'on' : ''}" data-int="${esc(s)}">${esc(s)}</button>`).join('')}</div>
@@ -10912,6 +10954,7 @@ function renderStudentStore(tools, body) {
   // ragazzo o ragazza: cambia il taglio (corti o lunghi); il colore dei capelli resta quello scelto
   $$('[data-gen]', body).forEach(b => b.onclick = () => { cfg.genere = b.dataset.gen; cfg.capelli = cfg.genere === 'ragazza' ? 'lunghi' : 'corti'; $$('[data-gen]', body).forEach(x => x.classList.toggle('on', x.dataset.gen === cfg.genere)); changed(true); });
   $$('[data-hc]', body).forEach(b => b.onclick = () => { cfg.coloreCapelli = b.dataset.hc; $$('[data-hc]', body).forEach(x => x.classList.toggle('on', x.dataset.hc === cfg.coloreCapelli)); changed(true); });
+  $$('[data-att]', body).forEach(b => b.onclick = () => { cfg.attivita = b.dataset.att; $$('[data-att]', body).forEach(x => x.classList.toggle('on', x.dataset.att === cfg.attivita)); changed(true); });
   $$('[data-casa]', body).forEach(b => b.onclick = () => { cfg.casa = cfg.casa === b.dataset.casa ? '' : b.dataset.casa; $$('[data-casa]', body).forEach(x => x.classList.toggle('on', x.dataset.casa === cfg.casa)); changed(true); });
   $('#avName').oninput = e => { A.nome = e.target.value; $('#avTag').textContent = A.nome || 'Studente tipo'; changed(false); };
   $('#avPower').oninput = e => { A.superpotere = e.target.value; changed(false); };
@@ -10927,8 +10970,8 @@ function renderStudentStore(tools, body) {
 function armSitAvatar() { toast('Clicca una seduta nell\'aula', 'info'); $('#stage').classList.add('place'); const el = renderer.domElement;
   const once = ev => { if (ev.button !== 0) return; ev.stopPropagation(); el.removeEventListener('pointerdown', once, true); $('#stage').classList.remove('place'); PTR.down = false; setNDC(ev); const h = pickItem(); const e = h && OBJ.get(h.uid);
     if (!e || !SEAT_TYPES.includes(e.item.type)) { toast('Non era una seduta: riprova da "Fai sedere"', 'warn'); return; }
-    const s = e.item, def = defOf(s); let it = avatarItem(); const ry = (s.ry || 0) + Math.PI; // misure del modulo avatar: seduta a 0,45 m, 7 cm verso lo schienale
-    const seated = { x: s.x - .07 * Math.sin(ry), z: s.z - .07 * Math.cos(ry), ry, y: (s.y || 0) + ((def.seat || 1.12) - .65) - .45, posa: 'seduto' };
+    const s = e.item, P = sedutaPunto(s, h.point); let it = avatarItem(); const ry = (s.ry || 0) + Math.PI; // misure del modulo avatar: seduta a 0,45 m, 7 cm verso lo schienale
+    const seated = { x: P.x - .07 * Math.sin(ry), z: P.z - .07 * Math.cos(ry), ry, y: P.y - .45, posa: 'seduto' }; // sui gradoni: il cuscino cliccato
     if (!it) { it = Object.assign({ type: 'studente-tipo' }, seated); addItem(it); } else Object.assign(it, seated);
     refreshAvatarInScene(); const ae = OBJ.get(it.uid); ae.group.position.set(it.x, it.y, it.z); ae.group.rotation.y = it.ry; if (ae.blob) ae.blob.visible = false;
     SEL.clear(); commit('studente siede'); renderStore(); toast('Lo studente tipo si e\' seduto', 'ok'); };
@@ -11459,42 +11502,19 @@ function finalDebrief() { const A = PERC.data.aule;
 }
 
 /* =====================================================================
-   Posti assegnati: i nomi degli studenti (solo il nome, mai il cognome)
-   sopra le sedute. I nomi restano nel browser: non vengono mai inviati
-   alla raccolta dati della ricerca.
+   Niente nomi sui posti (tolti il 29/10/2026). C'era la possibilita' di
+   scrivere i nomi della classe e vederli sopra le sedute: e' stata tolta
+   perche' il nome di un compagno messo su un posto (in un angolo, lontano
+   da tutti, accanto a qualcuno) puo' diventare uno strumento di scherno.
+   Non va reintrodotta, nemmeno per i gradoni.
+   Restano solo le pulizie: i nomi rimasti in scene salvate prima (it.nome,
+   it.nomi dei gradoni) si tolgono al ripristino e non escono mai nei dati
+   (stripNames); l'elenco dei nomi salvato nel browser si cancella.
    ===================================================================== */
-const POSTI = { show: true };
-function rosterGet() { try { return JSON.parse(localStorage.getItem('settingaula.nomi') || '[]'); } catch (e) { return []; } }
-function rosterSet(a) { try { localStorage.setItem('settingaula.nomi', JSON.stringify(a)); } catch (e) {} }
-const cleanName = s => String(s || '').trim().replace(/\s+/g, ' ').slice(0, 20);
-const studentSeats = () => S.items.filter(i => SEAT_TYPES.includes(i.type) && i.type !== 'sedia-docente' && defOf(i).place === 'floor');
-function nameSprite(text) { const c = makeCanvas(256, 72), g = c.getContext('2d'); g.font = '700 34px "Instrument Sans", Arial'; const w = Math.min(244, g.measureText(text).width + 34);
-  g.fillStyle = '#1A1712'; g.beginPath(); g.roundRect ? g.roundRect((256 - w) / 2, 6, w, 54, 14) : g.rect((256 - w) / 2, 6, w, 54); g.fill(); g.fillStyle = '#FFD23F'; g.fillRect((256 - w) / 2 + 12, 52, w - 24, 4);
-  g.fillStyle = '#FBF8F1'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 128, 31);
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTex(c), depthTest: false })); s.scale.set(.62, .175, 1); s.renderOrder = 997; s.userData.noPick = true; return s; }
-function refreshNameLabels() { OBJ.forEach(e => { if (e.label) { e.group.remove(e.label); e.label.material.map.dispose(); e.label = null; }
-  if (POSTI.show && e.item.nome && SEAT_TYPES.includes(e.item.type)) { e.label = nameSprite(e.item.nome); const def = e.def; e.label.position.set(0, Math.max(.95, (def.seat || 1.1) - .05), 0); e.group.add(e.label); } }); }
-function assignNames(mode) { const names = rosterGet(); if (!names.length) { toast('Scrivi prima l\'elenco dei nomi', 'warn'); return; }
-  const seats = studentSeats().sort((a, b) => (a.z - b.z) || (a.x - b.x)); const list = mode === 'mescola' ? names.slice().sort(() => Math.random() - .5) : names.slice();
-  seats.forEach((s, i) => { s.nome = list[i] || ''; }); if (list.length > seats.length) toast(`${list.length - seats.length} studenti senza posto: aggiungi sedute`, 'warn');
-  commit('posti'); refreshNameLabels(); }
-function clearNames() { S.items.forEach(i => delete i.nome); commit('posti'); refreshNameLabels(); }
-// riquadro nella scheda Disposizioni
-function postiHTML() { const names = rosterGet(), seats = studentSeats(), assigned = seats.filter(s => s.nome).length;
-  return `<h3>Posti assegnati</h3><div class="layoutcard" style="display:block"><b>I nomi della classe</b><span>Solo il nome, mai il cognome. I nomi restano su questo computer e non vengono inviati alla ricerca.</span>
-    <div class="field" style="margin:8px 0 6px"><textarea id="rosterTa" rows="4" placeholder="Un nome per riga">${esc(names.join('\n'))}</textarea></div>
-    <div class="chips"><button class="chip" id="pOrd">Assegna in ordine</button><button class="chip" id="pMix">Mescola</button><button class="chip" id="pClr">Togli i nomi</button><button class="chip ${POSTI.show ? 'on' : ''}" id="pShow">Mostra i nomi</button></div>
-    <p class="tiny muted" style="margin:6px 0 0">${names.length} nomi · ${seats.length} posti · ${assigned} assegnati. Per spostare un nome: seleziona la seduta e sceglilo nell'ispettore.</p></div>`; }
-function bindPosti(body) { const ta = $('#rosterTa', body); if (!ta) return;
-  ta.onchange = () => { rosterSet(ta.value.split('\n').map(cleanName).filter(Boolean)); renderStore(); };
-  $('#pOrd', body).onclick = () => { ta.onchange(); assignNames('ordine'); renderStore(); }; $('#pMix', body).onclick = () => { ta.onchange(); assignNames('mescola'); renderStore(); };
-  $('#pClr', body).onclick = () => { clearNames(); renderStore(); }; $('#pShow', body).onclick = () => { POSTI.show = !POSTI.show; refreshNameLabels(); renderStore(); }; }
-// nell'ispettore di una seduta: scegli chi siede qui
-function seatNameHTML(it) { if (!SEAT_TYPES.includes(it.type) || it.type === 'sedia-docente') return ''; const names = rosterGet(); if (!names.length) return '';
-  return `<div class="field"><label>Chi siede qui</label><select id="seatName"><option value="">Nessuno</option>${names.map(n => `<option ${it.nome === n ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`; }
-function bindSeatName(it) { const s = $('#seatName'); if (!s) return; s.onchange = () => { const v = s.value; if (v) S.items.forEach(o => { if (o !== it && o.nome === v) delete o.nome; }); it.nome = v; commit('posti'); refreshNameLabels(); }; }
-// i nomi non escono mai dal dispositivo
-function stripNames(sc) { return Object.assign({}, sc, { items: (sc.items || []).map(i => { const c = Object.assign({}, i); delete c.nome; return c; }) }); }
+try { localStorage.removeItem('settingaula.nomi'); } catch (e) {}
+const senzaNomi = i => { const c = Object.assign({}, i); delete c.nome; delete c.nomi; return c; };
+function stripNames(sc) { return Object.assign({}, sc, { items: (sc.items || []).map(senzaNomi) }); }
+{ const _rs = restore; restore = function (st, keepSel) { if (st && st.items) st = Object.assign({}, st, { items: st.items.map(senzaNomi) }); return _rs.call(this, st, keepSel); }; }
 
 /* =====================================================================
    Arredi e tecnologie ispirati al catalogo Campustore (campustore.it):
@@ -11960,7 +11980,7 @@ const SND_ICON = on => `<svg viewBox="0 0 24 24" width="14" height="14" style="v
 function guideEls() { if (!$('#guideCard')) { const c = document.createElement('div'); c.id = 'guideCard'; document.body.appendChild(c); const a = document.createElement('div'); a.id = 'guideArrow'; a.innerHTML = '<svg viewBox="0 0 48 48" width="46" height="46"><path d="M6 24h28M24 12l12 12-12 12" fill="none" stroke="#FF5A1F" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>'; document.body.appendChild(a); const r = document.createElement('div'); r.id = 'guideRing'; document.body.appendChild(r); } }
 function startGuide(from = 0) { guideEls(); GUIDA.on = true; GUIDA.flags = {}; goGuide(from); clearInterval(GUIDA.timer); GUIDA.timer = setInterval(tickGuide, 250); }
 function goGuide(i) { GUIDA.i = i; GUIDA.base = Object.assign({}, act()); GUIDA.pos = ''; const st = GUIDE_STEPS[i], n = GUIDE_STEPS.length - 2; const c = $('#guideCard');
-  c.innerHTML = `<span class="gstep">${st.intro || st.outro ? 'GUIDA' : 'PASSO ' + i + ' DI ' + n}</span><b>${esc(st.t)}</b><p id="gTxt">${esc(typeof st.x === 'function' ? st.x() : st.x)}</p><div class="gbtns">${st.intro ? '<button class="btn small primary" id="gGo">Iniziamo</button><button class="btn small ghost" id="gSkip">Salta la guida</button>' : st.outro ? '<button class="btn small primary" id="gEnd">Chiudi la guida</button>' : `<button class="btn small" id="gBack" ${i <= 1 ? 'disabled' : ''}>Indietro</button><button class="btn small ghost" id="gNext">Avanti</button><button class="btn small ghost" id="gSkip">Salta la guida</button>`}<button class="btn small ghost gsnd" id="gSnd" title="Accendi o spegni il suono della guida">${SND_ICON(GSND.on)} Suono</button></div><div class="gdone" id="gDone"></div><div class="gpausa"><b>Guida in pausa</b>Completa la finestra aperta e chiudila: poi la guida riprende da qui.</div>`;
+  c.innerHTML = `<span class="gstep">${st.intro || st.outro ? 'GUIDA' : 'PASSO ' + i + ' DI ' + n}</span><b>${esc(st.t)}</b><p id="gTxt">${esc(typeof st.x === 'function' ? st.x() : st.x)}</p><div class="gbtns">${st.intro ? '<button class="btn small primary" id="gGo">Iniziamo</button><button class="btn small ghost" id="gSkip">Chiudi la guida</button>' : st.outro ? '<button class="btn small primary" id="gEnd">Chiudi la guida</button>' : `<button class="btn small" id="gBack" ${i <= 1 ? 'disabled' : ''}>Indietro</button><button class="btn small ghost" id="gNext">Avanti</button><button class="btn small ghost" id="gSkip">Chiudi la guida</button>`}<button class="btn small ghost gsnd" id="gSnd" title="Accendi o spegni il suono della guida">${SND_ICON(GSND.on)} Suono</button></div><div class="gdone" id="gDone"></div><div class="gpausa"><b>Guida in pausa</b>Completa la finestra aperta e chiudila: poi la guida riprende da qui.</div>`;
   c.className = 'show'; const by = id => $('#' + id); if (by('gGo')) by('gGo').onclick = () => goGuide(1); if (by('gEnd')) by('gEnd').onclick = () => endGuide(true);
   if (by('gSkip')) by('gSkip').onclick = () => endGuide(true); if (by('gBack')) by('gBack').onclick = () => goGuide(Math.max(1, i - 1)); if (by('gNext')) by('gNext').onclick = () => goGuide(i + 1);
   by('gSnd').onclick = () => { GSND.on = !GSND.on; try { localStorage.setItem('settingaula.guida.suono', GSND.on ? '1' : '0'); } catch (e) {} by('gSnd').innerHTML = SND_ICON(GSND.on) + ' Suono'; if (GSND.on) guideTone([79, 84]); };
@@ -12466,6 +12486,7 @@ function bellBind(p) { const s = $('#mBell', p); if (!s) return; s.onchange = e 
    per studente, 13 colonne da due sulla parete dell'aula accanto alla nicchia;
    accendendoli il gruppo di tavoli li' davanti si sposta di 65 cm. Restano
    oltre 3 m liberi (la via d'esodo deve restare larga almeno 1,20 m).
+   Ogni armadietto si apre con un clic e si riempie: e24_armadietti.js.
    Stato in S.armadietti, salvato con la scena; nei dati: arredi e colonna armadietti.
    Il corridoio si arreda come l'aula (zone: zonaDi/zonaLimiti). Tavoli verdi, sedie
    di faggio, scrivania, sedia blu e cestini sono oggetti veri del magazzino, gia' al
@@ -12498,25 +12519,23 @@ function corrSedia(g, x, z, ry) { const s = new THREE.Group(), faggio = colorMat
 const _lockNum = {}; function lockNumTex(n) { if (_lockNum[n]) return _lockNum[n]; const c = makeCanvas(64, 32), g = c.getContext('2d'); g.fillStyle = '#F4F2EC'; g.fillRect(0, 0, 64, 32);
   g.fillStyle = '#1A1712'; g.font = '700 22px "JetBrains Mono", monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(String(n), 32, 17); return _lockNum[n] = canvasTex(c); }
 // una fila di armadietti, frontali verso +z, centrata in x; con apri = indice della colonna con l'armadietto alto aperto
-function lockerRow(cols, apri = -1, numeri = true) { const g = new THREE.Group(), L = LOCK, body = colorMat('#22324D', .5, .4), door = colorMat('#1F5FA8', .36, .45), vent = colorMat('#0D1524', .8), inside = colorMat('#2A2F37', .8);
-  const libri = ['#D9822B', '#2E7D5B', '#B5487A', '#2B59C3', '#E0B12E'];
+// colonne cave con un ripiano a 30 cm in ogni vano; ogni anta e' un perno sul lato sinistro (userData.lk = numero) che
+// e24_armadietti.js apre e chiude; lo stesso modulo mette il contenuto nei vani (armRiempi). "apri": colonna con il vano alto aperto
+function lockerRow(cols, apri = -1, numeri = true) { const g = new THREE.Group(), L = LOCK, body = colorMat('#22324D', .5, .4), door = colorMat('#1F5FA8', .36, .45), vent = colorMat('#0D1524', .8), inside = colorMat('#2A2F37', .8), shelf = colorMat('#BFC3C8', .5, .3);
+  const W = L.w - .008, t = .012, H = L.h - L.base, dw = L.w - .05; g.userData.ante = {}; g.userData.vani = {}; g.userData.dentro = {};
   for (let c = 0; c < cols; c++) { const x = (c - (cols - 1) / 2) * L.w;
-    box(g, L.w - .008, L.base, L.d - .02, vent, x, 0, -.01);                              // zoccolo
-    box(g, L.w - .008, L.h - L.base, L.d, body, x, L.base, 0);                          // corpo della colonna
-    for (let t = 0; t < 2; t++) { const y0 = L.base + .02 + t * (L.tier + .03), n = c * 2 + (1 - t) + 1;
-      if (c === apri && t === 1) {                                                      // armadietto aperto: libri e quaderni
-        box(g, L.w - .05, L.tier - .04, .01, inside, x, y0 + .02, L.d / 2 + .001);
-        const fondo = new THREE.Mesh(new THREE.PlaneGeometry(L.w - .06, L.tier - .06), inside); fondo.position.set(x, y0 + L.tier / 2, L.d / 2 + .008); g.add(fondo);
-        libri.forEach((col, i) => { const bw = .035 + (i % 2) * .01, bh = .22 + (i % 3) * .03; const b = mesh(gBox(bw, bh, .17), colorMat(col, .7), x - .13 + i * .052, y0 + .32 + bh / 2, L.d / 2 - .02); b.rotation.z = i === 4 ? -.12 : 0; g.add(b); });
-        box(g, L.w - .07, .012, L.d - .06, colorMat('#BFC3C8', .5, .3), x, y0 + .3, L.d / 2 - .1);   // ripiano
-        for (let q = 0; q < 4; q++) box(g, .21, .008, .15, colorMat(['#F4EFE4', '#3C8DC4', '#F4EFE4', '#E0B12E'][q], .8), x - .02, y0 + .06 + q * .009, L.d / 2 - .06); // quaderni
-        const piv = new THREE.Group(); piv.position.set(x - L.w / 2 + .02, y0 + .02, L.d / 2 + .012); piv.rotation.y = -1.95; g.add(piv);
-        box(piv, L.w - .05, L.tier - .04, .02, door, (L.w - .05) / 2, 0, 0);
-        continue; }
-      box(g, L.w - .05, L.tier - .04, .02, door, x, y0 + .02, L.d / 2);
-      for (let v = 0; v < 3; v++) box(g, .2, .012, .006, vent, x, y0 + L.tier - .14 - v * .028, L.d / 2 + .012);
-      box(g, .028, .1, .03, MAT.steel, x + L.w / 2 - .07, y0 + L.tier * .45, L.d / 2 + .02);
-      if (numeri) { const p = new THREE.Mesh(new THREE.PlaneGeometry(.07, .035), new THREE.MeshStandardMaterial({ map: lockNumTex(n), roughness: .6 })); p.position.set(x - L.w / 2 + .075, y0 + L.tier - .2, L.d / 2 + .0115); g.add(p); } } }
+    box(g, W, L.base, L.d - .02, vent, x, 0, -.01);                                                         // zoccolo
+    [-1, 1].forEach(s => box(g, t, H, L.d, body, x + s * (W - t) / 2, L.base, 0));                            // fianchi
+    box(g, W, H, t, inside, x, L.base, -L.d / 2 + t / 2); box(g, W, t, L.d, body, x, L.h - t, 0); box(g, W, .02, L.d, inside, x, L.base, 0); // schienale, cielo, fondo
+    box(g, W, .03, L.d, body, x, L.base + .02 + L.tier, 0);                                                   // divisorio tra i due vani
+    for (let tr = 0; tr < 2; tr++) { const y0 = L.base + .02 + tr * (L.tier + .03), n = c * 2 + (1 - tr) + 1;
+      box(g, W - 2 * t, .012, L.d - .06, shelf, x, y0 + .3, -.02); g.userData.vani[n] = { x, y0 };            // ripiano
+      const piv = new THREE.Group(); piv.position.set(x - dw / 2, y0, L.d / 2); piv.userData.lk = n; g.add(piv); g.userData.ante[n] = piv;
+      box(piv, dw, L.tier - .04, .02, door, dw / 2, .02, 0);
+      for (let v = 0; v < 3; v++) box(piv, .2, .012, .006, vent, dw / 2, L.tier - .14 - v * .028, .012);
+      box(piv, .028, .1, .03, MAT.steel, dw - .045, L.tier * .45, .02);
+      if (numeri) { const p = new THREE.Mesh(new THREE.PlaneGeometry(.07, .035), new THREE.MeshStandardMaterial({ map: lockNumTex(n), roughness: .6 })); p.position.set(.05, L.tier - .2, .0115); piv.add(p); }
+      if (c === apri && tr === 1) { piv.rotation.y = -1.95; if (typeof armRiempi === 'function') armRiempi(g, n); } } }
   return g; }
 // parete con fori, zoccolino di gres e listelli di legno (in coordinate di parete: u lungo, v in alto, fronte +z)
 function corrMuro(par, x, z, ry, L, holes, rails = []) { const g = new THREE.Group(), C = CORR; g.position.set(x, 0, z); g.rotation.y = ry; par.add(g);
@@ -12612,7 +12631,7 @@ function armadiettiToggle() { S.armadietti = !S.armadietti; if (S.armadietti) co
   if (CAM.mode !== 'orbit') setView('orbit'); CAM.theta = -1.42; CAM.phi = .95; CAM.r = 6.8; CAM.target.set(-5.4, 1, CORR.LK); tweenCamera(camFromOrbit(), CAM.target.clone(), 1.1);
   toast('26 armadietti in corridoio, uno per studente, accanto alla porta. In Visita esci dalla porta per vederli da vicino', 'ok'); }
 CAT['armadietti'] = { id: 'armadietti', name: 'Armadietti in corridoio', cat: 'arredi', sub: 'Corridoio', place: 'floor', build: () => lockerRow(3, 1, false),
-  desc: 'Clicca: 26 armadietti di fronte alla porta, uno per studente, per libri e quaderni. Clicca di nuovo per toglierli.' };
+  desc: 'Clicca: 26 armadietti di fronte alla porta, uno per studente, per libri e quaderni. Clicca di nuovo per toglierli. Nel corridoio clicca un armadietto per aprirlo e scegliere cosa riporre.' };
 CATALOG.push(CAT['armadietti']);
 Object.assign(SCHEDE, { armadietti: { materiale: 'Lamiera d\'acciaio verniciata a polveri, prese d\'aria sulle ante, maniglia con lucchetto o combinazione.', tecnologia: 'Colonne da due armadietti sovrapposti, profonde 45 cm: libri e quaderni restano a scuola e lo zaino pesa meno.', cura: 'In corridoio devono restare almeno 1,20 m liberi: e\' la via di fuga.' } });
 { const _pc = protoFromCard; protoFromCard = function (card) { if (card.dataset.type === 'armadietti') { armadiettiToggle(); return null; } return _pc.apply(this, arguments); }; }
@@ -12749,6 +12768,236 @@ roboWrap('braccio-robotico', (b0, o, item) => { const d = b0(o, item), s1 = d.ch
 // ogni fotogramma, dopo le animazioni del motore
 { const _t = tickAnims; tickAnims = function (dt) { _t.apply(this, arguments); const T = (performance.now() - ROBO.t0) / 1000;
     OBJ.forEach(e => { const r = e.group.userData.robo; if (!r) return; if (roboFermo(e)) r.rest(); else r.step(T + roboFase(e.item.uid), e); }); }; }
+
+/* =====================================================================
+   Tavoli impilati. Per fare spazio un tavolo si capovolge su uno uguale:
+   trascinato (o posato dal magazzino) sopra un tavolo dello stesso tipo e
+   sgombro, si gira a gambe in su e il suo ripiano combacia con quello sotto
+   (stessa posizione e rotazione). Dopo, chi afferra la pila (anche dal tavolo
+   sopra, l'unico che si vede dall'alto) la sposta e la ruota tutta insieme;
+   "Rimetti a terra" nella scheda posa il tavolo sopra accanto alla pila, in
+   un punto libero.
+   - it.capo = true: tavolo capovolto sopra un altro. it.y resta la quota del
+     piano d'appoggio (il ripiano del tavolo sotto), come per gli oggetti
+     appoggiati; il gruppo e' ruotato di 180 gradi attorno a Z (scambia destra
+     e sinistra: questi tavoli sono simmetrici) e alzato dell'altezza del tavolo.
+   - Pile da due: il tavolo sotto deve essere sgombro, quello sopra senza oggetti.
+     A ogni commit pilaSistema() riallinea le pile e rimette a terra i tavoli
+     capovolti rimasti senza appoggio (duplicati, frecce, tavolo sotto eliminato).
+   - I tavoli impilati non contano come banchi (disposizione, spazi INDIRE,
+     posti senza un piano davanti) e sulla pila non si appoggia nulla.
+   - Consiglio dell'architetto: pile lungo una parete e lontano dalle finestre.
+     Nei dati: tavoliImpilati (quanti tavoli sono capovolti sopra un altro).
+   ===================================================================== */
+const IMPILABILI = ['banco', 'banco-doppio', 'trapezio', 'tavolo-60', 'tavolo-rotondo', 'tavolo-grande', 'tavolo-verde'];
+const PILA = { gap: .002, n: 0 };
+const impilabile = it => IMPILABILI.includes(it.type);
+// centro dell'impronta (il tavolo a 60 gradi ha l'origine fuori dal ripiano)
+function pilaCentro(it) { const s = sizeOf(it); return toWorld(it, s.cx, s.cz); }
+// tavolo su cui "it" si puo' capovolgere: stesso tipo, dritto, con il centro di "it" ben dentro il suo ripiano
+function pilaSotto(it) { const c = pilaCentro(it); let best = null, bd = 1e9;
+  OBJ.forEach(o => { const b = o.item; if (b === it || b.type !== it.type || b.capo || !insideFootprint(b, c.x, c.z, -.04)) return;
+    const d = (b.x - it.x) ** 2 + (b.z - it.z) ** 2; if (d < bd) { bd = d; best = b; } });
+  return best; }
+// tavolo capovolto appoggiato su b
+function pilaSopra(b) { if (!impilabile(b) || b.capo) return null; const top = (b.y || 0) + defOf(b).surface;
+  for (const o of OBJ.values()) { const t = o.item; if (t !== b && t.capo && t.type === b.type && Math.abs((t.y || 0) - top) < .03) { const c = pilaCentro(t); if (insideFootprint(b, c.x, c.z)) return t; } }
+  return null; }
+const pilaLibero = (b, it) => ridersOf(b).every(r => r === it);
+function pilaMetti(it, b) { it.capo = true; it.x = b.x; it.z = b.z; it.ry = b.ry || 0; it.y = (b.y || 0) + defOf(b).surface; applyTransform(OBJ.get(it.uid)); }
+function pilaTogli(it) { delete it.capo; it.y = baseHeightAt(it, it.x, it.z); applyTransform(OBJ.get(it.uid)); }
+// tavoli che fanno parte di una pila (sopra e sotto)
+function pilaMembri() { const s = new Set(); OBJ.forEach(e => { const t = e.item; if (!t.capo) return; s.add(t.uid); const b = pilaSotto(t); if (b) s.add(b.uid); }); return s; }
+function pilaSistema() { OBJ.forEach(e => { const it = e.item; if (!it.capo) return; const b = impilabile(it) && pilaSotto(it);
+  if (b && pilaLibero(b, it)) pilaMetti(it, b); else pilaTogli(it); }); }
+
+// disegno: capovolto attorno a Z e alzato; l'ombra a terra resta solo al tavolo sotto
+{ const _at = applyTransform; applyTransform = function (e) { _at.apply(this, arguments); if (!e || e.def.place !== 'floor') return;
+    if (e.item.capo) { e.group.rotation.z = Math.PI; e.group.position.y = (e.item.y || 0) + e.def.surface + PILA.gap; }
+    if (e.blob) e.blob.visible = !e.item.capo; }; }
+{ const _t = tickAnims; tickAnims = function () { _t.apply(this, arguments);
+    OBJ.forEach(e => { if (e.item.capo && e.anim && e.anim.kind === 'drop') e.group.position.y += e.def.surface + PILA.gap; }); }; }
+// il tavolo capovolto viaggia con quello sotto (anche il tavolo a 60 gradi, che ha l'origine fuori dal ripiano)
+{ const _ro = ridersOf; ridersOf = function (it) { const r = _ro.apply(this, arguments), t = pilaSopra(it); if (t && !r.includes(t)) r.push(t); return r; }; }
+// sulla pila non si appoggia nulla: gli oggetti da tavolo non la vedono come piano
+{ const _bh = baseHeightAt; baseHeightAt = function (it, x, z, exclude) { if (defOf(it).place !== 'surface') return _bh.apply(this, arguments);
+    const P = pilaMembri(); if (!P.size) return _bh.apply(this, arguments); const ex = new Set(exclude || []); P.forEach(u => ex.add(u)); return _bh.call(this, it, x, z, ex); }; }
+
+// chi afferra una pila afferra il tavolo sotto, che porta con se' quello capovolto
+{ const _sd = startDrag; startDrag = function (e, point) { if (e && e.def.place === 'floor') { let cambio = false;
+      Array.from(SEL).forEach(u => { const o = OBJ.get(u), b = o && o.item.capo && pilaSotto(o.item); if (b) { SEL.delete(u); SEL.add(b.uid); cambio = true; } });
+      const b = e.item.capo && pilaSotto(e.item); if (b) e = OBJ.get(b.uid); if (cambio) refreshSelection(); }
+    return _sd.call(this, e, point); }; }
+// trascinamento: un tavolo da solo sopra uno uguale si capovolge e combacia; portato via torna a terra
+{ const _dm = dragMove; dragMove = function () { _dm.apply(this, arguments); const D = PTR.drag; if (!D || D.kind !== 'floor') return;
+    const solo = D.items.length === 1;
+    D.items.forEach(it => { if (!impilabile(it) || (!solo && !it.capo)) return;
+      const carico = D.riders.some(r => r.parent === it), b = !carico && pilaSotto(it);
+      if (b && pilaLibero(b, it)) { pilaMetti(it, b); return; }
+      if (b && !D.pilaAvviso) { D.pilaAvviso = true; toast('Per impilarlo, il tavolo sotto deve essere sgombro', 'info'); }
+      if (it.capo) pilaTogli(it); }); }; }
+{ const _mp = movePlacing; movePlacing = function () { _mp.apply(this, arguments); const P = PTR.placing; if (!P || !impilabile(P.e.item)) return; const it = P.e.item, b = pilaSotto(it);
+    if (b && pilaLibero(b, it)) pilaMetti(it, b); else if (it.capo) pilaTogli(it); }; }
+// "Rimetti a terra": il tavolo sopra va accanto alla pila, nel primo posto libero (destra, sinistra, davanti, dietro)
+function pilaScendi(b) { const t = pilaSopra(b); if (!t) return; const s = sizeOf(t), P = new Set([t.uid, b.uid]), W = s.w + .12, Dd = s.d + .12;
+  const ingombro = (x, z) => { const h = halfExt(Object.assign({}, t, { x, z })); return S.items.some(o => { if (P.has(o.uid)) return false; const d = defOf(o); if (!d || d.place !== 'floor' || d.platform) return false; const ho = halfExt(o); return Math.abs(o.x - x) < ho.hx + h.hx && Math.abs(o.z - z) < ho.hz + h.hz; }); };
+  let scelta = null;
+  for (const [dx, dz] of [[W, 0], [-W, 0], [0, Dd], [0, -Dd], [W, Dd], [-W, Dd], [W, -Dd], [-W, -Dd], [2 * W, 0], [-2 * W, 0]]) { const w = toWorld(b, dx, dz), tmp = Object.assign({}, t, w); delete tmp.capo; clampItem(tmp);
+    const ok = Math.abs(tmp.x - w.x) < .01 && Math.abs(tmp.z - w.z) < .01; if (!scelta) scelta = tmp; if (ok && !ingombro(tmp.x, tmp.z)) { scelta = tmp; break; } }
+  delete t.capo; t.x = scelta.x; t.z = scelta.z; t.y = baseHeightAt(t, t.x, t.z); const e = OBJ.get(t.uid); applyTransform(e); e.anim = { t: 0, dur: .35, kind: 'drop' };
+  SEL.clear(); SEL.add(t.uid); S.meta.actions.move++; commit('rimetti a terra'); refreshSelection(); toast('Tavolo rimesso a terra accanto alla pila', 'ok'); }
+// a ogni modifica salvata le pile si riallineano; avviso la prima volta che un tavolo finisce capovolto
+{ const _c = commit; commit = function () { if (!HIST.lock) { pilaSistema(); const n = S.items.filter(i => i.capo).length;
+      if (n > PILA.n) toast('Tavoli impilati: trascina la pila per spostarla tutta insieme', 'ok'); PILA.n = n; }
+    return _c.apply(this, arguments); }; }
+{ const _rs = restore; restore = function () { const r = _rs.apply(this, arguments); PILA.n = S.items.filter(i => i.capo).length; return r; }; }
+// le disposizioni rimettono a terra i tavoli che spostano
+{ const _al = applyLayout; applyLayout = function () { const r = _al.apply(this, arguments);
+    OBJ.forEach(e => { if (e.item.capo && e.anim && e.anim.kind === 'move') { delete e.item.capo; e.group.rotation.z = 0; if (e.blob) e.blob.visible = true; } }); return r; }; }
+
+// analisi: le pile non sono banchi; occupano il pavimento con una sola impronta e restano oggetti dell'aula
+function pilaSenza(fn, ctx, args, P) { const all = S.items; S.items = all.filter(i => !P.has(i.uid)); try { return fn.apply(ctx, args); } finally { S.items = all; } }
+{ const _a = analyzeScene; analyzeScene = function () { const P = pilaMembri(); if (!P.size) return _a.apply(this, arguments);
+    const r = pilaSenza(_a, this, arguments, P), dentro = S.items.filter(i => P.has(i.uid) && zonaDi(i) === 'aula');
+    const area = dentro.filter(i => !i.capo).reduce((a, i) => { const s = sizeOf(i); return a + s.w * s.d; }, 0);
+    r.freeFloor = +(r.freeFloor - area / (ROOM.W * ROOM.D)).toFixed(2); r.items += dentro.length; return r; }; }
+{ const _s = spaziIndire; spaziIndire = function () { const P = pilaMembri(); return P.size ? pilaSenza(_s, this, arguments, P) : _s.apply(this, arguments); }; }
+
+// consiglio dell'architetto: una pila e' alta circa 1,5 m
+function pilaVerifica() { const tops = S.items.filter(i => i.capo); if (!tops.length) return null;
+  const lontane = tops.filter(t => { const h = halfExt(t), Z = zonaLimiti(t); return Math.min(t.x - h.hx - Z.x0, Z.x1 - t.x - h.hx, t.z - h.hz - Z.z0, Z.z1 - t.z - h.hz) > .35; });
+  const finestre = tops.filter(t => { const h = halfExt(t);
+    if (zonaDi(t) === 'corridoio') return t.x - h.hx < CORR.XW + .7 && CORR.FIN.some(([a, b]) => t.z + h.hz > a && t.z - h.hz < b);
+    return t.x + h.hx > ROOM.x1 - .7 && WALLS.right.holes.some(o => t.z + h.hz > o.u0 && t.z - h.hz < o.u1); });
+  const bad = [...new Set(lontane.concat(finestre))], q = (n, uno, piu) => n === 1 ? '1 pila ' + uno : n + ' pile ' + piu;
+  const det = bad.length ? [lontane.length ? q(lontane.length, 'e\' lontana dalle pareti', 'sono lontane dalle pareti') : '', finestre.length ? q(finestre.length, 'copre le finestre', 'coprono le finestre') : ''].filter(Boolean).join('; ') + '.'
+    : (tops.length === 1 ? 'La pila di tavoli e\' appoggiata' : `Le ${tops.length} pile di tavoli sono appoggiate`) + ' a una parete, lontano dalle finestre.';
+  return { id: 'pile', tipo: 'consiglio', t: 'Tavoli impilati lungo le pareti', ok: !bad.length, det, rif: 'D.Lgs. 81/2008, stabilita\' degli arredi',
+    why: 'Una pila di due tavoli e\' alta circa 1,5 m: lungo una parete non intralcia i passaggi e non si urta, davanti alle finestre toglie luce.', focus: bad.map(t => t.uid) }; }
+{ const _r = runSafety; runSafety = function () { const L = _r.apply(this, arguments), c = pilaVerifica(); L.checks = L.checks.filter(x => x.id !== 'pile'); if (c) L.checks.push(c); return L; }; }
+
+// scheda dell'oggetto: come si impila e come si rimette a terra
+{ const _ri = renderInspector; renderInspector = function () { _ri.apply(this, arguments); const es = selItems(); if (es.length !== 1 || CAM.mode === 'walk') return;
+    const it = es[0].item, ib = $('#inspector .ib'); if (!ib || !impilabile(it)) return; const nome = String(CAT[it.type].name).toLowerCase();
+    const b = it.capo ? pilaSotto(it) : it, pila = b && pilaSopra(b), d = document.createElement('div'); d.className = 'why';
+    d.innerHTML = pila ? `<b>Pila di due tavoli.</b> Trascinala per spostarla tutta insieme, magari contro una parete.<br><button class="btn small" id="pilaGiu" style="margin-top:7px">Rimetti a terra il tavolo sopra</button>`
+      : `<b>Per fare spazio.</b> Trascinalo sopra un altro ${esc(nome)} sgombro: si capovolge e il suo ripiano si appoggia su quello sotto.`;
+    ib.insertBefore(d, ib.firstChild); const bt = $('#pilaGiu'); if (bt) bt.onclick = () => pilaScendi(b); }; }
+{ const _br = buildRecord; buildRecord = function () { const r = _br.apply(this, arguments); r.tavoliImpilati = S.items.filter(i => i.capo).length; return r; }; }
+
+/* =====================================================================
+   Gradoni: un posto per ogni cuscino, anche in alto. Gradonata (4 cuscini
+   per fila) e gradonata modulare (3 per fila) hanno tre file alte 40, 80 e
+   120 cm (bTiers, bTiersMod): la fila i ha il centro a z = -0,52 + 0,5 i e
+   i cuscini spessi 6 cm.
+   - "Fai sedere" (studente tipo) e la Visita (clic su una seduta) usano il
+     cuscino cliccato: sedutaPunto() al posto del centro della seduta.
+   - Trascinato sopra i gradoni, lo studente tipo (e il cuscino da pavimento,
+     e il docente) sale sul gradone che ha sotto i piedi.
+   ===================================================================== */
+const GRADONI = { gradonata: [-.9, -.3, .3, .9], 'gradonata-modulo': [-.6, 0, .6] };
+const GRAD_FILE = 3, GRAD_SALE = ['studente-tipo', 'cuscino', 'docente-acerio'];
+const gradFila = i => ({ h: .4 * (i + 1), z: -.52 + i * .5 });
+// cuscino piu' vicino a un punto: fila dalla profondita', colonna dal lato
+function gradPosto(s, pt) { const cols = GRADONI[s.type], l = toLocal(s, pt.x, pt.z), i = clamp(Math.round((l.z + .52) / .5), 0, GRAD_FILE - 1);
+  let k = 0; cols.forEach((c, j) => { if (Math.abs(c - l.x) < Math.abs(cols[k] - l.x)) k = j; });
+  const F = gradFila(i), w = toWorld(s, cols[k], F.z); return { i, k, p: i * cols.length + k, x: w.x, z: w.z, y: (s.y || 0) + F.h + .065 }; }
+// punto su cui ci si siede (quota del piano di seduta): per i gradoni il cuscino cliccato, per le altre sedute il centro
+function sedutaPunto(s, pt) { if (GRADONI[s.type] && pt) return gradPosto(s, pt); return { x: s.x, z: s.z, y: (s.y || 0) + (defOf(s).seat || 1.12) - .65 }; }
+
+// lo studente tipo trascinato sui gradoni sale sul gradone sotto i piedi
+{ const _bh = baseHeightAt; baseHeightAt = function (it, x, z, exclude) { let y = _bh.apply(this, arguments); if (!GRAD_SALE.includes(it.type)) return y;
+    OBJ.forEach(o => { const g = o.item; if (g === it || !GRADONI[g.type] || (exclude && exclude.has(g.uid)) || !insideFootprint(g, x, z)) return;
+      const l = toLocal(g, x, z), i = clamp(Math.floor((l.z + .75) / .5), 0, GRAD_FILE - 1); y = Math.max(y, (g.y || 0) + gradFila(i).h + .01); });
+    return y; }; }
+
+/* =====================================================================
+   Armadietti che si aprono e si riempiono. Un clic su un armadietto del
+   corridoio (in ogni vista, anche in Visita) apre o chiude l'anta; nella
+   scheda a destra si sceglie cosa riporre, al massimo 6 cose perche' lo
+   spazio e' poco. Ogni vano (38 x 45 x 87 cm) ha un ripiano a 30 cm: sopra
+   libri, raccoglitore, tablet, borraccia, astuccio, cuffie, flauto, giacca
+   appesa; sotto quaderni, zaino, scarpe da ginnastica, pallone, merenda.
+   Chi non sceglie trova quello che lascia di solito uno studente (diverso
+   per numero, ARM_TIPICI).
+   - Ante aperte: solo nella sessione (ARM.aperti; all'inizio il 17, come
+     prima). Il contenuto scelto e' nella scena (S.armadiettiDentro =
+     { numero: [oggetti] }, annulla compreso) e nei dati
+     (armadiettiContenuto: quante volte ogni oggetto e' stato riposto).
+   - Il clic si ascolta su document, prima di onUp del motore (che e' su
+     window): se colpisce un armadietto lo si gestisce qui e il motore non lo
+     vede (niente deselezione). Un oggetto piu' vicino ha la precedenza.
+   ===================================================================== */
+const ARM = { aperti: new Set([LOCK.open * 2 + 1]), sel: null, giu: null, max: 6 };
+const ARM_ANTA = -1.95;
+// ogni oggetto: zona (su = sul ripiano, giu = sul fondo), larghezza e disegno (x al centro, y d'appoggio)
+const ARM_OGG = [
+  { id: 'libri', n: 'Libri', z: 'su', w: .2, make(g, x, y) { ['#D9822B', '#2E7D5B', '#B5487A', '#2B59C3', '#E0B12E'].forEach((col, i) => { const bw = .034 + (i % 2) * .008, bh = .21 + (i % 3) * .03, b = mesh(gBox(bw, bh, .17), colorMat(col, .7), x - .085 + i * .042, y + bh / 2, 0); if (i === 4) b.rotation.z = -.14; g.add(b); }); } },
+  { id: 'raccoglitore', n: 'Raccoglitore', z: 'su', w: .07, make(g, x, y) { box(g, .06, .3, .25, colorMat('#3C8DC4', .5), x, y, 0); box(g, .04, .05, .005, colorMat('#F4EFE4', .8), x, y + .2, .127); } },
+  { id: 'tablet', n: 'Tablet', z: 'su', w: .05, make(g, x, y) { const t = mesh(gBox(.012, .25, .18), MAT.darkMetal, x, y + .124, 0); t.rotation.z = .12; g.add(t); } },
+  { id: 'borraccia', n: 'Borraccia', z: 'su', w: .07, make(g, x, y) { cyl(g, .032, .032, .2, colorMat('#2E8BC0', .3, .4), x, y, 0, 16); cyl(g, .02, .022, .04, colorMat('#1A1712', .5), x, y + .2, 0, 12); } },
+  { id: 'astuccio', n: 'Astuccio', z: 'su', w: .2, make(g, x, y) { const a = mesh(gCyl(.035, .035, .19, 14), colorMat('#7A3FA0', .8), x, y + .035, .04); a.rotation.z = Math.PI / 2; g.add(a); } },
+  { id: 'cuffie', n: 'Cuffie', z: 'su', w: .17, make(g, x, y) { const a = mesh(new THREE.TorusGeometry(.065, .009, 8, 20, Math.PI), MAT.darkMetal, x, y + .045, 0); g.add(a);
+      [-1, 1].forEach(s => { const c = mesh(gCyl(.032, .032, .03, 16), colorMat('#1A1712', .6), x + s * .065, y + .04, 0); c.rotation.z = Math.PI / 2; g.add(c); }); } },
+  { id: 'flauto', n: 'Flauto dolce', z: 'su', w: .04, make(g, x, y) { cyl(g, .011, .013, .32, colorMat('#E9DFC8', .5), x, y, 0, 10); cyl(g, .014, .012, .05, colorMat('#E9DFC8', .5), x, y + .32, 0, 10); } },
+  { id: 'giacca', n: 'Giacca appesa', z: 'su', w: .11, make(g, x, y) { box(g, .02, .03, .05, MAT.steel, x, y + .5, -.17); rbox(g, .09, .44, .3, .03, colorMat('#C8553D', .9), x, y + .07, -.02); } },
+  { id: 'quaderni', n: 'Quaderni', z: 'giu', w: .22, make(g, x, y) { ['#F4EFE4', '#3C8DC4', '#F4EFE4', '#E0B12E'].forEach((col, q) => box(g, .21, .008, .15, colorMat(col, .8), x, y + q * .009, .04)); } },
+  { id: 'zaino', n: 'Zaino', z: 'giu', w: .26, make(g, x, y) { rbox(g, .25, .26, .15, .04, colorMat('#2E7D5B', .9), x, y, -.02); rbox(g, .17, .11, .04, .02, colorMat('#245F45', .9), x, y + .03, .07); } },
+  { id: 'scarpe', n: 'Scarpe da ginnastica', z: 'giu', w: .2, make(g, x, y) { [-1, 1].forEach(s => { box(g, .09, .02, .25, colorMat('#F4EFE4', .7), x + s * .05, y, 0); rbox(g, .085, .07, .21, .03, colorMat('#2B59C3', .8), x + s * .05, y + .02, -.015); }); } },
+  { id: 'pallone', n: 'Pallone', z: 'giu', w: .22, make(g, x, y) { sph(g, .11, colorMat('#D9822B', .7), x, y + .11, 0, 20, 14); } },
+  { id: 'merenda', n: 'Merenda', z: 'giu', w: .18, make(g, x, y) { rbox(g, .17, .07, .12, .02, colorMat('#8FB9A8', .6), x, y, .03); rbox(g, .175, .02, .125, .01, colorMat('#2E7D5B', .6), x, y + .07, .03); } }
+];
+const ARM_TIPICI = [['libri', 'quaderni', 'zaino'], ['libri', 'borraccia', 'scarpe'], ['raccoglitore', 'libri', 'quaderni'], ['libri', 'flauto', 'pallone'], ['giacca', 'libri', 'merenda'], ['libri', 'astuccio', 'quaderni']];
+const armDentroDi = n => (S.armadiettiDentro || {})[n] || ARM_TIPICI[n % ARM_TIPICI.length];
+// riempie il vano n del gruppo di armadietti g (lockerRow): oggetti in fila da sinistra, stretti se non ci stanno
+function armRiempi(g, n) { const V = g.userData.vani[n]; if (!V) return; const old = g.userData.dentro[n]; if (old) g.remove(old);
+  const d = new THREE.Group(); d.position.set(V.x, V.y0, -.02); g.add(d); g.userData.dentro[n] = d; const ids = armDentroDi(n), spazio = LOCK.w - .05;
+  ['su', 'giu'].forEach(zona => { const its = ids.map(id => ARM_OGG.find(o => o.id === id)).filter(o => o && o.z === zona); if (!its.length) return;
+    const tot = its.reduce((a, o) => a + o.w + .01, -.01), k = tot > spazio && its.length > 1 ? (spazio - its[0].w / 2 - its[its.length - 1].w / 2) / (tot - its[0].w / 2 - its[its.length - 1].w / 2) : 1;
+    let cum = 0; its.forEach((o, i) => { const c = cum + o.w / 2, x0 = its[0].w / 2; o.make(d, -spazio / 2 + x0 + (c - x0) * k, zona === 'su' ? .312 : 0); cum += o.w + .01; }); }); }
+
+// ante: si muovono verso aperto o chiuso; il contenuto si costruisce quando un'anta si apre
+{ const _t = tickAnims; tickAnims = function (dt) { _t.apply(this, arguments); const L = CORR.lockers; if (!L || !L.visible) return; const A = L.userData.ante, k = Math.min(1, (dt || .016) * 7);
+    for (const n in A) { const tgt = ARM.aperti.has(+n) ? ARM_ANTA : 0, p = A[n]; if (tgt && !L.userData.dentro[n]) armRiempi(L, +n); if (Math.abs(p.rotation.y - tgt) > .001) p.rotation.y += (tgt - p.rotation.y) * k; } }; }
+// quale armadietto e' sotto il puntatore (RC gia' impostato): l'anta porta il numero, il resto si ricava dalla colonna e dal vano
+function armColpito() { const L = CORR.lockers; if (!L || !L.visible) return null; const h = RC.intersectObject(L, true)[0]; if (!h) return null;
+  for (let o = h.object; o && o !== L; o = o.parent) if (o.userData.lk) return { n: o.userData.lk, dist: h.distance };
+  const K = LOCK, p = L.worldToLocal(h.point.clone()), c = clamp(Math.round(p.x / K.w + (K.cols - 1) / 2), 0, K.cols - 1), tr = p.y > K.base + .02 + K.tier + .015 ? 1 : 0;
+  return { n: c * 2 + (1 - tr) + 1, dist: h.distance }; }
+window.addEventListener('pointerdown', ev => { ARM.giu = renderer && ev.target === renderer.domElement ? { x: ev.clientX, y: ev.clientY, mode: PTR.mode } : null; }); // dopo onDown (che e' sul canvas)
+document.addEventListener('pointerup', ev => { const D = ARM.giu; ARM.giu = null;
+  if (!D || ev.target !== renderer.domElement || ev.button !== 0 || PTR.placing || D.mode === 'drag' || Math.hypot(ev.clientX - D.x, ev.clientY - D.y) > 4) return;
+  setNDC(ev); const h = armColpito(); if (!h) return; const it = pickItem(); if (it && it.dist < h.dist - .01) return;
+  ev.stopPropagation(); PTR.down = false; PTR.mode = null; $('#stage').classList.remove('grab'); armClic(h.n); });
+function armClic(n) { const aperto = ARM.aperti.has(n); if (aperto) ARM.aperti.delete(n); else { ARM.aperti.add(n); armRiempi(CORR.lockers, n); }
+  SEL.clear(); WALLSEL.id = null; ARM.sel = aperto ? null : n; refreshSelection(); }
+
+// scheda dell'armadietto aperto
+const ARM_ICON = '<svg class="i" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="1.5"/><path d="M5 12h14M9 5.5h3M9 15.5h3"/></svg>';
+function armPanel() { const n = ARM.sel, box = $('#inspector'), ids = armDentroDi(n), mio = !!(S.armadiettiDentro || {})[n];
+  const chips = zona => ARM_OGG.filter(o => o.z === zona).map(o => `<button class="chip ${ids.includes(o.id) ? 'on' : ''}" data-ao="${o.id}">${o.n}</button>`).join('');
+  box.innerHTML = `<div class="ih"><div class="th" style="display:grid;place-items:center">${ARM_ICON}</div><div><b>Armadietto ${n}</b><span>Corridoio · armadietti all'americana</span></div></div><div class="ib">
+    <div class="why"><b>Cosa ci riponi?</b> Al massimo ${ARM.max} cose: lo spazio e' poco. Sul ripiano libri e oggetti piccoli, sotto quaderni, zaino e scarpe.</div>
+    <div class="field"><label>Sul ripiano</label><div class="chips">${chips('su')}</div></div>
+    <div class="field"><label>Sul fondo</label><div class="chips">${chips('giu')}</div></div>
+    <p class="tiny muted" style="margin:0 0 10px">${mio ? `${ids.length} di ${ARM.max} posti occupati.` : 'Per ora c\'e\' quello che lascia di solito uno studente: cambialo come vuoi.'}</p>
+    <button class="btn small" id="armChiudi">Chiudi l'armadietto</button></div>`;
+  box.classList.add('show');
+  $$('[data-ao]', box).forEach(b => b.onclick = () => { const id = b.dataset.ao, cur = armDentroDi(n).slice(), i = cur.indexOf(id);
+    if (i >= 0) cur.splice(i, 1); else { if (cur.length >= ARM.max) { toast('L\'armadietto e\' pieno: togli qualcosa prima', 'info'); return; } cur.push(id); }
+    S.armadiettiDentro = Object.assign({}, S.armadiettiDentro, { [n]: cur }); armRiempi(CORR.lockers, n); commit('armadietto'); armPanel(); });
+  $('#armChiudi').onclick = () => { ARM.aperti.delete(n); ARM.sel = null; refreshSelection(); }; }
+{ const _ri = renderInspector; renderInspector = function () { if (ARM.sel && (selItems().length || WALLSEL.id || !S.armadietti)) ARM.sel = null;
+    if (ARM.sel) { armPanel(); return; } return _ri.apply(this, arguments); }; }
+{ const _cs = clearSelection; clearSelection = function () { ARM.sel = null; return _cs.apply(this, arguments); }; }
+
+// contenuto nella scena (annulla e ripristina compresi) e nei dati
+{ const _se = serialize; serialize = function () { const s = _se.apply(this, arguments); if (S.armadiettiDentro && Object.keys(S.armadiettiDentro).length) s.armadiettiDentro = JSON.parse(JSON.stringify(S.armadiettiDentro)); return s; }; }
+{ const _rs = restore; restore = function (st) { S.armadiettiDentro = (st && st.armadiettiDentro) ? JSON.parse(JSON.stringify(st.armadiettiDentro)) : {}; const r = _rs.apply(this, arguments), L = CORR.lockers;
+    if (L) Object.keys(L.userData.dentro).forEach(n => armRiempi(L, +n)); return r; }; }
+{ const _br = buildRecord; buildRecord = function () { const r = _br.apply(this, arguments), conta = {};
+    if (S.armadietti) Object.values(S.armadiettiDentro || {}).forEach(ids => ids.forEach(id => conta[id] = (conta[id] || 0) + 1));
+    r.armadiettiContenuto = Object.keys(conta).sort((a, b) => conta[b] - conta[a]).map(k => k + ' ' + conta[k]).join(' | '); return r; }; }
 
 /* =====================================================================
    Avvio, ciclo di rendering, camminata
