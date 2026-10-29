@@ -399,6 +399,49 @@ h1.ix-title em{font-style:normal;color:var(--hi)}
 .ix-cred{font-size:10.5px;color:rgba(255,255,255,.5);max-width:34vw;line-height:1.3;text-align:right}
 @media (max-width:900px){.ix-steps{flex-direction:column}.ix-arrow{display:none}.ix-cred{display:none}}
 @media (prefers-reduced-motion:reduce){#intro *{animation-duration:.01s!important;animation-delay:0s!important}}
+/* ---------- cruscotto del docente (e17_cruscotto.js) ---------- */
+.modal.crus{width:min(1240px,100%);height:calc(100vh - 40px)}
+.cr-head{display:flex;gap:18px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+.cr-filtri{display:flex;gap:10px}
+.cr-filtri label{display:flex;flex-direction:column;font-size:11px;font-family:var(--mono);color:var(--ink-3);gap:3px}
+.cr-filtri select{font-size:14px;padding:6px 8px;border:1.5px solid var(--ink);border-radius:8px;background:var(--card);min-width:110px}
+.cr-wrap{flex:1;min-height:0;display:grid;grid-template-columns:230px 1fr}
+.cr-nav{overflow:auto;border-right:1.5px solid var(--ink);padding:10px 8px;display:flex;flex-direction:column;gap:3px;background:var(--panel)}
+.cr-nav button{display:flex;align-items:center;gap:8px;text-align:left;border:0;background:transparent;border-radius:8px;padding:6px 8px;font-size:13.5px;font-weight:600;color:var(--ink)}
+.cr-nav button:hover{background:var(--line-2)}
+.cr-nav button.on{background:var(--ink);color:var(--paper)}
+.cr-nav button.zero{color:var(--ink-3);font-weight:500}
+.cr-nav button em{margin-left:auto;font-style:normal;font-family:var(--mono);font-size:11px;opacity:.75}
+.cr-dot{display:inline-grid;place-items:center;min-width:34px;height:20px;border-radius:6px;color:#fff;font-family:var(--mono);font-size:10px;font-weight:700;margin-right:8px;flex:none}
+.cr-nav .cr-dot{margin-right:0}
+.cr-main{overflow:auto;padding:16px 22px 22px}
+.cr-h{display:flex;align-items:center;font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:-.5px;margin:0 0 12px}
+.cr-h small,.cr-grid h4 small{font-family:var(--font);font-weight:500;font-size:12px;color:var(--ink-3);margin-left:8px;letter-spacing:0}
+.cr-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.cr-kpi div{background:var(--card);border:1.5px solid var(--ink);border-radius:12px;padding:10px 12px}
+.cr-kpi b{display:block;font-family:var(--display);font-size:28px;font-weight:800;line-height:1}
+.cr-kpi span{font-size:12px;color:var(--ink-3)}
+.cr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.cr-grid section{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
+.cr-grid h4{margin:0 0 8px;font-size:14px;display:flex;align-items:center;gap:6px}
+.cr-grid h4.cr-sub{margin-top:10px;font-size:12.5px}
+.cr-grid .cr-full{grid-column:1/-1}
+.cr-bar{display:grid;grid-template-columns:minmax(0,46%) 1fr 42px;align-items:center;gap:8px;font-size:12.5px;margin:4px 0}
+.cr-bar span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cr-bar i{height:10px;background:var(--line-2);border-radius:6px;overflow:hidden}
+.cr-bar b{display:block;height:100%;border-radius:6px}
+.cr-bar em{font-style:normal;font-family:var(--mono);font-size:11.5px;text-align:right}
+.cr-vuoto{font-size:12.5px;color:var(--ink-3);margin:4px 0}
+.cr-tab{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--card);border:1.5px solid var(--ink);border-radius:12px;overflow:hidden}
+.cr-tab th{text-align:left;font-size:11.5px;font-family:var(--mono);color:var(--ink-3);font-weight:500;padding:8px 10px;border-bottom:1.5px solid var(--ink)}
+.cr-tab td{padding:7px 10px;border-bottom:1px solid var(--line-2)}
+.cr-tab td:first-child{display:flex;align-items:center;font-weight:600}
+.cr-tab td small{color:var(--ink-3)}
+.cr-tab tr[data-crd]{cursor:pointer}
+.cr-tab tr[data-crd]:hover td{background:var(--hi-soft)}
+.cr-tab tr.zero td{color:var(--ink-3)}
+.cr-nota{font-size:12px;color:var(--ink-3);margin:10px 0 0}
+@media (max-width:900px){.cr-wrap{grid-template-columns:1fr}.cr-nav{flex-direction:row;overflow:auto;border-right:0;border-bottom:1.5px solid var(--ink)}.cr-grid{grid-template-columns:1fr}.cr-kpi{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -427,6 +470,7 @@ h1.ix-title em{font-style:normal;color:var(--hi)}
     <button class="iconbtn" id="btnTappeto" title="Musica di sottofondo" aria-pressed="true"><svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
     <button class="iconbtn" id="btnMusic" title="Musica d'ambiente"><svg class="i" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></button>
     <button class="iconbtn" id="btnGuide" title="Guida: come si allestisce un'aula"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+    <button class="iconbtn" id="btnDocente" title="Cruscotto del docente: le scelte degli studenti per disciplina"><svg class="i" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
   </header>
 
   <aside id="store">
@@ -10417,7 +10461,7 @@ function drawLayoutPreviews() { $$('canvas[data-lp]').forEach(c => { const g = c
     if (t.type === 'tavolo-rotondo') { g.beginPath(); g.arc(0, 0, .6 * k, 0, 7); g.fill(); } else g.fillRect(-sz[0] / 2 * k, -sz[1] / 2 * k, sz[0] * k, sz[1] * k); g.restore(); }); }); }
 const PREVIEW_SIZE = { 'banco-lab': [1.8, .75], lavandino: [.55, .9], banco: [.7, .5], 'banco-doppio': [1.3, .5], sedia: [.36, .34], cattedra: [1.3, .7], 'sedia-docente': [.4, .4], pedana: [2.4, 1.2], 'leggio-oratore': [.6, .45], cavalletto: [.6, .5], sgabello: [.34, .34], 'leggio-musica': [.45, .2], pianoforte: [1.3, .35], materassino: [1.9, .95], 'tavolo-rotondo': [1.2, 1.2], pc: [.5, .3] };
 const PRESETS = {
-  ita: [{ name: 'Teatro in anfiteatro', layout: 'anfiteatro', why: 'Gradonate e pedana per leggere ad alta voce e recitare.' }, { name: 'Lettura condivisa in cerchio', layout: 'cerchio', why: 'Ci si guarda negli occhi: ideale per leggere ad alta voce e commentare.' }, { name: 'Scrittura cooperativa', layout: 'isole4', why: 'Gruppi da quattro per scrivere un testo insieme.' }, { name: 'Debate letterario', layout: 'debate', why: 'Due squadre difendono interpretazioni diverse di un testo.' }],
+  ita: [{ name: 'Leggere e recitare sui gradoni', layout: 'anfiteatro', why: 'Gradonate e pedana per leggere ad alta voce e recitare.' }, { name: 'Lettura condivisa in cerchio', layout: 'cerchio', why: 'Ci si guarda negli occhi: ideale per leggere ad alta voce e commentare.' }, { name: 'Scrittura cooperativa', layout: 'isole4', why: 'Gruppi da quattro per scrivere un testo insieme.' }, { name: 'Debate letterario', layout: 'debate', why: 'Due squadre difendono interpretazioni diverse di un testo.' }],
   sto: [{ name: 'Processo alla storia', layout: 'debate', why: 'Accusa e difesa di un personaggio storico, con moderatore.' }, { name: 'Lezione con linea del tempo', layout: 'frontale', why: 'Tutti vedono lo schermo e la linea del tempo.' }, { name: 'Museo della classe', layout: 'libero', why: 'Centro libero per visitare la mostra di gigantografie.' }],
   geo: [{ name: 'Esplorazione immersiva', layout: 'immersiva', why: 'Paesaggi proiettati sulle pareti e visite virtuali con il visore.' }, { name: 'Cartografia a gruppi', layout: 'isole4', ex: { islandTech: 'mappamondo' }, why: 'Un mappamondo per isola: si lavora su carte e atlanti.' }, { name: 'World café sui continenti', layout: 'worldcafe', why: 'Ogni tavolo un continente, i gruppi ruotano.' }, { name: 'Lezione frontale con LIM', layout: 'frontale', why: 'Per presentare carte e dati a tutta la classe.' }],
   mat: [{ name: 'Lezione dialogata alla lavagna', layout: 'frontale', why: 'Tutti rivolti alla lavagna per seguire i passaggi.' }, { name: 'Problem solving a gruppi', layout: 'isole4', why: 'Si ragiona insieme su un problema e si confrontano strategie.' }, { name: 'Verifica', layout: 'verifica', why: 'Banchi distanziati per lavorare in autonomia.' }],
@@ -11368,7 +11412,7 @@ function finalDebrief() { const A = PERC.data.aule;
     <div class="field"><label>Se potessi cambiare una sola cosa nella tua scuola vera, quale sarebbe?</label><textarea id="fd3" rows="2"></textarea></div></div>
     <footer><button class="btn" id="fdClose">Chiudi</button><button class="btn primary" id="fdSend">Invia il debrief</button></footer>`, 'wide');
   $('#fdClose').onclick = closeModal;
-  $('#fdSend').onclick = async () => { const rec = { schema: 'settingaula-debrief', app: APP_VERSION, inviato: new Date().toISOString(), sessione: 'debrief-' + uid(), classe: S.lesson.classCode, studente: S.lesson.studentCode, disciplinaNome: 'DEBRIEF FINALE', titolo: 'Debrief finale delle 14 aule', motivazioneDisposizione: $('#fd1').value, motivazioneScelte: $('#fd2').value, cambierei: $('#fd3').value, analisi: {}, azioni: {}, viste: {}, pareti: {}, oggetti: Object.keys(DISC).map(d => ({ tipo: 'aula', id: d, nome: (A[d] || {}).aula || '', categoria: 'percorso', motivazione: 'verifiche: ' + ((A[d] || {}).tentativi || 0) })), scena: {} };
+  $('#fdSend').onclick = async () => { const rec = { schema: 'settingaula-debrief', app: APP_VERSION, inviato: new Date().toISOString(), sessione: 'debrief' + uid(), /* senza trattino: Code.gs accetta solo [a-z0-9] */ classe: S.lesson.classCode, studente: S.lesson.studentCode, disciplinaNome: 'DEBRIEF FINALE', titolo: 'Debrief finale delle 14 aule', motivazioneDisposizione: $('#fd1').value, motivazioneScelte: $('#fd2').value, cambierei: $('#fd3').value, analisi: {}, azioni: {}, viste: {}, pareti: {}, oggetti: Object.keys(DISC).map(d => ({ tipo: 'aula', id: d, nome: (A[d] || {}).aula || '', categoria: 'percorso', motivazione: 'verifiche: ' + ((A[d] || {}).tentativi || 0) })), scena: {} };
     try { await postRecord(rec); toast('Debrief inviato', 'ok'); } catch (e) { const ob = getOutbox(); ob.push(rec); localStorage.setItem('settingaula.outbox', JSON.stringify(ob)); toast('Debrief salvato: verra\' inviato appena possibile', 'info'); } closeModal(); };
 }
 
@@ -12030,7 +12074,7 @@ addEventListener('pointerdown', tapFirst, true); addEventListener('keydown', tap
    allestimento all'altro (applyLayout) e lo schermo della classe mostra la
    disciplina. Tre atti: l'idea (ogni disciplina ha il suo ambiente di
    apprendimento), la carrellata dei setting, la consegna (arredare le 14
-   aule). Circa 70 s, sul tappeto musicale intro.mp3 (TAP in e15_musica.js),
+   aule). Circa 75 s, sul tappeto musicale intro.mp3 (TAP in e15_musica.js),
    che riparte dall'inizio e poi continua piano sotto l'app.
    Parte da sola a ogni avvio della pagina (la copertina aspetta un clic) e
    si riapre dal pulsante con lo schermo nella barra in alto. Esc o "Salta" chiudono; le frecce
@@ -12040,7 +12084,8 @@ addEventListener('pointerdown', tapFirst, true); addEventListener('keydown', tap
    Testi: accenti come entita' HTML (il sorgente resta ASCII, come gli altri moduli).
    ===================================================================== */
 const INTRO = { on: false, play: false, t: 0, i: -1, el: null, snap: null, meta: null, cam: null, goal: null, guide: false };
-const INTRO_SETS = [['ita', 'anfiteatro'], ['sto', 'debate'], ['geo', 'immersiva'], ['sci', 'labscienze'], ['art', 'atelier'], ['mus', 'orchestra'], ['mot', 'libero'], ['rel', 'cerchio'], ['tec', 'openspace']];
+// dal setting piu' vicino alla solita aula (banchi e sedie che si spostano) a quelli piu' diversi
+const INTRO_SETS = [['ing', 'ferro'], ['sto', 'debate'], ['ita', 'anfiteatro'], ['geo', 'immersiva'], ['sci', 'labscienze'], ['art', 'atelier'], ['mus', 'orchestra'], ['mot', 'libero'], ['rel', 'cerchio'], ['tec', 'openspace']];
 const IX_ICON = {
   play: '<svg class="i" viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z" style="fill:currentColor"/></svg>',
   intro: '<svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M10 8.2v5.6l4.8-2.8z"/></svg>',
@@ -12067,9 +12112,9 @@ function ixScenes() {
       html: () => `<div class="ix-center"><div class="ix-ring">${Object.entries(DISC).map(([k, v], i, a) => { const an = i / a.length * Math.PI * 2 - Math.PI / 2;
           return `<span class="ix-chip" style="--x:${(50 + Math.cos(an) * 41).toFixed(1)}%;--y:${(50 + Math.sin(an) * 40).toFixed(1)}%;--c:${v.c};animation-delay:${(1.6 + i * .09).toFixed(2)}s"><b>${v.s}</b>${esc(v.n)}</span>`; }).join('')}</div>
         <div class="ix-kick">L'idea</div><h1 class="ix-mid">${ixWords('E se ogni disciplina avesse il suo *ambiente* *di* *apprendimento?*', .2, .08)}</h1></div>` }];
-  sets.forEach((p, k) => sc.push({ id: 'set', act: 1, dur: 3.9, set: p, n: k + 1, N,
-    cam: p.layout === 'immersiva' ? { phi: 1.08, r: 7.2, spin: .2, tx: 0, ty: 1, tz: 0, fov: 54 } : { phi: k % 2 ? .78 : .95, r: k % 2 ? 10.5 : 9.2, spin: k % 2 ? -.17 : .17, tx: 0, ty: .3, tz: 0, fov: 46 },
-    html: () => `<div class="ix-top"><div class="ix-kick">Un setting per ogni disciplina</div></div>
+  sets.forEach((p, k) => sc.push({ id: 'set', act: 1, dur: k ? 3.9 : 5.4, set: p, n: k + 1, N,
+    cam: !k ? { phi: .62, r: 11.5, spin: .07, tx: 0, ty: .2, tz: 0, fov: 46 } : p.layout === 'immersiva' ? { phi: 1.08, r: 7.2, spin: .2, tx: 0, ty: 1, tz: 0, fov: 54 } : { phi: k % 2 ? .78 : .95, r: k % 2 ? 10.5 : 9.2, spin: k % 2 ? -.17 : .17, tx: 0, ty: .3, tz: 0, fov: 46 },
+    html: () => `<div class="ix-top"><div class="ix-kick">${k ? 'Un setting per ogni disciplina' : 'Si comincia spostando banchi e sedie'}</div></div>
       <div class="ix-third" style="--c:${DISC[p.d].c}"><div class="ix-disc"><b>${DISC[p.d].s}</b>${esc(DISC[p.d].n)}<span>${String(k + 1).padStart(2, '0')} / ${String(N).padStart(2, '0')}</span></div>
         <h2>${esc(p.name)}</h2><p>${esc(p.why)}</p></div>` }));
   sc.push({ id: 'consegna', act: 2, dur: 12, cam: { phi: .5, r: 12, spin: .07, tx: 0, ty: 0, tz: 0, fov: 44 },
@@ -12147,6 +12192,76 @@ function closeIntro() { if (!INTRO.on) return; INTRO.on = false; INTRO.play = fa
 { const _st = stepFly; stepFly = function (dt) { if (INTRO.on) { ixStep(dt); return true; } return _st.apply(this, arguments); }; }
 
 /* =====================================================================
+   Cruscotto del docente: le scelte degli studenti aggregate per
+   disciplina, da discutere anche in classe. Si apre dal pulsante con il
+   grafico nella barra in alto, senza chiave.
+   Per questo contiene SOLO scelte tecniche: disposizione, arredi e
+   tecnologie del catalogo, gigantografie, musica, metodologia, risposte
+   da 1 a 5, esito dell'architetto e norme. Mai le frasi scritte dagli
+   studenti (motivazioni, riflessioni, debrief, nome dell'aula) ne' i
+   codici studente: Code.gs (versione 4, datiCruscotto) non li manda.
+   Conta l'ultima aula consegnata da ogni studente per ogni disciplina.
+   Il cruscotto non mostra ne' fa cambiare l'indirizzo dello script.
+   ===================================================================== */
+const CRUS = { dati: null, vista: 'panoramica', classe: '', anno: '' };
+const CR_NORME = { affollamento: 'Affollamento', superficie: 'Spazio per studente', porta: 'Porta sgombra', esodo: 'Percorso da 90 cm', posti: 'Ogni posto raggiungibile', carrozzina: 'Spazio per una carrozzina', fissaggio: 'Arredi alti contro il muro', luce: 'Finestre libere', vr: 'Area dei visori', differenziata: 'Raccolta differenziata' };
+const CR_ERR = { 'consegna non valida': 'Lo script pubblicato e\' ancora alla versione 3: incolla Code.gs versione 4 e pubblica una nuova versione.' };
+const crSplit = s => String(s || '').split(' | ').map(x => x.trim()).filter(Boolean);
+const crDisc = nome => Object.keys(DISC).find(k => DISC[k].n === nome);
+const crOk = r => /^approvata/.test(String(r.architettoEsito || ''));
+const crPct = (a, b) => b ? Math.round(a / b * 100) + '%' : '-';
+function crAvg(rows, k) { const v = rows.map(r => +r[k]).filter(x => x > 0); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; }
+function crTop(rows, get, n = 6) { const c = {}; rows.forEach(r => new Set(get(r)).forEach(x => { if (x) c[x] = (c[x] || 0) + 1; })); return Object.entries(c).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, n); }
+function crBars(list, tot, col, fmt = v => v) { if (!list.length) return '<p class="cr-vuoto">Ancora nessun dato</p>';
+  return list.map(([k, v]) => `<div class="cr-bar"><span title="${esc(k)}">${esc(k)}</span><i><b style="width:${Math.max(3, Math.round(v / tot * 100))}%;background:${col}"></b></i><em>${fmt(v)}</em></div>`).join(''); }
+const crAll = () => CRUS.dati.righe.map(r => Object.fromEntries(CRUS.dati.colonne.map((c, i) => [c, r[i]]))).filter(r => crDisc(r.disciplina));
+const crRows = () => crAll().filter(r => (!CRUS.classe || String(r.classe) === CRUS.classe) && (!CRUS.anno || String(r.annoCurricolo) === CRUS.anno));
+function crPanoramica(rows) {
+  return `<h3 class="cr-h">Tutte le discipline</h3><table class="cr-tab"><thead><tr><th>Disciplina</th><th>Aule</th><th>Disposizione piu' scelta</th><th>Approvate</th><th>La vorrebbero spesso cosi'</th><th>Tempo medio</th></tr></thead><tbody>${
+    Object.keys(DISC).map(k => { const R = rows.filter(r => crDisc(r.disciplina) === k), top = crTop(R, r => [r.disposizioneRilevata], 1)[0], des = crAvg(R, 'lk_desiderio'), t = crAvg(R, 'durataSec');
+      return `<tr data-crd="${k}" class="${R.length ? '' : 'zero'}"><td><span class="cr-dot" style="background:${DISC[k].c}">${DISC[k].s}</span>${esc(DISC[k].n)}</td><td>${R.length}</td><td>${top ? esc(top[0]) + ` <small>${crPct(top[1], R.length)}</small>` : '-'}</td><td>${crPct(R.filter(crOk).length, R.length)}</td><td>${des ? des.toFixed(1) + ' / 5' : '-'}</td><td>${t ? Math.round(t / 60) + ' min' : '-'}</td></tr>`; }).join('')}</tbody></table>
+    <p class="cr-nota">Conta l'ultima aula consegnata da ogni studente per ogni disciplina. Clicca una disciplina per vedere le scelte.</p>`; }
+function crDisciplina(k, rows) { const R = rows.filter(r => crDisc(r.disciplina) === k), n = R.length, col = DISC[k].c;
+  const head = `<h3 class="cr-h"><span class="cr-dot" style="background:${col}">${DISC[k].s}</span>${esc(DISC[k].n)}</h3>`;
+  if (!n) return head + `<p class="cr-vuoto">Nessuna aula consegnata per questa disciplina${CRUS.classe || CRUS.anno ? ' con questi filtri' : ''}.</p>`;
+  const tent = crAvg(R, 'architettoTentativi'), t = crAvg(R, 'durataSec');
+  const lk = LIKERT.map(([kk, txt]) => [txt, crAvg(R, 'lk_' + kk)]).filter(x => x[1] != null);
+  const mus = crTop(R, r => [r.musica], 3).map(([id, v]) => [(typeof musFind === 'function' && musFind(id) || {}).titolo || id, v]);
+  const sic = crTop(R, r => crSplit(r.sicurezzaDaRivedere).map(c => CR_NORME[c] || c)), lim = crTop(R, r => crSplit(r.sicurezzaAlLimite).map(c => CR_NORME[c] || c));
+  return head + `<div class="cr-kpi"><div><b>${n}</b><span>aule consegnate</span></div><div><b>${crPct(R.filter(crOk).length, n)}</b><span>approvate dall'architetto</span></div><div><b>${tent ? tent.toFixed(1) : '-'}</b><span>verifiche in media</span></div><div><b>${t ? Math.round(t / 60) : '-'}</b><span>minuti in media</span></div></div>
+    <div class="cr-grid">
+      <section><h4>Disposizioni</h4>${crBars(crTop(R, r => [r.disposizioneRilevata]), n, col, v => crPct(v, n))}</section>
+      <section><h4>Come si sentirebbero <small>media da 1 a 5</small></h4>${lk.length ? lk.map(([txt, v]) => `<div class="cr-bar"><span title="${esc(txt)}">${esc(txt)}</span><i><b style="width:${Math.round(v / 5 * 100)}%;background:${col}"></b></i><em>${v.toFixed(1)}</em></div>`).join('') : '<p class="cr-vuoto">Nessuna risposta</p>'}</section>
+      <section><h4>Arredi <small>aule che li contengono</small></h4>${crBars(crTop(R, r => crSplit(r.elencoArredi)), n, col)}</section>
+      <section><h4>Tecnologie</h4>${crBars(crTop(R, r => crSplit(r.elencoTecnologie)), n, col)}</section>
+      <section><h4>Gigantografie</h4>${crBars(crTop(R, r => crSplit(r.elencoGigantografie)), n, col)}</section>
+      <section><h4>Metodologia e musica</h4>${crBars(crTop(R, r => [r.metodologia], 3), n, col)}${mus.length ? `<h4 class="cr-sub">Musica scelta</h4>${crBars(mus, n, col)}` : ''}</section>
+      <section class="cr-full"><h4>Sicurezza <small>norme da rivedere all'ultima verifica</small></h4>${crBars(sic, n, '#B7791F')}${lim.length ? `<h4 class="cr-sub">Accettate al limite</h4>${crBars(lim, n, '#FFD23F')}` : ''}</section>
+    </div>`; }
+function crusRender() { const rows = crRows(), v = CRUS.vista, cnt = k => rows.filter(r => crDisc(r.disciplina) === k).length;
+  const classi = [...new Set(crAll().map(r => String(r.classe)).filter(Boolean))].sort();
+  const ora = CRUS.dati.aggiornato ? new Date(CRUS.dati.aggiornato).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : '';
+  openModal(`<header class="cr-head"><div><h2>Cruscotto del docente</h2><p>Le scelte degli studenti per disciplina: arredi, tecnologie, immagini, sicurezza. Niente frasi scritte, niente codici.</p></div>
+      <div class="cr-filtri"><label>Classe<select id="crClasse"><option value="">Tutte</option>${classi.map(c => `<option ${c === CRUS.classe ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></label>
+      <label>Anno<select id="crAnno"><option value="">Tutti</option>${[1, 2, 3].map(a => `<option value="${a}" ${String(a) === CRUS.anno ? 'selected' : ''}>${a}ª</option>`).join('')}</select></label></div></header>
+    <div class="cr-wrap"><nav class="cr-nav"><button data-crv="panoramica" class="${v === 'panoramica' ? 'on' : ''}">Panoramica <em>${rows.length}</em></button>
+      ${Object.keys(DISC).map(k => `<button data-crv="${k}" class="${v === k ? 'on' : ''} ${cnt(k) ? '' : 'zero'}"><span class="cr-dot" style="background:${DISC[k].c}">${DISC[k].s}</span>${esc(DISC[k].n)}<em>${cnt(k)}</em></button>`).join('')}</nav>
+      <div class="cr-main">${v === 'panoramica' ? crPanoramica(rows) : crDisciplina(v, rows)}</div></div>
+    <footer><span class="left">Aggiornato alle ${ora} · dal foglio della ricerca "La scuola che vorrei"</span><button class="btn" id="crRefresh">Aggiorna</button><button class="btn primary" id="crChiudi">Chiudi</button></footer>`, 'crus');
+  $$('[data-crv]').forEach(b => b.onclick = () => { CRUS.vista = b.dataset.crv; crusRender(); });
+  $$('[data-crd]').forEach(b => b.onclick = () => { CRUS.vista = b.dataset.crd; crusRender(); });
+  $('#crClasse').onchange = e => { CRUS.classe = e.target.value; crusRender(); }; $('#crAnno').onchange = e => { CRUS.anno = e.target.value; crusRender(); };
+  $('#crRefresh').onclick = crusLoad; $('#crChiudi').onclick = closeModal; }
+function crusMsg(msg) { openModal(`<header><h2>Cruscotto del docente</h2><p>Le scelte degli studenti per disciplina.</p></header><div class="mb">${msg ? `<div class="note" style="border-left-color:var(--warn);background:var(--warn-bg)">${esc(msg)}</div>` : '<p class="muted">Carico i dati dal foglio...</p>'}</div>
+    <footer>${msg ? '<button class="btn" id="crRetry">Riprova</button>' : ''}<button class="btn primary" id="crChiudi">Chiudi</button></footer>`, 'narrow');
+  $('#crChiudi').onclick = closeModal; const r = $('#crRetry'); if (r) r.onclick = crusLoad; }
+async function crusLoad() { const b = $('#crRefresh'); if (b) { b.disabled = true; b.textContent = 'Carico...'; } else crusMsg('');
+  try { const r = await fetch(CFG.endpoint, { method: 'POST', body: JSON.stringify({ azione: 'cruscotto' }) }); const d = await r.json();
+    if (!d.ok) { crusMsg(CR_ERR[d.error] || 'Il foglio ha risposto con un errore: ' + d.error); return; } CRUS.dati = d; crusRender(); }
+  catch (e) { if (CRUS.dati) { crusRender(); toast('Nessuna risposta dal foglio: restano i dati di prima', 'warn'); } else crusMsg('Nessuna risposta dal foglio: controlla la connessione e riprova.'); } }
+function crusOpen() { if (CRUS.dati) crusRender(); else crusLoad(); }
+
+/* =====================================================================
    Avvio, ciclo di rendering, camminata
    ===================================================================== */
 function loadBar(p, t) { $('#loadbar').style.width = Math.round(p * 100) + '%'; if (t) $('#loadtxt').textContent = t; }
@@ -12188,7 +12303,7 @@ async function boot() {
   $$('#storeTabs button').forEach(b => b.onclick = () => { STORE.tab = b.dataset.tab; renderStore(); });
   $$('#viewSeg button').forEach(b => b.onclick = () => setView(b.dataset.view));
   $('#btnTour').onclick = startTour; $('#tNext').onclick = () => goStop(TOUR.i + 1); $('#tPrev').onclick = () => goStop(TOUR.i - 1); $('#tEnd').onclick = endTour;
-  $('#btnGuide').onclick = () => { closeModal(); startGuide(0); }; $('#btnMusic').onclick = musPanel; $('#btnIntro').onclick = openIntro; $('#btnTappeto').onclick = tapToggle; tapUI();
+  $('#btnGuide').onclick = () => { closeModal(); startGuide(0); }; $('#btnMusic').onclick = musPanel; $('#btnIntro').onclick = openIntro; $('#btnTappeto').onclick = tapToggle; $('#btnDocente').onclick = crusOpen; tapUI();
   $('#btnPerc').onclick = boardModal; $('#btnFly').onclick = startFly; $('#btnArch').onclick = architectModal; $('#flySkip').onclick = () => endFly(true);
   $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo;
   $('#btnLight').onclick = () => { S.light = S.light === 'giorno' ? 'proiezione' : 'giorno'; setLightMode(S.light); commit('luci'); toast(S.light === 'giorno' ? 'Luci accese' : 'Luci soffuse per la proiezione', 'info'); };
