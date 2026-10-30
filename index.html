@@ -10674,7 +10674,7 @@ function showInfo(it) {
   else { try { pic = `<img src="${thumbFor(it.type, it.v)}" style="object-fit:contain;background:#F3F6FC">`; } catch (x) {} meta = def.sub || ''; body = def.desc ? `<p>${esc(def.desc)}</p>` : ''; }
   if (it.cap) body += `<p><b>${esc(it.cap)}</b></p>`;
   if (it.why) body += `<p class="q">${esc(it.why)}</p>`;
-  card.innerHTML = `<div class="pic">${pic}</div><div class="body"><h4>${esc(it.type === 'studente-tipo' ? (S.avatar.nome || 'Studente tipo') : itemName(it))}</h4><div class="meta">${meta}</div>${body || '<p class="muted">Nessuna motivazione scritta per questo oggetto.</p>'}</div>`;
+  card.innerHTML = `<div class="pic">${pic}</div><div class="body"><h4>${esc(itemName(it))}</h4><div class="meta">${meta}</div>${body || '<p class="muted">Nessuna motivazione scritta per questo oggetto.</p>'}</div>`;
   card.classList.add('show');
 }
 function hideInfo() { $('#infocard').classList.remove('show'); }
@@ -10825,7 +10825,7 @@ function buildRecord() {
     partenza: S.meta.start, durataSec: Math.round((now - S.meta.startedAt) / 1000), azioni: S.meta.actions, disposizioniUsate: S.meta.layouts.map(l => l.id + (l.preset ? '(' + l.preset + ')' : '')).join(' > '), ultimaDisposizioneApplicata: S.meta.lastLayout || '',
     viste: S.meta.views, analisi: a, pareti: WALL_IDS.reduce((o, id) => (o[id] = { colore: WALLS[id].paint, sfondo: WALLS[id].mural || '' }, o), {}), luci: S.light,
     motivazioneDisposizione: S.meta.whyLayout, motivazioneScelte: S.meta.whyWhat, cambierei: S.meta.change, likert: S.meta.likert,
-    studenteTipo: { nome: S.avatar.nome, superpotere: S.avatar.superpotere, casata: (S.avatar.cfg || {}).casa || '', aspetto: (c => ({ genere: c.genere || '', capelli: c.capelli || '', coloreCapelli: c.coloreCapelli || '', casata: c.casa || '', attivita: c.attivita || 'nessuna' }))(S.avatar.cfg || {}), skills: S.avatar.skills, interessi: S.avatar.interessi || [], discPreferite: S.avatar.discPreferite || [], discDifficili: S.avatar.discDifficili || [], partecipazione: S.avatar.partecipazione || {}, ruolo: S.avatar.ruolo || '', stile: S.avatar.stile, bisogni: S.avatar.bisogni, seduta: S.avatar.seduta, nellAula: !!avatarItem() },
+    studenteTipo: { superpotere: S.avatar.superpotere, casata: (S.avatar.cfg || {}).casa || '', aspetto: (c => ({ genere: c.genere || '', capelli: c.capelli || '', coloreCapelli: c.coloreCapelli || '', casata: c.casa || '', attivita: c.attivita || 'nessuna' }))(S.avatar.cfg || {}), skills: S.avatar.skills, interessi: S.avatar.interessi || [], discPreferite: S.avatar.discPreferite || [], discDifficili: S.avatar.discDifficili || [], partecipazione: S.avatar.partecipazione || {}, ruolo: S.avatar.ruolo || '', stile: S.avatar.stile, bisogni: S.avatar.bisogni, seduta: S.avatar.seduta, nellAula: !!avatarItem() },
     oggetti: objects, scena: stripNames(serialize()) };
 }
 function getOutbox() { try { return JSON.parse(localStorage.getItem('settingaula.outbox') || '[]'); } catch (e) { return []; } }
@@ -10873,7 +10873,7 @@ async function exportPDF() {
   if (!imgs.length) { doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.text('Nessuna immagine appesa.', 12, y); y += 8; }
   imgs.forEach(i => { if (y > 250) { doc.addPage(); y = 16; } doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.text(itemName(i) + (i.type === 'giant' && giantInfo(i).date ? ' (' + giantInfo(i).date + ')' : ''), 12, y); y += 5;
     doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); if (i.cap) { doc.setTextColor(90); doc.text(doc.splitTextToSize('Didascalia: ' + i.cap, 186), 12, y); y += 5; } doc.setTextColor(26, 34, 51); const w = doc.splitTextToSize('Motivazione: ' + (i.why || 'non scritta'), 186); doc.text(w, 12, y); y += w.length * 4.5 + 4; });
-  if (S.avatar && (S.avatar.nome || avatarItem())) { if (y > 200) { doc.addPage(); y = 16; } y += 4; doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.text('Lo studente tipo: ' + (S.avatar.nome || 'senza nome'), 12, y); y += 4;
+  if (S.avatar && (avatarItem() || S.avatar.superpotere)) { if (y > 200) { doc.addPage(); y = 16; } y += 4; doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.text('Lo studente tipo', 12, y); y += 4;
     const snap = avatarSnapshot(); if (snap) doc.addImage(snap, 'PNG', 12, y, 44, 37); doc.addImage(radarDataURL(), 'PNG', 58, y, 52, 45); doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
     const lines = [S.avatar.superpotere ? 'Superpotere: ' + S.avatar.superpotere : '', S.avatar.stile.length ? 'Impara meglio: ' + S.avatar.stile.join(', ') : '', S.avatar.bisogni.length ? 'Ha bisogno di: ' + S.avatar.bisogni.join(', ') : '', S.avatar.seduta && CAT[S.avatar.seduta] ? 'Seduta preferita: ' + CAT[S.avatar.seduta].name : '', (S.avatar.interessi || []).length ? 'Interessi: ' + S.avatar.interessi.join(', ') : '', S.avatar.ruolo ? 'Ruolo nel gruppo: ' + S.avatar.ruolo : '', S.avatar.partecipazione ? 'Partecipazione: ' + PARTECIPAZIONE.map(([k, n]) => n + ' ' + S.avatar.partecipazione[k] + '/5').join('; ') : ''].filter(Boolean);
     let yy = y + 4; lines.forEach(t => { const w = doc.splitTextToSize(t, 84); doc.text(w, 114, yy); yy += w.length * 4.4 + 1.5; }); y += 50; }
@@ -10919,7 +10919,8 @@ const INTERESSI = ['Sport', 'Musica', 'Disegno e arte', 'Lettura', 'Videogiochi'
 const PARTECIPAZIONE = [['interviene', 'Interviene durante la lezione'], ['gruppo', 'Lavora bene in gruppo'], ['domande', 'Fa domande quando non capisce'], ['aiuta', 'Aiuta i compagni'], ['compiti', 'Porta a termine i compiti']];
 const RUOLI = ['Leader', 'Mediatore', 'Esperto', 'Creativo', 'Organizzatore', 'Portavoce', 'Osservatore attento', 'Aiutante'];
 S.avatar = { cfg: null, nome: '', superpotere: '', skills: SKILLS.reduce((o, [k]) => (o[k] = 3, o), {}), stile: [], bisogni: [], seduta: '', interessi: [], discPreferite: [], discDifficili: [], partecipazione: PARTECIPAZIONE.reduce((o, [k]) => (o[k] = 3, o), {}), ruolo: '' };
-function normAvatar(A) { ['stile', 'bisogni', 'interessi', 'discPreferite', 'discDifficili'].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); if (!A.partecipazione) A.partecipazione = PARTECIPAZIONE.reduce((o, [k]) => (o[k] = 3, o), {}); if (!A.skills) A.skills = SKILLS.reduce((o, [k]) => (o[k] = 3, o), {}); A.ruolo = A.ruolo || ''; return A; }
+// lo studente tipo non ha un nome (tolto il 30/10/2026: un nome puo' diventare uno strumento di scherno); si cancella anche dai vecchi salvataggi
+function normAvatar(A) { delete A.nome; ['stile', 'bisogni', 'interessi', 'discPreferite', 'discDifficili'].forEach(k => { if (!Array.isArray(A[k])) A[k] = []; }); if (!A.partecipazione) A.partecipazione = PARTECIPAZIONE.reduce((o, [k]) => (o[k] = 3, o), {}); if (!A.skills) A.skills = SKILLS.reduce((o, [k]) => (o[k] = 3, o), {}); A.ruolo = A.ruolo || ''; return A; }
 function avatarReady() { return !!(window.AVATAR && AVATAR.build); }
 function avatarCfg() { if (!S.avatar.cfg && avatarReady()) S.avatar.cfg = JSON.parse(JSON.stringify(AVATAR.DEFAULT)); return S.avatar.cfg; }
 CAT['studente-tipo'] = { id: 'studente-tipo', name: 'Studente tipo', cat: 'studente', sub: 'Studente tipo', place: 'floor', faces: 'display', desc: 'Lo studente per cui hai progettato l\'aula.',
@@ -10961,10 +10962,9 @@ function renderStudentStore(tools, body) {
   const A = normAvatar(S.avatar), cfg = avatarCfg(); const inScene = !!avatarItem();
   const dchips = (attr, arr) => `<div class="chips">${Object.entries(DISC).map(([k, d]) => `<button class="chip ${arr.includes(k) ? 'on' : ''}" data-${attr}="${k}">${esc(d.n)}</button>`).join('')}</div>`;
   const seats = Object.keys(SEAT_STARS).filter(id => CAT[id] && !['sedia-docente'].includes(id));
-  body.innerHTML = `<div class="avwrap"><canvas id="avCanvas"></canvas><span class="tag" id="avTag">${esc(A.nome || 'Studente tipo')}</span><span class="hint">trascina per ruotare</span></div>
+  body.innerHTML = `<div class="avwrap"><canvas id="avCanvas"></canvas><span class="tag" id="avTag">Studente tipo</span><span class="hint">trascina per ruotare</span></div>
     <div class="row" style="gap:6px;margin-bottom:6px"><button class="btn small primary" id="avPlace">${inScene ? 'Sposta al centro' : 'Metti nell\'aula'}</button><button class="btn small" id="avSit">Fai sedere</button></div>
     ${inScene ? `<button class="btn small ghost" id="avRemove" style="margin-bottom:6px">Togli dall'aula</button>` : ''}
-    <div class="field"><label>Come si chiama? (nome inventato)</label><input id="avName" maxlength="24" value="${esc(A.nome)}" placeholder="Es. Leo, Mia, Sam..."></div>
     <div class="field"><label>Il suo superpotere a scuola</label><input id="avPower" maxlength="70" value="${esc(A.superpotere)}" placeholder="Es. trova sempre un modo nuovo di risolvere i problemi"></div>
     <div class="avsec"><b>Il suo aspetto</b><div class="chips">${[['ragazzo', 'Ragazzo'], ['ragazza', 'Ragazza']].map(([k, n]) => `<button class="chip ${cfg.genere === k ? 'on' : ''}" data-gen="${k}">${n}</button>`).join('')}</div>
       <div class="field" style="margin:10px 0 0"><label>Colore dei capelli</label><div class="chips">${AVATAR.OPTIONS.coloreCapelli.map(c => `<button class="chip ${cfg.coloreCapelli === c.id ? 'on' : ''}" data-hc="${c.id}"><i style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;background:${c.c}"></i>${esc(c.n)}</button>`).join('')}</div></div></div>
@@ -10998,7 +10998,6 @@ function renderStudentStore(tools, body) {
   $$('[data-hc]', body).forEach(b => b.onclick = () => { cfg.coloreCapelli = b.dataset.hc; $$('[data-hc]', body).forEach(x => x.classList.toggle('on', x.dataset.hc === cfg.coloreCapelli)); changed(true); });
   $$('[data-att]', body).forEach(b => b.onclick = () => { cfg.attivita = b.dataset.att; $$('[data-att]', body).forEach(x => x.classList.toggle('on', x.dataset.att === cfg.attivita)); changed(true); });
   $$('[data-casa]', body).forEach(b => b.onclick = () => { cfg.casa = cfg.casa === b.dataset.casa ? '' : b.dataset.casa; $$('[data-casa]', body).forEach(x => x.classList.toggle('on', x.dataset.casa === cfg.casa)); changed(true); });
-  $('#avName').oninput = e => { A.nome = e.target.value; $('#avTag').textContent = A.nome || 'Studente tipo'; changed(false); };
   $('#avPower').oninput = e => { A.superpotere = e.target.value; changed(false); };
   $('#avStudy').onclick = e => { e.preventDefault(); seatStudyModal(); };
   $('#avPlace').onclick = () => { let it = avatarItem(); if (cfg.posa === 'seduto' && cfg.ausilio === 'nessuno') { cfg.posa = 'in-piedi'; rebuildPreview(); }
