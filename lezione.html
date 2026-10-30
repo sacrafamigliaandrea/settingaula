@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La mia lezione · Setting Aula</title>
+<!--
+  Setting Aula, "La mia lezione": il banco di montaggio della lezione che lo studente tiene al posto del professore.
+  Si apre dall'app (index.html) in un riquadro sopra l'aula e parla con l'app tramite window.parent.LEZIONE
+  (contesto, salva, disegna, inScena, chiudi: e27_lezione.js). Aperta da sola mostra solo un avviso.
+  Niente testo libero: lo studente assembla contenuti gia' validati dell'archivio (le gigantografie del curricolo con la
+  loro frase verificata e i crediti, i video della videoteca, le attivita' gia' scritte). Copertina e crediti li mette l'app.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F1ECE2; --panel:#FBF8F1; --card:#FFFDF8; --ink:#1A1712; --ink-2:#4A443A; --ink-3:#857C6D;
+  --line:#DAD2C3; --line-2:#EAE4D8; --acc:#FF5A1F; --hi:#FFD23F; --hi-soft:#FFF4C7; --ok:#1E7A4C; --ok-bg:#E3F2E8; --warn:#B7791F; --warn-bg:#FCF0D9;
+  --hard:3px 3px 0 var(--ink); --display:'Bricolage Grotesque','Instrument Sans',system-ui,sans-serif; --font:'Instrument Sans',system-ui,-apple-system,Segoe UI,Arial,sans-serif; --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --disc:#FF5A1F;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:14px;-webkit-font-smoothing:antialiased}
+button,select{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.45}
+.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{border:1.5px solid var(--ink);background:var(--card);padding:8px 14px;border-radius:9px;display:inline-flex;align-items:center;gap:8px;font-weight:600}
+.btn:hover:not(:disabled){box-shadow:var(--hard);transform:translate(-1px,-1px)}
+.btn.primary{background:var(--acc)}
+.btn.small{padding:5px 10px;font-size:12.5px;border-radius:8px}
+.app{display:grid;grid-template-rows:auto 1fr;height:100%}
+header{display:flex;align-items:center;gap:14px;padding:12px 18px;background:var(--ink);color:var(--paper)}
+header .dot{display:inline-grid;place-items:center;min-width:44px;height:30px;border-radius:7px;background:var(--disc);color:#fff;font:700 12px var(--mono);padding:0 8px}
+header .tit b{display:block;font:800 20px var(--display);letter-spacing:-.01em}
+header .tit small{color:rgba(241,236,226,.7)}
+header label{display:flex;align-items:center;gap:8px;font:700 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:rgba(241,236,226,.7)}
+header select{max-width:420px;border:1.5px solid rgba(255,255,255,.3);background:#2A2620;color:var(--paper);border-radius:8px;padding:7px 10px;font:600 14px var(--font);text-transform:none;letter-spacing:0}
+header .spacer{flex:1}
+header .btn{background:transparent;color:var(--paper);border-color:rgba(255,255,255,.3)}
+header .btn.primary{background:var(--acc);border-color:var(--acc);color:var(--ink)}
+main{display:grid;grid-template-columns:minmax(330px,1.05fr) minmax(300px,.85fr) minmax(420px,1.5fr);gap:14px;padding:14px;min-height:0}
+section{background:var(--panel);border:1.5px solid var(--ink);border-radius:14px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+section>h2{margin:0;padding:12px 14px 4px;font:800 18px var(--display)}
+section>.sub{padding:0 14px 10px;color:var(--ink-2);font-size:12.5px;line-height:1.4}
+.tabs{display:flex;gap:6px;padding:0 14px 10px;flex-wrap:wrap}
+.tab{border:1.5px solid var(--line);background:var(--card);border-radius:8px;padding:5px 10px;font-weight:600;font-size:12.5px}
+.tab.on{border-color:var(--ink);background:var(--hi)}
+.scroll{overflow:auto;padding:0 14px 14px;min-height:0;flex:1}
+.toggle{display:flex;align-items:center;gap:8px;padding:0 14px 10px;font-size:12.5px;color:var(--ink-2)}
+.card{display:grid;grid-template-columns:92px 1fr;gap:10px;background:var(--card);border:1.5px solid var(--line);border-radius:11px;padding:8px;margin-bottom:8px}
+.card.in{border-color:var(--ok);background:var(--ok-bg)}
+.card .th{width:92px;height:92px;border-radius:8px;background:#E6E0D4 center/cover no-repeat;display:grid;place-items:center;color:var(--ink-3)}
+.card b{display:block;font:700 14px var(--display);line-height:1.2}
+.card .date{font:700 10.5px var(--mono);color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;margin:2px 0 4px}
+.card p{margin:0 0 6px;font-size:12.5px;line-height:1.4;color:var(--ink-2)}
+.card .cred{font:500 10px var(--mono);color:var(--ink-3);margin-bottom:6px}
+.badge{display:inline-block;font:700 10px var(--mono);text-transform:uppercase;letter-spacing:.05em;background:var(--hi);border:1px solid var(--ink);border-radius:5px;padding:1px 6px;margin-bottom:4px}
+.vuoto{color:var(--ink-3);font-size:13px;padding:10px 0;line-height:1.5}
+.seq{list-style:none;margin:0;padding:0}
+.seq li{display:flex;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:7px 8px;margin-bottom:6px;font-size:13px;cursor:pointer}
+.seq li.fissa{background:var(--line-2);cursor:pointer}
+.seq li.sel{border-color:var(--ink);box-shadow:var(--hard)}
+.seq li.drag{opacity:.4}
+.seq li.sopra{border-top:3px solid var(--acc)}
+.seq .n{font:700 11px var(--mono);color:var(--ink-3);min-width:20px}
+.seq .tipo{font:700 9.5px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);display:block}
+.seq .nome{flex:1;min-width:0}
+.seq .nome b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seq .ctl{display:flex;gap:3px}
+.seq .ctl button{border:1.5px solid var(--line);background:var(--card);border-radius:6px;width:28px;height:26px;display:grid;place-items:center;padding:0}
+.seq .ctl button .i{width:14px;height:14px}
+.conta{margin:0 14px 10px;padding:8px 10px;border-radius:9px;font-size:12.5px;line-height:1.4}
+.conta.ok{background:var(--ok-bg);color:var(--ok)}
+.conta.no{background:var(--warn-bg);color:var(--warn)}
+.prev{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0}
+.prev canvas{width:100%;aspect-ratio:16/9;border:6px solid #111;border-radius:10px;background:#111;display:block}
+.prev .nav{display:flex;align-items:center;justify-content:center;gap:10px}
+.prev .nav b{font:700 13px var(--mono);min-width:64px;text-align:center}
+.prev .nota{font-size:12.5px;color:var(--ink-2);line-height:1.45;background:var(--hi-soft);border-left:4px solid var(--hi);border-radius:4px 8px 8px 4px;padding:8px 10px}
+.solo{max-width:560px;margin:15vh auto;background:var(--panel);border:1.5px solid var(--ink);border-radius:14px;padding:24px;box-shadow:var(--hard)}
+.solo h1{font:800 26px var(--display);margin:0 0 8px}
+@media (max-width:1100px){main{grid-template-columns:1fr 1fr}#anteprima{grid-column:1 / -1}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <span class="dot" id="hDot">STO</span>
+    <div class="tit"><b>La mia lezione</b><small id="hSub">disciplina e classe</small></div>
+    <label>Argomento <select id="arg" aria-label="Argomento della lezione"></select></label>
+    <span class="spacer"></span>
+    <button class="btn" id="esci"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>Torna all'aula</button>
+    <button class="btn primary" id="scena"><svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M10 8.2v5.6l4.8-2.8z"/></svg>Va in scena</button>
+  </header>
+  <main>
+    <section id="archivio">
+      <h2>L'archivio</h2>
+      <div class="sub">Contenuti gia' verificati: immagini con la loro frase e i crediti, video scelti dalla scuola, attivita' per i compagni. Aggiungili alla lezione.</div>
+      <div class="tabs" role="tablist"><button class="tab on" data-tab="img">Immagini</button><button class="tab" data-tab="video">Video</button><button class="tab" data-tab="att">Attivita' per i compagni</button></div>
+      <label class="toggle" id="tuttaWrap"><input type="checkbox" id="tutta"> Mostra le immagini di tutta la disciplina</label>
+      <div class="scroll" id="lista"></div>
+    </section>
+    <section id="sequenza">
+      <h2>Le tue slide</h2>
+      <div class="sub">Trascinale o usa le frecce per cambiare l'ordine. Copertina e crediti li mette l'app.</div>
+      <div class="conta" id="conta"></div>
+      <div class="scroll"><ol class="seq" id="seq"></ol></div>
+    </section>
+    <section id="anteprima">
+      <h2>Anteprima</h2>
+      <div class="sub">Cosi' la vedranno i compagni sullo schermo del tuo setting.</div>
+      <div class="prev">
+        <canvas id="cv" width="1280" height="720" aria-label="Anteprima della slide"></canvas>
+        <div class="nav"><button class="btn small" id="pPrev" aria-label="Slide precedente"><svg class="i" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button><b id="pNum">1 / 1</b><button class="btn small" id="pNext" aria-label="Slide successiva"><svg class="i" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button></div>
+        <div class="nota">In scena l'aula parte com'e' oggi, si trasforma nel tuo setting e il tuo studente tipo presenta accanto allo schermo. Le parole le metti tu, a voce: le slide mostrano solo contenuti verificati.</div>
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+(function () {
+  const P = window.parent !== window && window.parent.LEZIONE;
+  if (!P) { document.body.innerHTML = '<div class="solo"><h1>La mia lezione</h1><p>Questa pagina si apre dall\'app Setting Aula: allestisci l\'aula, falla approvare dall\'architetto e premi <b>Lezione</b> nella barra in alto.</p></div>'; return; }
+  const $ = s => document.querySelector(s), esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const C = P.contesto(), G = {}; C.giganti.forEach(g => G[g.id] = g);
+  let lez = C.lezione && C.lezione.disc === C.disc ? C.lezione : { disc: C.disc, classe: C.classe, topicId: C.topicId, slides: [] };
+  if (!lez.topicId) { const t = (C.argomenti[C.classe] || [])[0]; lez.topicId = t ? t.id : ''; }
+  let tab = 'img', sel = 0;
+  const ICO = { su: '<svg class="i" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg>', giu: '<svg class="i" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>', via: '<svg class="i" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    piu: '<svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>', ok: '<svg class="i" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>', play: '<svg class="i" viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z"/></svg>' };
+  document.documentElement.style.setProperty('--disc', C.discColore);
+  $('#hDot').textContent = C.discSigla; $('#hDot').style.background = C.discColore;
+  $('#hSub').textContent = `${C.discNome} · classe ${C.classe}ª · setting: ${C.setting}`;
+  // argomenti: quelli della classe per primi, poi le altre classi
+  const sA = $('#arg'), classi = [C.classe, ...[1, 2, 3].filter(k => k !== C.classe)];
+  sA.innerHTML = classi.map(k => `<optgroup label="Classe ${k}ª">${(C.argomenti[k] || []).map(t => `<option value="${esc(t.id)}">${esc(t.titolo)}</option>`).join('')}</optgroup>`).join('');
+  sA.value = lez.topicId; sA.onchange = () => { lez.topicId = sA.value; salva(); disegnaTutto(); };
+  const argomento = () => { for (const k of [1, 2, 3]) { const t = (C.argomenti[k] || []).find(x => x.id === lez.topicId); if (t) return t; } return null; };
+  const contenuti = () => lez.slides.length;
+  const presente = (t, id) => lez.slides.some(s => s.t === t && s.id === id);
+  const deck = () => [{ t: 'copertina' }, ...lez.slides, { t: 'crediti' }];
+  function salva() { lez.agg = Date.now(); P.salva(lez); }
+  function aggiungi(t, id) { if (contenuti() >= C.max || presente(t, id)) return; if (t === 'att' && lez.slides.some(s => s.t === 'att')) return;
+    lez.slides.push({ t, id }); sel = lez.slides.length; salva(); disegnaTutto(); }
+  // ---- archivio
+  function lista() { const L = $('#lista'), pieno = contenuti() >= C.max; $('#tuttaWrap').style.display = tab === 'img' ? '' : 'none';
+    const btn = (t, id, extra) => { const dentro = presente(t, id), attGia = t === 'att' && !dentro && lez.slides.some(s => s.t === 'att');
+      return `<button class="btn small" data-add="${t}|${esc(id)}" ${dentro || pieno || attGia ? 'disabled' : ''}>${dentro ? ICO.ok + 'Nella lezione' : attGia ? 'Una sola attivita\'' : ICO.piu + 'Aggiungi'}</button>${extra || ''}`; };
+    if (tab === 'img') { const arg = argomento(), ids = $('#tutta').checked ? C.giganti.map(g => g.id).sort((a, b) => G[a].nome.localeCompare(G[b].nome)) : (arg ? arg.items : []);
+      const gg = ids.map(id => G[id]).filter(Boolean);
+      L.innerHTML = gg.length ? gg.map(g => `<div class="card${presente('img', g.id) ? ' in' : ''}"><div class="th" style="background-image:url('${esc(g.img && (g.img.mini || g.img.url) || '')}')"></div><div><b>${esc(g.nome)}</b><div class="date">${esc(g.date || '')}</div><p>${esc(g.perche || '')}</p>
+        <div class="cred">${esc(g.img ? [g.img.autore, g.img.lic, g.img.fonte || 'Wikimedia Commons'].filter(Boolean).join(' · ') : '')}</div>${btn('img', g.id)}</div></div>`).join('')
+        : '<div class="vuoto">Per questo argomento non ci sono immagini: scegli un altro argomento o mostra quelle di tutta la disciplina.</div>'; }
+    if (tab === 'video') L.innerHTML = C.video.length ? C.video.map(v => `<div class="card${presente('video', v.id) ? ' in' : ''}"><div class="th" style="background-image:url('${esc(v.poster)}')"></div><div><b>${esc(v.n)}</b><div class="date">${esc(v.d)}</div>
+        <p>Il video parte sullo schermo del setting quando arrivi a questa slide. Serve la connessione a Internet.</p>${btn('video', v.id)}</div></div>`).join('') : '<div class="vuoto">Nella videoteca non ci sono ancora video.</div>';
+    if (tab === 'att') L.innerHTML = C.attivita.slice().sort((a, b) => b.adatta - a.adatta).map(a => `<div class="card${presente('att', a.id) ? ' in' : ''}" style="grid-template-columns:1fr"><div>${a.adatta ? `<span class="badge">Adatta al tuo setting</span>` : ''}<b>${esc(a.n)}</b>
+        <p style="margin-top:4px">${esc(a.t)}</p>${btn('att', a.id)}</div></div>`).join('');
+    L.querySelectorAll('[data-add]').forEach(b => b.onclick = () => { const [t, id] = b.dataset.add.split('|'); aggiungi(t, id); }); }
+  // ---- sequenza
+  const nomeSlide = s => s.t === 'copertina' ? ['Copertina', (argomento() || {}).titolo || 'La lezione'] : s.t === 'crediti' ? ['Crediti', 'Le immagini e i loro autori']
+    : s.t === 'img' ? ['Immagine', (G[s.id] || {}).nome || s.id] : s.t === 'video' ? ['Video', ((C.video.find(v => v.id === s.id)) || {}).n || 'Video'] : ['Attivita\'', ((C.attivita.find(a => a.id === s.id)) || {}).n || ''];
+  let trascina = -1;
+  function sequenza() { const D = deck(), n = contenuti(), ok = n >= C.min;
+    const c = $('#conta'); c.className = 'conta ' + (ok ? 'ok' : 'no'); c.textContent = ok ? `${n} slide di contenuto su ${C.max}: la lezione puo' andare in scena.` : `${n} slide di contenuto: ne servono almeno ${C.min} (al massimo ${C.max}).`;
+    $('#scena').disabled = !ok;
+    $('#seq').innerHTML = D.map((s, i) => { const [tipo, nome] = nomeSlide(s), fissa = s.t === 'copertina' || s.t === 'crediti', k = i - 1;
+      return `<li class="${fissa ? 'fissa' : ''}${i === sel ? ' sel' : ''}" data-i="${i}" ${fissa ? '' : `draggable="true" data-k="${k}"`}><span class="n">${i + 1}</span><span class="nome"><span class="tipo">${tipo}${fissa ? ' · automatica' : ''}</span><b>${esc(nome)}</b></span>
+        ${fissa ? '' : `<span class="ctl"><button data-mv="${k}|-1" aria-label="Sposta su" ${k === 0 ? 'disabled' : ''}>${ICO.su}</button><button data-mv="${k}|1" aria-label="Sposta giu'" ${k === n - 1 ? 'disabled' : ''}>${ICO.giu}</button><button data-rm="${k}" aria-label="Togli">${ICO.via}</button></span>`}</li>`; }).join('');
+    $('#seq').querySelectorAll('li').forEach(li => { li.onclick = e => { if (e.target.closest('button')) return; sel = +li.dataset.i; sequenza(); anteprima(); };
+      if (li.dataset.k == null) return; const k = +li.dataset.k;
+      li.ondragstart = e => { trascina = k; li.classList.add('drag'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(k)); };
+      li.ondragend = () => { trascina = -1; li.classList.remove('drag'); $('#seq').querySelectorAll('.sopra').forEach(x => x.classList.remove('sopra')); };
+      li.ondragover = e => { if (trascina < 0) return; e.preventDefault(); li.classList.add('sopra'); };
+      li.ondragleave = () => li.classList.remove('sopra');
+      li.ondrop = e => { e.preventDefault(); if (trascina < 0 || trascina === k) return; const [m] = lez.slides.splice(trascina, 1); lez.slides.splice(k, 0, m); sel = k + 1; trascina = -1; salva(); disegnaTutto(); }; });
+    $('#seq').querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { const [k, d] = b.dataset.mv.split('|').map(Number), j = k + d; if (j < 0 || j >= lez.slides.length) return; [lez.slides[k], lez.slides[j]] = [lez.slides[j], lez.slides[k]]; sel = j + 1; salva(); disegnaTutto(); });
+    $('#seq').querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { lez.slides.splice(+b.dataset.rm, 1); sel = Math.min(sel, lez.slides.length + 1); salva(); disegnaTutto(); }); }
+  // ---- anteprima: la disegna l'app, con la stessa funzione delle slide sullo schermo 3D
+  function anteprima() { const D = deck(); sel = Math.max(0, Math.min(sel, D.length - 1)); $('#pNum').textContent = `${sel + 1} / ${D.length}`;
+    $('#pPrev').disabled = sel === 0; $('#pNext').disabled = sel === D.length - 1; P.disegna($('#cv'), D[sel], lez, sel, D.length); }
+  $('#pPrev').onclick = () => { sel--; sequenza(); anteprima(); }; $('#pNext').onclick = () => { sel++; sequenza(); anteprima(); };
+  function disegnaTutto() { lista(); sequenza(); anteprima(); }
+  document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { tab = b.dataset.tab; document.querySelectorAll('[data-tab]').forEach(x => x.classList.toggle('on', x === b)); lista(); });
+  $('#tutta').onchange = lista;
+  $('#esci').onclick = () => { salva(); P.chiudi(); };
+  $('#scena').onclick = () => { if (contenuti() < C.min) return; salva(); P.inScena(); };
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { salva(); P.chiudi(); } });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(anteprima);
+  disegnaTutto();
+})();
+</script>
+</body>
+</html>

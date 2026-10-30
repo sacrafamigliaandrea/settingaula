@@ -67,8 +67,8 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
 #topbar .btn,#topbar .seg button{white-space:nowrap;flex:none}
 #topbar .l-short{display:none}
 /* barra compatta sugli schermi stretti: fitTopbar() aggiunge c1, c2, c3 finche' tutto ci sta */
-#topbar.c1 #btnFile .lbl,#topbar.c1 #btnArch .lbl,#topbar.c1 #btnPerc .lbl,#topbar.c1 #btnSvuota .lbl{display:none}
-#topbar.c1 #btnFile,#topbar.c1 #btnArch,#topbar.c1 #btnPerc,#topbar.c1 #btnSvuota{padding:8px 10px}
+#topbar.c1 #btnFile .lbl,#topbar.c1 #btnArch .lbl,#topbar.c1 #btnPerc .lbl,#topbar.c1 #btnSvuota .lbl,#topbar.c1 #btnLezione .lbl{display:none}
+#topbar.c1 #btnFile,#topbar.c1 #btnArch,#topbar.c1 #btnPerc,#topbar.c1 #btnSvuota,#topbar.c1 #btnLezione{padding:8px 10px}
 #topbar.c2 .seg .lbl,#topbar.c2 .brand small{display:none}
 #topbar.c2 .brand{min-width:0}
 #topbar.c2 .seg button{padding:7px 9px}
@@ -310,6 +310,18 @@ svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-widt
 @media (max-width:1100px){#app{grid-template-columns:310px 1fr}.brand{min-width:280px}.grid{grid-template-columns:repeat(2,1fr)}}
 /* ---------- presentazione (e16_intro.js): aula 3D a tutto schermo, tipografia in movimento ---------- */
 body.intro #app{grid-template-columns:0 1fr;grid-template-rows:0 1fr}
+/* La mia lezione (e27_lezione.js): banco di montaggio in un riquadro, poi la scena con la barra delle slide */
+body.lezprep #guideCard,body.lezprep #guideRing,body.lezprep #guideArrow{display:none!important}
+#lezFrame{position:fixed;inset:0;z-index:80;background:rgba(26,23,18,.55);padding:1.6vh 1.2vw}
+#lezFrame iframe{width:100%;height:100%;border:2px solid var(--ink);border-radius:16px;background:var(--paper);box-shadow:var(--hard-l)}
+body.lezione #app{grid-template-columns:0 1fr;grid-template-rows:0 1fr}
+body.lezione #topbar,body.lezione #store{visibility:hidden;overflow:hidden}
+body.lezione #stage>*:not(canvas):not(#ytSchermo),body.lezione #toasts,body.lezione #guideCard,body.lezione #guideRing,body.lezione #guideArrow,body.lezione #musicPanel,body.lezione #inspector{display:none!important}
+#lezBar{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:70;display:flex;align-items:center;gap:12px;background:rgba(26,23,18,.92);color:var(--paper);border-radius:999px;padding:8px 10px 8px 16px;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+#lezBar b{font:700 14px var(--mono);min-width:58px;text-align:center;color:var(--hi)}
+#lezBar .msg{font-weight:600}
+#lezBar .btn{background:transparent;color:var(--paper);border-color:rgba(255,255,255,.3)}
+#lezBar .btn.primary{background:var(--acc);border-color:var(--acc);color:var(--ink)}
 body.intro #topbar,body.intro #store{visibility:hidden;overflow:hidden}
 body.intro #stage>*:not(canvas),body.intro #toasts,body.intro #guideCard,body.intro #guideRing,body.intro #guideArrow,body.intro #musicPanel{display:none!important}
 #intro{position:fixed;inset:0;z-index:150;color:#fff;font-family:var(--font);overflow:hidden;transition:opacity .45s}
@@ -474,6 +486,7 @@ h1.ix-title em{font-style:normal;color:var(--hi)}
     <button class="btn" id="btnPerc" title="Le aule di tutte le discipline"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="m14.5 17.5 2 2 4-4"/></svg><span class="lbl">Le mie aule </span><b style="font-family:var(--mono)">0/14</b></button>
     <button class="btn primary" id="btnFly" title="Esplora l'aula con un volo 3D"><svg class="i" viewBox="0 0 24 24"><path d="M2 12h4l3-8 4 16 3-8h6"/></svg><span class="l-long">Ho finito: volo 3D</span><span class="l-short">Volo 3D</span></button>
     <button class="btn" id="btnArch" title="Sottoponi l'aula alla verifica dell'architetto"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v4M12 7 6 21M12 7l6 14M8.5 15h7"/><circle cx="12" cy="6" r="1.5"/></svg><span class="lbl">Architetto</span></button>
+    <button class="btn" id="btnLezione" style="display:none" title="La mia lezione: preparala con contenuti verificati e mettila in scena nel tuo setting"><svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 8h6M7 11h10"/></svg><span class="lbl">Lezione</span></button>
     <button class="iconbtn" id="btnIntro" title="Presentazione: l'idea, i setting, la consegna"><svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M10 8.2v5.6l4.8-2.8z"/></svg></button>
     <button class="iconbtn" id="btnTappeto" title="Musica di sottofondo" aria-pressed="true"><svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
     <button class="iconbtn" id="btnMusic" title="Musica d'ambiente"><svg class="i" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></button>
@@ -12210,7 +12223,11 @@ const IX_ICON = {
   arch: '<svg viewBox="0 0 24 24"><path d="M12 3v4M12 7 6 21M12 7l6 14M8.5 15h7"/><circle cx="12" cy="6" r="1.5"/></svg>',
   ok: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16.5 9"/></svg>',
   on: '<svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>',
-  off: '<svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="m17 9 5 6M22 9l-5 6"/></svg>' };
+  off: '<svg class="i" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="m17 9 5 6M22 9l-5 6"/></svg>',
+  scegli: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>',
+  componi: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="14" height="10" rx="1.5"/><path d="M7 17h14M7 21h10"/></svg>',
+  scena: '<svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M10 8.2v5.6l4.8-2.8z"/></svg>',
+  torna: '<svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>' };
 // parole che entrano una alla volta; *parola* = evidenziata
 const ixWords = (s, d0 = 0, step = .07) => s.split(' ').map((w, i) => { const hi = /^\*.*\*[.,?]?$/.test(w), txt = w.replace(/\*/g, '');
   return `<span class="w${hi ? ' hi' : ''}" style="animation-delay:${(d0 + i * step).toFixed(2)}s">${txt}</span>`; }).join(' ');
@@ -12239,7 +12256,13 @@ function ixScenes() {
         ['arch', 'Architetto', 'Verifica la sicurezza: porta, percorsi, passaggi, spazio per tutti.'], ['ok', 'Approvata', 'L\'aula entra nella tua raccolta: passa alla disciplina dopo.']]
         .map(([ic, t, x], i) => `<div class="ix-step" style="animation-delay:${(1.2 + i * .5).toFixed(2)}s"><i>${IX_ICON[ic]}</i><b><em>${i + 1}</em>${t}</b><span>${x}</span></div>`).join('<div class="ix-arrow"></div>')}</div>
       <div class="ix-count"><div class="ix-boxes">${Object.values(DISC).map(v => `<i style="--c:${v.c}"></i>`).join('')}</div><b id="ixN">0/14</b><span>aule approvate</span></div></div>` });
-  sc.push({ id: 'fine', act: 2, dur: 0, cam: { phi: .9, r: 11.2, spin: .06, tx: 0, ty: .4, tz: .3, fov: 50 },
+  // la novita': dopo l'aula, la lezione la tiene lo studente (e27_lezione.js)
+  sc.push({ id: 'lezione', act: 3, dur: 11, cam: { phi: 1.18, r: 6.4, spin: .06, tx: 0, ty: 1.1, tz: -1.4, fov: 48 },
+    html: () => `<div class="ix-cons"><div class="ix-kick">Poi, la lezione</div><h1>${ixWords('E la lezione la tieni *tu.*', .15)}</h1>
+      <div class="ix-steps">${[['scegli', 'Scegli', 'Immagini, frasi e video gia\' verificati dall\'archivio della scuola.'], ['componi', 'Componi', 'Metti in ordine le slide: copertina e crediti li aggiunge l\'app.'],
+        ['scena', 'In scena', 'L\'aula diventa il tuo setting e il tuo studente tipo presenta accanto allo schermo.'], ['torna', 'Fine', 'Finite le slide, l\'aula torna com\'e\' oggi.']]
+        .map(([ic, t, x], i) => `<div class="ix-step" style="animation-delay:${(1.2 + i * .5).toFixed(2)}s"><i>${IX_ICON[ic]}</i><b><em>${i + 1}</em>${t}</b><span>${x}</span></div>`).join('<div class="ix-arrow"></div>')}</div></div>` });
+  sc.push({ id: 'fine', act: 3, dur: 0, cam: { phi: .9, r: 11.2, spin: .06, tx: 0, ty: .4, tz: .3, fov: 50 },
     html: () => `<div class="ix-center"><div class="ix-kick">Setting Aula</div><h1>${ixWords('Progetta la scuola che *vorresti.*', .15)}</h1>
       <div class="ix-end"><button class="btn primary" id="ixGo">Inizia ad arredare</button><button class="btn ghost" id="ixAgain">Rivedi</button></div></div>` });
   return sc;
@@ -12258,10 +12281,10 @@ function openIntro() {
   el.innerHTML = `<div class="ix-vign"></div><i class="ix-bar t"></i><i class="ix-bar b"></i><div class="ix-flash"></div><div class="ix-card" id="ixCard"></div>
     <div class="ix-cover"><div class="ix-logo"><svg viewBox="0 0 24 24"><path d="M3 9.5 12 4l9 5.5v9L12 23l-9-4.5z"/><path d="M3 9.5 12 15l9-5.5M12 15v8"/></svg></div>
       <div class="ix-kick">Scuola Sacra Famiglia &middot; Andrea Cerioli</div><h1 class="ix-title">Setting <em>Aula</em></h1>
-      <p class="ix-lead">Un ambiente di apprendimento per ogni disciplina.<br>Lo progetti tu.</p>
+      <p class="ix-lead">Un ambiente di apprendimento per ogni disciplina.<br>Lo progetti tu. E la lezione la tieni tu.</p>
       <button class="btn primary ix-play" id="ixPlay">${IX_ICON.play}Guarda la presentazione</button><small>Circa un minuto, con musica &middot; frecce per andare avanti e indietro</small></div>
     <div class="ix-ctl"><button class="iconbtn" id="ixMute" title="Musica accesa o spenta">${TAP.on ? IX_ICON.on : IX_ICON.off}</button><button class="btn small" id="ixSkip">Salta</button></div>
-    <div class="ix-prog"><div class="ix-acts"><span>L'idea</span><span>I setting</span><span>La consegna</span></div><div class="ix-track"><i id="ixBar"></i></div></div>`;
+    <div class="ix-prog"><div class="ix-acts"><span>L'idea</span><span>I setting</span><span>La consegna</span><span>La lezione</span></div><div class="ix-track"><i id="ixBar"></i></div></div>`;
   document.body.appendChild(el); document.body.classList.add('intro'); INTRO.on = true; INTRO.play = false; INTRO.t = 0; INTRO.i = -1;
   $('#ixPlay', el).onclick = ixPlay; $('#ixSkip', el).onclick = closeIntro; $('#ixMute', el).onclick = tapToggle;
   if (TAP.on) tapLoad(); // comincia a scaricare la musica mentre la copertina aspetta il clic
@@ -12657,7 +12680,8 @@ function buildCorridor() { const C = CORR, root = new THREE.Group(); root.name =
 { const _uw = updateWallVisibility; updateWallVisibility = function (forceAll) { const walk = typeof CAM !== 'undefined' && CAM.mode === 'walk' && !CAM.tween;
     _uw.call(this, forceAll || walk); const C = CORR; if (!C.g) return; const p = camera.position, plan = typeof CAM !== 'undefined' && CAM.mode === 'plan' && !CAM.tween, sez = !forceAll && !walk;
     const vis = (g, st, via) => { g.visible = !via; st.visible = via; };
-    vis(C.lato, C.latoStub, sez); // il muro tra corridoio e aula sta in piedi solo in Visita: nella vista 3D e nella presentazione non copre l'aula vis(C.fin, C.finStub, sez && (plan || p.x < C.XW - .05)); vis(C.fondo, C.fondoStub, sez && (plan || p.z > C.ZB + .05)); vis(C.inizio, C.inizioStub, sez && (plan || p.z < C.ZA - .05)); C.atrio.visible = walk;
+    // il muro tra corridoio e aula sta in piedi solo in Visita: nella vista 3D e nella presentazione non copre l'aula
+    vis(C.lato, C.latoStub, sez); vis(C.fin, C.finStub, sez && (plan || p.x < C.XW - .05)); vis(C.fondo, C.fondoStub, sez && (plan || p.z > C.ZB + .05)); vis(C.inizio, C.inizioStub, sez && (plan || p.z < C.ZA - .05)); C.atrio.visible = walk;
     C.ceil.visible = walk && p.x < ROOM.x0; C.fuori.visible = walk; C.lockers.visible = !!S.armadietti; corrTarga();
     ROOMG.walls.corrAula.hidden = !C.lato.visible; ROOMG.walls.corrFinestre.hidden = !C.fin.visible; }; }
 // Visita: aula, varco della porta con la nicchia, corridoio (gli arredi non fanno da ostacolo, come in aula; gli armadietti si')
@@ -13398,6 +13422,183 @@ function videoDalMagazzino(id) { const V = VIDEOTECA.find(v => v.id === id) || V
     return VIDEO_SCHERMI.includes(c.id) ? h.replace('<div class="nm">', '<span class="badge sui">VIDEO</span><div class="nm">') : h; }; }
 
 /* =====================================================================
+   La mia lezione: dopo il setting lo studente prepara la lezione al posto
+   del professore e la mette in scena nell'aula 3D.
+   - Banco di montaggio: lezione.html, un file a parte aperto in un riquadro
+     sopra l'app (#lezFrame), cosi' l'aula non si perde. Parla con l'app
+     tramite window.LEZIONE: contesto(), salva(lez), disegna(canvas, slide,
+     lez, i, n), inScena(), chiudi().
+   - Niente testo libero e niente validazione del docente: la lezione si
+     compone solo con contenuti gia' validati dell'archivio. Sono le
+     gigantografie del curricolo (immagine, frase verificata, crediti), i video
+     della VIDEOTECA e le attivita' gia' scritte (LEZ_ATTIVITA, quelle adatte
+     al setting in evidenza). L'app aggiunge copertina e crediti.
+   - Da 3 a 8 slide di contenuto, al massimo un'attivita'. Una lezione per
+     disciplina, salvata nel percorso (aulaRec(d).lezione = { disc, classe,
+     topicId, slides: [{ t: 'img'|'video'|'att', id }] }).
+   - In scena: l'aula parte com'e' oggi, si trasforma nel setting dello
+     studente (lezMorph: gli oggetti dello stesso tipo si spostano), lo
+     studente tipo in posa "spiega" sta accanto allo schermo, la camera
+     inquadra dai posti dei compagni e le slide vanno sullo schermo (texture
+     al posto del display). Una slide video fa partire il video sullo stesso
+     schermo (e26_video.js). Finite le slide l'aula torna com'e' oggi; poi
+     "Torna al mio setting" rimette l'aula dello studente. Nessun passo di
+     annulla: si usa restore, mai commit.
+   - Pulsante "Lezione" nella barra in alto e nell'esito dell'architetto: solo
+     per un'aula approvata.
+   - Dati: lezione (sequenza di id, nessun testo), lezioneArgomento,
+     lezioneSlide, lezioniInScena.
+   ===================================================================== */
+const LEZ = { on: false, lez: null, deck: [], i: 0, prima: null, oggi: null, scr: null, cnv: null, tex: null, prof: null, timer: [], bar: null };
+const LEZ_MIN = 3, LEZ_MAX = 8;
+// attivita' per i compagni, gia' scritte; "per" = i setting (analyzeScene().layout) in cui sono piu' adatte
+const LEZ_ATTIVITA = [
+  { id: 'gruppo', n: 'Lavoro di gruppo', t: 'Nel vostro gruppo scegliete l\'immagine che vi ha colpito di piu\' e spiegate perche\' in tre frasi.', per: ['isole di gruppo', 'stazioni', 'tavoli rotondi (world cafe\')', 'cerchi componibili', 'coppie faccia a faccia'] },
+  { id: 'debate', n: 'Due squadre', t: 'Una squadra spiega perche\' questo argomento conta ancora oggi, l\'altra fa domande. Poi ci si scambia i ruoli.', per: ['debate (fronteggiati)'] },
+  { id: 'cerchio', n: 'Giro di parola', t: 'In cerchio, ognuno dice una parola che collega l\'argomento alla sua vita. Poi ne parliamo insieme.', per: ['cerchio', 'ferro di cavallo'] },
+  { id: 'domanda', n: 'Una domanda a testa', t: 'Scrivete sul quaderno una domanda su quello che avete visto: le leggiamo insieme e cerchiamo le risposte nelle slide.', per: ['file frontali', 'platea', 'verifica (distanziati)', 'colloquio orale'] },
+  { id: 'racconta', n: 'Racconta tu', t: 'Chi vuole viene davanti e racconta con parole sue una delle immagini della lezione.', per: ['anfiteatro', 'aula a gradoni', 'setting Acerio', 'open space a zone'] },
+  { id: 'schema', n: 'Fate uno schema', t: 'In coppia preparate uno schema o un disegno che riassuma la lezione in un colpo d\'occhio.', per: ['atelier', 'postazioni alle pareti', 'musica d\'insieme', 'aula attiva', 'spazio libero', 'libera'] },
+  { id: 'quiz', n: 'Quiz a voce', t: 'Chi ha presentato fa tre domande: si risponde per alzata di mano, poi si controlla insieme sulle slide.', per: [] },
+  { id: 'imparato', n: 'Cosa ho imparato', t: 'Ognuno scrive su un foglietto una cosa che ha imparato oggi e la attacca alla lavagna.', per: ['aula immersiva'] }
+];
+const LEZ_ICON = '<svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 8h6M7 11h10"/></svg>';
+function lezArgomento(lez) { const C = (window.CURRICOLO || {})[lez.disc]; if (!C) return null; for (const k of [1, 2, 3]) { const t = (C.classi[k] || []).find(x => x.id === lez.topicId); if (t) return t; } return null; }
+function lezCarica(d) { percLoad(); return aulaRec(d).lezione || null; }
+function lezSalva(lez) { percLoad(); aulaRec(lez.disc).lezione = { disc: lez.disc, classe: lez.classe, topicId: lez.topicId, slides: (lez.slides || []).slice(0, LEZ_MAX).map(s => ({ t: s.t, id: s.id })), agg: Date.now() }; percSave(); }
+function lezSchermo() { return (typeof VIDEO_SCHERMI !== 'undefined' ? VIDEO_SCHERMI : ['tv', 'megaschermo', 'monitor-interattivo', 'lim', 'videowall'])
+  .map(t => S.items.find(i => i.type === t && zonaDi(i) === 'aula' && schermoDi(OBJ.get(i.uid)))).find(Boolean) || null; }
+function lezContesto() { const L = S.lesson, d = L.disc, D = DISC[d], C = (window.CURRICOLO || {})[d] || { classi: {} }, lay = analyzeScene().layout;
+  return { disc: d, discNome: D.n, discColore: D.c, discSigla: D.s, classe: +L.classe || 3, topicId: L.topicId || '', setting: lay, argomenti: C.classi, min: LEZ_MIN, max: LEZ_MAX, lezione: lezCarica(d),
+    giganti: (window.GIGANTI || []).filter(g => (g.disc || []).includes(d)).map(g => ({ id: g.id, nome: g.nome, date: g.date, perche: g.perche, img: g.img })),
+    video: VIDEOTECA.map(v => ({ id: v.id, n: v.n, d: v.d, poster: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg` })),
+    attivita: LEZ_ATTIVITA.map(a => ({ id: a.id, n: a.n, t: a.t, adatta: a.per.includes(lay) })) }; }
+
+// ---- le slide (anteprima in lezione.html e schermo 3D: stessa funzione). fatto() quando arriva un'immagine
+const LEZ_IMG = {};
+function lezImg(url, fatto) { if (!url) return null; const c = LEZ_IMG[url]; if (c && c.ok) return c.im; if (c) { if (fatto) c.attesa.push(fatto); return null; }
+  const im = new Image(), r = LEZ_IMG[url] = { im, ok: false, attesa: fatto ? [fatto] : [] }; im.crossOrigin = 'anonymous';
+  im.onload = () => { r.ok = true; r.attesa.splice(0).forEach(f => f()); }; im.onerror = () => { r.attesa = []; }; im.src = url; return null; }
+function lezCover(g, im, x, y, w, h) { const ar = im.width / im.height; let sw = im.width, sh = im.height, sx = 0, sy = 0; if (ar > w / h) { sw = im.height * w / h; sx = (im.width - sw) / 2; } else { sh = im.width * h / w; sy = (im.height - sh) * .3; } g.drawImage(im, sx, sy, sw, sh, x, y, w, h); }
+function lezDisegna(cnv, sl, lez, i, n, fatto) { const g = cnv.getContext('2d'), W = cnv.width, H = cnv.height, k = W / 1280, D = DISC[lez.disc] || DISC.sto, arg = lezArgomento(lez);
+  const ancora = () => { lezDisegna(cnv, sl, lez, i, n, fatto); if (fatto) fatto(); };
+  const F = (w, px, fam) => `${w} ${Math.round(px * k)}px "${fam || 'Instrument Sans'}", Arial`, X = v => v * k;
+  const piede = (x, chiaro) => { g.font = F(700, 16, 'JetBrains Mono'); g.fillStyle = chiaro ? 'rgba(255,255,255,.72)' : '#857C6D'; g.textAlign = 'left'; g.fillText(`${D.s} · ${D.n.toUpperCase()} · CLASSE ${lez.classe}ª`, x, H - X(30));
+    if (n) { g.textAlign = 'right'; g.fillText(`${i + 1} / ${n}`, W - X(48), H - X(30)); g.textAlign = 'left'; } };
+  g.save(); g.clearRect(0, 0, W, H); g.textBaseline = 'alphabetic'; g.textAlign = 'left';
+  if (sl.t === 'copertina') { const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, D.c); gr.addColorStop(1, shade(D.c, -.38)); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(255,255,255,.08)'; g.beginPath(); g.arc(W * .86, H * .2, X(260), 0, 7); g.fill();
+    g.fillStyle = '#FFD23F'; g.font = F(700, 22, 'JetBrains Mono'); g.fillText('LA LEZIONE DI OGGI', X(80), X(170));
+    g.fillStyle = '#FFFFFF'; g.font = F(800, 78, 'Bricolage Grotesque'); wrapText(g, arg ? arg.titolo : 'La lezione', X(80), X(270), W - X(160), X(86), 3);
+    g.fillStyle = 'rgba(255,255,255,.88)'; g.font = F(600, 30); g.fillText(`${D.n} · classe ${lez.classe}ª`, X(80), H - X(150));
+    g.font = F(500, 24); g.fillStyle = 'rgba(255,255,255,.7)'; g.fillText('Nel setting: ' + analyzeScene().layout, X(80), H - X(108)); piede(X(80), true); }
+  else if (sl.t === 'img') { const gi = (window.GIGANTI_BY_ID || {})[sl.id] || { nome: sl.id, perche: '' }, im = gi.img && lezImg(gi.img.url, ancora), xr = W * .54;
+    g.fillStyle = '#FBF8F1'; g.fillRect(0, 0, W, H); g.fillStyle = '#E6E0D4'; g.fillRect(0, 0, xr, H); if (im) lezCover(g, im, 0, 0, xr, H);
+    g.fillStyle = D.c; g.fillRect(xr, 0, W - xr, X(12));
+    g.fillStyle = D.c; g.font = F(700, 20, 'JetBrains Mono'); g.fillText(String(gi.date || '').toUpperCase(), xr + X(48), X(100));
+    g.fillStyle = '#1A1712'; g.font = F(800, 50, 'Bricolage Grotesque'); const righe = Math.min(3, Math.ceil(g.measureText(gi.nome).width / (W - xr - X(96))) || 1); wrapText(g, gi.nome, xr + X(48), X(160), W - xr - X(96), X(56), 3);
+    g.fillStyle = '#2C2822'; g.font = F(500, 29); wrapText(g, gi.perche || '', xr + X(48), X(190) + righe * X(56), W - xr - X(96), X(40), 7);
+    const cr = gi.img ? [gi.img.autore, gi.img.lic, gi.img.fonte || 'Wikimedia Commons'].filter(Boolean).join(' · ') : '';
+    g.fillStyle = '#857C6D'; g.font = F(500, 15, 'JetBrains Mono'); wrapText(g, cr, xr + X(48), H - X(78), W - xr - X(96), X(20), 2); piede(xr + X(48), false); }
+  else if (sl.t === 'video') { const v = VIDEOTECA.find(x => x.id === sl.id) || { n: 'Video', d: '' }; g.fillStyle = '#10141C'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#FBF8F1'; g.beginPath(); g.arc(W / 2, H * .42, X(78), 0, 7); g.fill(); g.fillStyle = '#10141C'; g.beginPath(); g.moveTo(W / 2 - X(26), H * .42 - X(40)); g.lineTo(W / 2 - X(26), H * .42 + X(40)); g.lineTo(W / 2 + X(42), H * .42); g.closePath(); g.fill();
+    g.fillStyle = '#FBF8F1'; g.textAlign = 'center'; g.font = F(800, 52, 'Bricolage Grotesque'); g.fillText(v.n, W / 2, H * .68); g.font = F(500, 26); g.fillStyle = 'rgba(251,248,241,.7)'; g.fillText((v.d ? v.d + ' · ' : '') + 'il video parte sullo schermo', W / 2, H * .68 + X(48)); piede(X(48), true); }
+  else if (sl.t === 'att') { const a = LEZ_ATTIVITA.find(x => x.id === sl.id) || { n: '', t: '', per: [] }; g.fillStyle = '#FFF4C7'; g.fillRect(0, 0, W, H); g.fillStyle = '#FFD23F'; g.fillRect(0, 0, X(20), H);
+    g.fillStyle = '#E2470F'; g.font = F(700, 22, 'JetBrains Mono'); g.fillText('ORA TOCCA A VOI', X(90), X(150));
+    g.fillStyle = '#1A1712'; g.font = F(800, 70, 'Bricolage Grotesque'); g.fillText(a.n, X(90), X(240)); g.font = F(500, 36); g.fillStyle = '#2C2822'; wrapText(g, a.t, X(90), X(320), W - X(180), X(50), 5); piede(X(90), false); }
+  else if (sl.t === 'crediti') { g.fillStyle = '#FBF8F1'; g.fillRect(0, 0, W, H); g.fillStyle = D.c; g.fillRect(0, 0, W, X(12));
+    g.fillStyle = '#1A1712'; g.font = F(800, 52, 'Bricolage Grotesque'); g.fillText('Crediti delle immagini', X(80), X(120)); let y = X(185);
+    (lez.slides || []).filter(s => s.t === 'img').slice(0, 8).forEach(s => { const gi = (window.GIGANTI_BY_ID || {})[s.id]; if (!gi) return; g.font = F(700, 24); g.fillStyle = '#1A1712'; g.fillText(gi.nome, X(80), y);
+      g.font = F(500, 18, 'JetBrains Mono'); g.fillStyle = '#4A443A'; g.fillText(gi.img ? [gi.img.autore, gi.img.lic, gi.img.fonte || 'Wikimedia Commons'].filter(Boolean).join(' · ') : '', X(80), y + X(26)); y += X(60); });
+    g.font = F(500, 21); g.fillStyle = '#857C6D'; wrapText(g, 'Contenuti dall\'archivio verificato di Setting Aula: immagini e frasi del curricolo, video scelti dalla scuola.', X(80), H - X(90), W - X(160), X(28), 2); piede(X(80), false); }
+  g.restore(); }
+
+// ---- il banco di montaggio in un riquadro sopra l'app
+window.LEZIONE = { contesto: lezContesto, salva: lez => { lezSalva(lez); updatePercBtn(); }, disegna: (cnv, sl, lez, i, n) => lezDisegna(cnv, sl, lez, i, n), inScena: () => { lezChiudi(); lezInScena(); }, chiudi: lezChiudi };
+function lezApri() { if (aulaRec(S.lesson.disc).status !== 'approvata') { toast('Prima fai approvare l\'aula dall\'architetto: poi prepari la lezione', 'info'); return; }
+  if ($('#lezFrame')) return; cancelPlacing(); clearSelection(); hideInfo();
+  const d = document.createElement('div'); d.id = 'lezFrame'; d.innerHTML = '<iframe src="lezione.html" title="La mia lezione"></iframe>'; document.body.appendChild(d); document.body.classList.add('lezprep'); } // lezprep: la guida non copre il riquadro
+function lezChiudi() { const f = $('#lezFrame'); if (f) f.remove(); document.body.classList.remove('lezprep'); updatePercBtn(); }
+
+// ---- in scena
+function lezAspetta(ms, f) { LEZ.timer.push(setTimeout(f, ms)); }
+// dall'aula attuale alla scena "to" (formato serialize): gli oggetti dello stesso tipo si spostano, gli altri spariscono o arrivano; alla fine restore esatto
+function lezMorph(to, dur, fatto) { const pool = {}; let k = 0;
+  OBJ.forEach(e => { if (e.def.place === 'wall' || zonaDi(e.item) !== 'aula') return; (pool[e.item.type] = pool[e.item.type] || []).push(e); });
+  (to.items || []).forEach(t => { const def = defOf(t); if (!def || def.place === 'wall' || zonaDi(t) !== 'aula') return; const arr = pool[t.type] || []; let best = -1, bd = 1e9;
+    arr.forEach((e, j) => { const q = (e.item.x - t.x) ** 2 + (e.item.z - t.z) ** 2; if (q < bd) { bd = q; best = j; } });
+    if (best >= 0) animateTo(arr.splice(best, 1)[0], { x: t.x, z: t.z, ry: t.ry || 0, y: t.y || 0 }, dur, (k++ % 24) * .02);
+    else { const e = addItem(Object.assign({}, t, { uid: uid() })); e.anim = { t: -(k++ % 24) * .02 - dur * .5, dur: .5, kind: 'drop' }; } });
+  Object.values(pool).forEach(arr => arr.forEach(e => removeItem(e.item.uid)));
+  lezAspetta((dur + .7) * 1000, () => { restore(to); if (fatto) fatto(); }); }
+function lezBar(msg) { let b = LEZ.bar; if (!b) { b = LEZ.bar = document.createElement('div'); b.id = 'lezBar'; document.body.appendChild(b); }
+  if (msg === false) { b.remove(); LEZ.bar = null; return; }
+  if (typeof msg === 'string') { b.innerHTML = `<span class="msg">${esc(msg)}</span><button class="btn small" id="lzEsci">Esci</button>`; }
+  else b.innerHTML = `<button class="btn small" id="lzPrev" ${LEZ.i === 0 ? 'disabled' : ''}>&lsaquo; Indietro</button><b>${LEZ.i + 1} / ${LEZ.deck.length}</b><button class="btn small primary" id="lzNext">${LEZ.i === LEZ.deck.length - 1 ? 'Fine' : 'Avanti &rsaquo;'}</button><button class="btn small" id="lzEsci">Esci</button>`;
+  const p = $('#lzPrev'), n = $('#lzNext'); if (p) p.onclick = () => lezMostra(LEZ.i - 1); if (n) n.onclick = lezAvanti; $('#lzEsci').onclick = () => lezEsci(); }
+function lezVista(tgt, pos, dur) { const v = pos.clone().sub(tgt), r = v.length(); CAM.tween = null; CAM.target.copy(tgt); CAM.r = r; CAM.phi = Math.acos(clamp(v.y / r, -1, 1)); CAM.theta = Math.atan2(v.x, v.z); tweenCamera(pos.clone(), tgt.clone(), dur); }
+function lezPanoramica() { lezVista(new THREE.Vector3(0, .3, 0), new THREE.Vector3(6.2, 8.4, 7.6), 1.1); }
+function lezInScena() { const d = S.lesson.disc, lez = lezCarica(d);
+  if (LEZ.on) return; if (!lez || lez.slides.length < LEZ_MIN) { toast(`Prepara almeno ${LEZ_MIN} slide prima di andare in scena`, 'info'); return; }
+  if (!lezSchermo()) { toast('Nel tuo setting non c\'e\' uno schermo: aggiungi una TV, una LIM, un monitor interattivo, un videowall o il mega schermo', 'info'); return; }
+  cancelPlacing(); clearSelection(); hideInfo(); if (CAM.mode !== 'orbit') setView('orbit');
+  Object.assign(LEZ, { on: true, lez, deck: [{ t: 'copertina' }, ...lez.slides, { t: 'crediti' }], i: 0, prima: serialize() }); S.meta.lezioniInScena = (S.meta.lezioniInScena || 0) + 1;
+  document.body.classList.add('lezione'); lezBar('Si apre la lezione: l\'aula com\'e\' oggi...');
+  loadSceneData(sceneAsToday()); LEZ.oggi = serialize(); lezPanoramica();
+  lezAspetta(1900, () => { lezBar('L\'aula si trasforma nel tuo setting...'); lezMorph(LEZ.prima, 1.4, lezPronta); }); }
+// il setting dello studente e' in scena: schermo con le slide, studente tipo che spiega, camera dai posti dei compagni
+function lezPronta() { S.items.forEach(i => delete i.video); videoSync(); const it = lezSchermo(); if (!it) { lezEsci(); return; } LEZ.scr = it;
+  // dopo restore i gruppi nuovi non hanno ancora la posizione nel mondo: si aggiornano le matrici di tutta la scena
+  const e = OBJ.get(it.uid), m = schermoDi(e); scene.updateMatrixWorld(true); LEZ.cnv = LEZ.cnv || makeCanvas(1280, 720); LEZ.tex = canvasTex(LEZ.cnv);
+  m.material = new THREE.MeshBasicMaterial({ map: LEZ.tex, toneMapped: false });
+  const p = m.geometry.parameters, cen = new THREE.Vector3().setFromMatrixPosition(m.matrixWorld), a = new THREE.Vector3(-p.width / 2, 0, 0).applyMatrix4(m.matrixWorld), b = new THREE.Vector3(p.width / 2, 0, 0).applyMatrix4(m.matrixWorld);
+  const w = a.distanceTo(b), nor = new THREE.Vector3(0, 0, 1).transformDirection(m.matrixWorld); nor.y = 0; nor.normalize(); let side = new THREE.Vector3(nor.z, 0, -nor.x);
+  const dentro = q => q.x > ROOM.x0 + .35 && q.x < ROOM.x1 - .35 && q.z > ROOM.z0 + .35 && q.z < ROOM.z1 - .35;
+  let pp = new THREE.Vector3(cen.x, 0, cen.z).addScaledVector(nor, .6).addScaledVector(side, w / 2 + .45); if (!dentro(pp)) { side.negate(); pp = new THREE.Vector3(cen.x, 0, cen.z).addScaledVector(nor, .6).addScaledVector(side, w / 2 + .45); }
+  OBJ.forEach(o => { if (o.item.type === 'studente-tipo') o.group.visible = false; });
+  if (avatarReady()) { const f = nor.clone().multiplyScalar(Math.cos(.5)).addScaledVector(side, -Math.sin(.5)); LEZ.prof = AVATAR.build(Object.assign({}, avatarCfg(), { attivita: 'spiega', posa: 'in-piedi' }));
+    LEZ.prof.position.copy(pp); LEZ.prof.rotation.y = Math.atan2(f.x, f.z); LEZ.prof.traverse(o => { if (o.isMesh) o.castShadow = true; }); scene.add(LEZ.prof); }
+  // inquadratura dai posti dei compagni: schermo e studente tipo interi nel campo visivo della camera (anche in una finestra stretta), un po' sopra i banchi
+  const sx = new THREE.Vector3(cen.x, 0, cen.z).addScaledVector(side, -w / 2 - .15), dx = pp.clone().addScaledVector(side, .45), mid = sx.clone().lerp(dx, .5), span = sx.distanceTo(dx);
+  if (LEZ.fov == null) LEZ.fov = camera.fov; camera.fov = 52; camera.updateProjectionMatrix(); // campo largo come nella presentazione, ripristinato alla fine
+  const vf = THREE.MathUtils.degToRad(camera.fov) / 2, hf = Math.atan(Math.tan(vf) * camera.aspect), alto = Math.max(cen.y + p.height / 2, 2.1), tgt = new THREE.Vector3(mid.x, alto / 2 + .1, mid.z);
+  // la camera resta dentro l'aula, come un compagno dell'ultima fila
+  const fino = ['x', 'z'].reduce((m, c) => nor[c] > .01 ? Math.min(m, (ROOM[c + '1'] - .3 - tgt[c]) / nor[c]) : nor[c] < -.01 ? Math.min(m, (ROOM[c + '0'] + .3 - tgt[c]) / nor[c]) : m, 9);
+  const dist = clamp(Math.max((span / 2 + .45) / Math.tan(hf), (alto / 2 + .35) / Math.tan(vf)), 3, Math.max(3, fino));
+  const pos = tgt.clone().addScaledVector(nor, dist).addScaledVector(side, -.25); pos.y = Math.max(1.45, tgt.y + .25);
+  lezVista(tgt, pos, 1.5); lezMostra(0); }
+function lezMostra(i) { if (!LEZ.on || !LEZ.scr) return; LEZ.i = clamp(i, 0, LEZ.deck.length - 1); const sl = LEZ.deck[LEZ.i];
+  lezDisegna(LEZ.cnv, sl, LEZ.lez, LEZ.i, LEZ.deck.length, () => { if (LEZ.tex) LEZ.tex.needsUpdate = true; }); LEZ.tex.needsUpdate = true;
+  if (sl.t === 'video') { videoImposta(LEZ.scr, sl.id); if (VIDEO.player && VIDEO.pronto) VIDEO.player.playVideo(); else VIDEO.parti = true; }
+  else if (LEZ.scr.video) { VIDEO.parti = false; videoImposta(LEZ.scr, null); }
+  lezBar(); }
+function lezAvanti() { if (LEZ.i < LEZ.deck.length - 1) { lezMostra(LEZ.i + 1); return; } lezFine(); }
+// finite le slide: l'aula torna com'e' oggi, poi si sceglie se rivederla o tornare al proprio setting
+function lezFov() { if (LEZ.fov != null) { camera.fov = LEZ.fov; camera.updateProjectionMatrix(); LEZ.fov = null; } }
+function lezFine() { lezFov(); if (LEZ.scr && LEZ.scr.video) { VIDEO.parti = false; videoImposta(LEZ.scr, null); } if (LEZ.prof) { scene.remove(LEZ.prof); LEZ.prof = null; } LEZ.scr = null;
+  lezBar('Fine della lezione: l\'aula torna com\'e\' oggi...'); lezPanoramica();
+  lezMorph(LEZ.oggi, 1.4, () => { lezBar(false);
+    openModal(`<header><h2>La lezione e' finita</h2><p>L'aula e' tornata com'e' oggi. Ora puoi rivedere la lezione o tornare al tuo setting per continuare a lavorare.</p></header>
+      <footer><button class="btn" id="lzRivedi">Rivedi la lezione</button><button class="btn primary" id="lzTorna">Torna al mio setting</button></footer>`, 'narrow');
+    $('#lzRivedi').onclick = () => { closeModal(); lezEsci(true); lezInScena(); }; $('#lzTorna').onclick = () => { closeModal(); lezEsci(); }; }); }
+function lezEsci(silenzio) { LEZ.timer.splice(0).forEach(clearTimeout); lezFov(); if (LEZ.prof) { scene.remove(LEZ.prof); LEZ.prof = null; } VIDEO.parti = false;
+  if (LEZ.prima) restore(LEZ.prima); LEZ.on = false; LEZ.scr = null; document.body.classList.remove('lezione'); lezBar(false); lezPanoramica(); updatePercBtn();
+  if (!silenzio) toast('Sei tornato al tuo setting', 'ok'); }
+// tastiera in scena: frecce, spazio, Esc (prima delle scorciatoie dell'app)
+window.addEventListener('keydown', ev => { if (!LEZ.on) return; const k = ev.key;
+  if (['ArrowRight', 'ArrowLeft', ' ', 'PageDown', 'PageUp', 'Escape', 'Enter'].includes(k)) { ev.preventDefault(); ev.stopImmediatePropagation(); } else return;
+  if (!LEZ.scr) { if (k === 'Escape') lezEsci(); return; }
+  if (k === 'ArrowRight' || k === ' ' || k === 'PageDown' || k === 'Enter') lezAvanti(); else if (k === 'ArrowLeft' || k === 'PageUp') lezMostra(LEZ.i - 1); else lezEsci(); }, true);
+
+// ---- dove si apre: pulsante "Lezione" (solo per un'aula approvata) ed esito dell'architetto
+{ const _u = updatePercBtn; updatePercBtn = function () { _u.apply(this, arguments); const b = $('#btnLezione'); if (!b) return;
+    const si = aulaRec(S.lesson.disc).status === 'approvata'; if ((b.style.display !== 'none') !== si) { b.style.display = si ? '' : 'none'; if (typeof fitTopbar === 'function') fitTopbar(); } }; }
+{ const _a = architectModal; architectModal = function () { const r = _a.apply(this, arguments); const f = $('#arDebrief');
+    if (f) { f.insertAdjacentHTML('beforebegin', `<button class="btn" id="arLez">${LEZ_ICON}Prepara la lezione</button>`); $('#arLez').onclick = () => { closeModal(); lezApri(); }; } return r; }; }
+{ const _br = buildRecord; buildRecord = function () { const r = _br.apply(this, arguments), L = lezCarica(S.lesson.disc);
+    r.lezione = L ? L.slides.map(s => s.t + ':' + s.id).join(' | ') : ''; r.lezioneArgomento = L ? L.topicId : ''; r.lezioneSlide = L ? L.slides.length : 0; r.lezioniInScena = S.meta.lezioniInScena || 0; return r; }; }
+
+/* =====================================================================
    Avvio, ciclo di rendering, camminata
    ===================================================================== */
 function loadBar(p, t) { $('#loadbar').style.width = Math.round(p * 100) + '%'; if (t) $('#loadtxt').textContent = t; }
@@ -13443,7 +13644,7 @@ async function boot() {
   $('#btnTour').onclick = startTour; $('#tNext').onclick = () => goStop(TOUR.i + 1); $('#tPrev').onclick = () => goStop(TOUR.i - 1); $('#tEnd').onclick = endTour;
   $('#btnGuide').onclick = () => { closeModal(); startGuide(0); }; $('#btnMusic').onclick = musPanel; $('#btnIntro').onclick = openIntro; $('#btnTappeto').onclick = tapToggle; $('#btnDocente').onclick = crusOpen; tapUI();
   $('#btnPerc').onclick = boardModal; $('#btnFly').onclick = startFly; $('#btnArch').onclick = architectModal; $('#flySkip').onclick = () => endFly(true);
-  $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo; $('#btnSvuota').onclick = confermaSvuota;
+  $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo; $('#btnSvuota').onclick = confermaSvuota; $('#btnLezione').onclick = lezApri;
   $('#btnLight').onclick = () => { S.light = S.light === 'giorno' ? 'proiezione' : 'giorno'; setLightMode(S.light); commit('luci'); toast(S.light === 'giorno' ? 'Luci accese' : 'Luci soffuse per la proiezione', 'info'); };
   $('#btnFile').onclick = e => filesMenu(e.currentTarget); $('#lessonChip').onclick = () => lessonModal(false);
   $('#fileImg').onchange = e => { const f = e.target.files[0]; if (f) uploadImage(f); e.target.value = ''; };
