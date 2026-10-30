@@ -10026,6 +10026,16 @@ function baseHeightAt(it, x, z, exclude) {
     const tY = (o.item.y || 0) + top; if (tY > best && insideFootprint(o.item, x, z)) best = tY; });
   return best;
 }
+// punto sotto il cursore per un oggetto da tavolo: il primo piano d'appoggio che il raggio incontra (ripiani, pedane), altrimenti il pavimento.
+// Un piano fisso (prima a 76 cm, o la quota dell'oggetto trascinato) sbaglia il punto sui piani piu' alti o piu' bassi: l'oggetto cadeva a terra.
+// Il piano vale solo se baseHeightAt lo conferma in quel punto (cosi' restano esclusi, ad esempio, i tavoli impilati).
+function puntoAppoggio(it, exclude) {
+  let best = rayPlaneY(0), bd = best ? best.distanceTo(RC.ray.origin) : Infinity;
+  OBJ.forEach(o => { if (o.item === it || (exclude && exclude.has(o.item.uid))) return; const top = o.def.surface || o.def.platform; if (!top) return;
+    const tY = (o.item.y || 0) + top, p = rayPlaneY(tY); if (!p || !insideFootprint(o.item, p.x, p.z)) return; const d = p.distanceTo(RC.ray.origin);
+    if (d < bd && Math.abs(baseHeightAt(it, p.x, p.z, exclude) - tY) < .01) { bd = d; best = p; } });
+  return best;
+}
 function ridersOf(it) { // oggetti appoggiati sopra un mobile (si spostano con lui)
   const def = defOf(it); if (!def.surface && !def.platform) return [];
   const top = (it.y || 0) + (def.surface || def.platform), out = [];
@@ -10133,7 +10143,7 @@ function startDrag(e, point) {
   const plane = (it.y || 0); const p = rayPlaneY(plane) || point;
   const items = Array.from(SEL).map(u => OBJ.get(u)).filter(o => o && o.def.place !== 'wall').map(o => o.item);
   const riders = new Map(); items.forEach(i => ridersOf(i).forEach(r => { if (!items.includes(r)) riders.set(r.uid, { r, parent: i, off: toLocal(i, r.x, r.z), dry: (r.ry || 0) - (i.ry || 0) }); }));
-  PTR.drag = { kind: 'floor', items, plane, p0: p.clone(), orig: items.map(i => ({ i, x: i.x, z: i.z, y: i.y })), riders: Array.from(riders.values()) }; PTR.mode = 'drag';
+  PTR.drag = { kind: 'floor', items, plane, p0: p.clone(), orig: items.map(i => ({ i, x: i.x, z: i.z, y: i.y })), riders: Array.from(riders.values()), appoggio: items.length > 0 && items.every(i => defOf(i).place === 'surface') }; PTR.mode = 'drag';
 }
 function onMove(ev) {
   if (PTR.placing && ev.target === renderer.domElement) { setNDC(ev); movePlacing(); }
@@ -10152,9 +10162,10 @@ function dragMove(ev) {
     if (wh.wall !== it.wall) { it.wall = wh.wall; D.grab = { u: 0, v: 0 }; it.u = l.u; it.vv = l.v; }
     else { it.u = D.start.wall === it.wall ? snapV(D.start.u + (l.u - D.grab.u)) : snapV(l.u); it.vv = D.start.wall === it.wall ? snapV(D.start.vv + (l.v - D.grab.v)) : snapV(l.v); }
     clampItem(it); applyTransform(OBJ.get(it.uid)); D.changed = true; return; }
-  const p = rayPlaneY(D.plane); if (!p) return; let ddx = p.x - D.p0.x, ddz = p.z - D.p0.z;
-  if (SNAP.on) { ddx = Math.round(ddx / SNAP.grid) * SNAP.grid; ddz = Math.round(ddz / SNAP.grid) * SNAP.grid; }
   const ex = new Set(D.items.map(i => i.uid)); D.riders.forEach(r => ex.add(r.r.uid));
+  // gli oggetti da tavolo seguono il piano sotto il cursore (da terra a un banco, da un banco a un tavolo alto); i mobili restano sul loro piano
+  const p = D.appoggio ? puntoAppoggio(D.items[0], ex) : rayPlaneY(D.plane); if (!p) return; let ddx = p.x - D.p0.x, ddz = p.z - D.p0.z;
+  if (SNAP.on) { ddx = Math.round(ddx / SNAP.grid) * SNAP.grid; ddz = Math.round(ddz / SNAP.grid) * SNAP.grid; }
   D.orig.forEach(o => { o.i.x = o.x + ddx; o.i.z = o.z + ddz; clampItem(o.i); o.i.y = baseHeightAt(o.i, o.i.x, o.i.z, ex); applyTransform(OBJ.get(o.i.uid)); });
   moveRiders(D.riders); D.changed = true;
 }
@@ -10185,7 +10196,7 @@ function armPlacing(proto, fromDrag) {
 function movePlacing() {
   const P = PTR.placing, it = P.e.item, def = P.e.def;
   if (def.place === 'wall') { const wh = pickWall(); if (!wh) { P.e.group.visible = false; P.valid = false; return; } const l = wallLocal(wh.wall, wh.point); it.wall = wh.wall; it.u = snapV(l.u); it.vv = snapV(l.v); clampItem(it); }
-  else { const p = rayPlaneY(def.place === 'surface' ? .76 : 0); if (!p) return; it.x = snapV(p.x); it.z = snapV(p.z); clampItem(it); it.y = baseHeightAt(it, it.x, it.z); }
+  else { const p = def.place === 'surface' ? puntoAppoggio(it) : rayPlaneY(0); if (!p) return; it.x = snapV(p.x); it.z = snapV(p.z); clampItem(it); it.y = baseHeightAt(it, it.x, it.z); }
   applyTransform(P.e); P.e.group.visible = true; P.valid = true;
 }
 function finishPlacing(keep) {
