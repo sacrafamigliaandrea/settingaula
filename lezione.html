@@ -139,11 +139,12 @@ section>.sub{padding:0 14px 10px;color:var(--ink-2);font-size:12.5px;line-height
   sA.value = lez.topicId; sA.onchange = () => { lez.topicId = sA.value; salva(); disegnaTutto(); };
   const argomento = () => { for (const k of [1, 2, 3]) { const t = (C.argomenti[k] || []).find(x => x.id === lez.topicId); if (t) return t; } return null; };
   const contenuti = () => lez.slides.length;
+  const dice = id => { if (P.dice) P.dice(id); }; // l'animatore digitale parla nell'app: qui sotto solo le due frasi che spiegano il banco
   const presente = (t, id) => lez.slides.some(s => s.t === t && s.id === id);
   const deck = () => [{ t: 'copertina' }, ...lez.slides, { t: 'crediti' }];
   function salva() { lez.agg = Date.now(); P.salva(lez); }
   function aggiungi(t, id) { if (contenuti() >= C.max || presente(t, id)) return; if (t === 'att' && lez.slides.some(s => s.t === 'att')) return;
-    lez.slides.push({ t, id }); sel = lez.slides.length; salva(); disegnaTutto(); }
+    lez.slides.push({ t, id }); sel = lez.slides.length; salva(); disegnaTutto(); if (contenuti() === C.min) dice('l_pronta'); }
   // ---- archivio
   function lista() { const L = $('#lista'), pieno = contenuti() >= C.max; $('#tuttaWrap').style.display = tab === 'img' ? '' : 'none';
     const btn = (t, id, extra) => { const dentro = presente(t, id), attGia = t === 'att' && !dentro && lez.slides.some(s => s.t === 'att');
@@ -189,6 +190,7 @@ section>.sub{padding:0 14px 10px;color:var(--ink-2);font-size:12.5px;line-height
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { salva(); P.chiudi(); } });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(anteprima);
   disegnaTutto();
+  setTimeout(() => dice(contenuti() >= C.min ? 'l_pronta' : 'l_apri'), 500);
 })();
 </script>
 </body>
