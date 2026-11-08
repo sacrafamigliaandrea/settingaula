@@ -13728,8 +13728,11 @@ function anNastro(id) { const src = AN_VOCI[id], ac = audio(); if (!GSND.on || !
   if (!ANI.nastri[id]) ANI.nastri[id] = fetch(src).then(r => r.arrayBuffer()).then(b => ac.decodeAudioData(b)).catch(() => null);
   const pronto = ac.state === 'running' ? Promise.resolve() : Promise.race([ac.resume().catch(() => {}), new Promise(f => setTimeout(f, 300))]);
   return pronto.then(() => ac.state === 'running' ? ANI.nastri[id] : null); }
+// se l'audio non avanza (cuffie staccate, contesto sospeso, finestra nascosta) onended non arriva: la nota resterebbe aperta, il sottofondo abbassato,
+// il suono della guida muto e la figura in posa da discorso. Dopo la durata della clip e un margine si chiude lo stesso (stessa soluzione di La strada di parole)
 function anSuona(buf, finito) { const ac = audio(), s = ac.createBufferSource(), an = ac.createAnalyser(); an.fftSize = 512; s.buffer = buf; s.connect(an); an.connect(ac.destination);
-  s.onended = () => { if (ANI.src === s) { ANI.src = null; ANI.an = null; finito(); } }; ANI.src = s; ANI.an = an; ANI.dati = new Uint8Array(an.fftSize); s.start(); anAbbassa(); }
+  const fine = () => { if (ANI.src !== s) return; clearTimeout(ANI.tFine); ANI.src = null; ANI.an = null; s.onended = null; try { s.stop(); } catch (e) {} finito(); };
+  s.onended = fine; ANI.src = s; ANI.an = an; ANI.dati = new Uint8Array(an.fftSize); ANI.tFine = setTimeout(fine, (buf.duration + 1.5) * 1000); s.start(); anAbbassa(); }
 // il sottofondo si abbassa solo mentre esce la voce
 { const _w = tapWant; tapWant = function () { const v = _w.apply(this, arguments); return ANI.an ? v * .3 : v; }; }
 function anAbbassa() { if (!TAP.gain || !TAP.ctx || !TAP.src) return; const g = TAP.gain.gain, now = TAP.ctx.currentTime; g.cancelScheduledValues(now); g.setValueAtTime(g.value, now); g.linearRampToValueAtTime(tapWant(), now + .25); }
